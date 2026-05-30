@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" monitorInterval="10">
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %highlight{%-5level} [%20.20t] %cyan{%-40.40c{1.}}:[%mdc{trace_id}/%mdc{span_id}]: %m%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="ru.terentjev" level="debug"/>
+        <Root level="info">
+            <AppenderRef ref="console"/>
+        </Root>
+    </Loggers>
+</Configuration>

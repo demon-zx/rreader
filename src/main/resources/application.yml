@@ -1,0 +1,53 @@
+
+# Значения отмеченные как '<empty>' необходимо заполнить в файле наследнике свойств
+application:
+    name: rreader
+    version: 1.0
+    system: ts
+    domain: <empty>
+    zone-id: Europe/Moscow
+
+management:
+    endpoint:
+        health:
+            show-details: always
+    endpoints:
+        web:
+            exposure:
+                include: health,metrics,loggers
+    metrics:
+        tags:
+            domain: ${application.domain}
+            application: spring-boot
+            hostname: <empty>
+    influx:
+        metrics:
+            export:
+                enabled: false
+
+spring:
+    application:
+        name: ${application.name}
+    datasource:
+        url: jdbc:h2:./books
+        username: reader
+        password: reader
+        driver-class-name: org.h2.Driver
+        validation-query: select now()
+        validation-query-timeout: 5
+        max-idle: 2
+        max-total: 5
+        max-wait-millis: 20000
+
+springdoc:
+    swagger-ui:
+        path: /api/v1/swagger-ui
+    api-docs:
+        path: /api-docs
+
+server:
+    error:
+        include-message: ALWAYS
+    tomcat:
+        mbeanregistry:
+            enabled: true

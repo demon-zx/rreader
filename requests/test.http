@@ -1,0 +1,27 @@
+### actuator
+GET {{host}}/actuator
+
+### логгеры
+GET {{host}}/actuator/loggers
+
+### установка уровня логирования "на лету"
+POST {{host}}/actuator/loggers/org.springframework
+Content-Type: application/json
+
+{
+    "configuredLevel": "DEBUG"
+}
+
+### health
+GET {{host}}/actuator/health
+
+### api-docs
+GET {{host}}/api/v1/api-docs
+
+### api-docs yaml
+GET {{host}}/api/v1/api-docs.yaml
+
+### swagger-ui
+GET {{host}}/api/v1/swagger-ui
+
+

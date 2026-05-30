@@ -1,0 +1,2 @@
+### actuator
+GET {{host}}/api/v1/view/test?page=5
