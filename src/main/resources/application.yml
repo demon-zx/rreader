@@ -3,9 +3,10 @@
 application:
     name: rreader
     version: 1.0
-    system: ts
-    domain: <empty>
     zone-id: Europe/Moscow
+    path:
+        books: ./books
+        config: ./config
 
 management:
     endpoint:
@@ -15,21 +16,12 @@ management:
         web:
             exposure:
                 include: health,metrics,loggers
-    metrics:
-        tags:
-            domain: ${application.domain}
-            application: spring-boot
-            hostname: <empty>
-    influx:
-        metrics:
-            export:
-                enabled: false
 
 spring:
     application:
         name: ${application.name}
     datasource:
-        url: jdbc:h2:./books
+        url: jdbc:h2:${application.path.config}/library
         username: reader
         password: reader
         driver-class-name: org.h2.Driver

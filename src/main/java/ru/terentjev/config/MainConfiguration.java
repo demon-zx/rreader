@@ -5,6 +5,7 @@ import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
@@ -17,6 +18,7 @@ import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.method.HandlerTypePredicate;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import ru.terentjev.service.BookUploadService;
 
 import java.time.Clock;
 import java.time.ZoneId;
@@ -26,6 +28,7 @@ import java.util.Map;
 
 @Configuration
 @EnableAspectJAutoProxy(proxyTargetClass = true)
+@ConfigurationPropertiesScan(basePackageClasses = MainConfiguration.class)
 public class MainConfiguration implements WebMvcConfigurer {
 
     @Override
@@ -74,6 +77,11 @@ public class MainConfiguration implements WebMvcConfigurer {
     @Bean
     public TimedAspect timedAspect(MeterRegistry registry) {
         return new TimedAspect(registry);
+    }
+
+    @Bean
+    public BookUploadService bookUploadService(DirectoryParameters parameters) {
+        return new BookUploadService(parameters.books());
     }
 
 }
