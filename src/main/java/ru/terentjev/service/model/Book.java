@@ -18,13 +18,6 @@ public final class Book {
     @NonNull
     private final String checksum;
     private final Long isbn;
-    //TODO поля ниже убрать, пусть репозиторий разбирается
-    @NonNull
-    private final Instant createdAt;
-    private final String createdBy;
-    @NonNull
-    private final Instant updatedAt;
-    private final String updatedBy;
 
     public Book(
             UUID id,
@@ -34,11 +27,7 @@ public final class Book {
             @NonNull String type,
             @NonNull String path,
             @NonNull String checksum,
-            Long isbn,
-            @NonNull Instant createdAt,
-            String createdBy,
-            @NonNull Instant updatedAt,
-            String updatedBy
+            Long isbn
     ) {
         this.id = id;
         this.title = title;
@@ -48,10 +37,6 @@ public final class Book {
         this.path = path;
         this.checksum = checksum;
         this.isbn = isbn;
-        this.createdAt = createdAt;
-        this.createdBy = createdBy;
-        this.updatedAt = updatedAt;
-        this.updatedBy = updatedBy;
     }
 
     public UUID getId() {
@@ -84,21 +69,5 @@ public final class Book {
 
     public Long getIsbn() {
         return isbn;
-    }
-
-    public @NonNull Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public @NonNull Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public String getUpdatedBy() {
-        return updatedBy;
     }
 }

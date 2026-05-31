@@ -47,10 +47,6 @@ public class BookUploadService {
                     "pdf",
                     path.toString(),
                     "-",
-                    null,
-                    clock.instant(),
-                    null,
-                    clock.instant(),
                     null
             );
             bookService.save(book);

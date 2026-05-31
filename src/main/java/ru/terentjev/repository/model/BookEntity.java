@@ -1,7 +1,7 @@
 package ru.terentjev.repository.model;
 
 import org.jspecify.annotations.NonNull;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -32,14 +32,16 @@ public record BookEntity(
         String checksum,
         @Column("isbn")
         Long isbn,
-        @NonNull
+        @CreatedDate
         @Column("created_at")
         Instant createdAt,
+        @CreatedBy
         @Column("created_by")
         String createdBy,
-        @NonNull
+        @LastModifiedDate
         @Column("updated_at")
         Instant updatedAt,
+        @LastModifiedBy
         @Column("updated_by")
         String updatedBy
 ) implements Persistable<UUID> {

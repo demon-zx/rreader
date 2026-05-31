@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration;
 import org.springframework.data.jdbc.core.mapping.JdbcValue;
+import org.springframework.data.jdbc.repository.config.EnableJdbcAuditing;
 import ru.terentjev.config.converter.ToEnumConverter;
 import ru.terentjev.config.converter.TimestampToOffsetDateTimeConverter;
 
@@ -16,6 +17,7 @@ import java.time.Clock;
 import java.util.List;
 
 @Configuration
+@EnableJdbcAuditing
 public class JdbcConfiguration extends AbstractJdbcConfiguration {
 
     private final Clock clock;
