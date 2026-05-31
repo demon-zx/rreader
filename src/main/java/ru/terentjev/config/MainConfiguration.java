@@ -81,16 +81,6 @@ public class MainConfiguration implements WebMvcConfigurer {
         return new TimedAspect(registry);
     }
 
-    @Bean
-    public BookService bookService(BookRepository repository) {
-        return new BookService(repository);
-    }
-
-    @Bean
-    public BookUploadService bookUploadService(DirectoryParameters parameters, BookService bookService) {
-        return new BookUploadService(parameters.books(), bookService);
-    }
-
 }
 
 

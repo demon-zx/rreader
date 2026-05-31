@@ -18,6 +18,7 @@ public final class Book {
     @NonNull
     private final String checksum;
     private final Long isbn;
+    //TODO поля ниже убрать, пусть репозиторий разбирается
     @NonNull
     private final Instant createdAt;
     private final String createdBy;
@@ -81,7 +82,7 @@ public final class Book {
         return checksum;
     }
 
-    public long getIsbn() {
+    public Long getIsbn() {
         return isbn;
     }
 

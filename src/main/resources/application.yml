@@ -21,7 +21,7 @@ spring:
     application:
         name: ${application.name}
     datasource:
-        url: jdbc:h2:${application.path.config}/library;IGNORECASE=TRUE
+        url: jdbc:h2:${application.path.config}/library;IGNORECASE=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
         username: reader
         password: reader
         driver-class-name: org.h2.Driver
