@@ -7,13 +7,8 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-import ru.terentjev.controller.model.ApiExample;
-import ru.terentjev.controller.model.ApiExampleDetails;
-import ru.terentjev.controller.mapper.ApiExampleMapper;
 import ru.terentjev.engine.pdf.PDFRender;
-import ru.terentjev.service.ExampleService;
-
-import jakarta.validation.Valid;
+import ru.terentjev.service.BookService;
 
 import java.io.*;
 import java.util.List;
@@ -23,9 +18,9 @@ import java.util.List;
 @RequestMapping("view")
 public class ViewController extends AbstractController {
     private static final Logger log = LoggerFactory.getLogger(ViewController.class);
-    private final ExampleService service;
+    private final BookService service;
 
-    public ViewController(ExampleService service) {
+    public ViewController(BookService service) {
         super(log);
         this.service = service;
     }

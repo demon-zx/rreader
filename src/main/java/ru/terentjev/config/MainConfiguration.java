@@ -18,6 +18,8 @@ import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.method.HandlerTypePredicate;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import ru.terentjev.repository.BookRepository;
+import ru.terentjev.service.BookService;
 import ru.terentjev.service.BookUploadService;
 
 import java.time.Clock;
@@ -80,8 +82,13 @@ public class MainConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public BookUploadService bookUploadService(DirectoryParameters parameters) {
-        return new BookUploadService(parameters.books());
+    public BookService bookService(BookRepository repository) {
+        return new BookService(repository);
+    }
+
+    @Bean
+    public BookUploadService bookUploadService(DirectoryParameters parameters, BookService bookService) {
+        return new BookUploadService(parameters.books(), bookService);
     }
 
 }

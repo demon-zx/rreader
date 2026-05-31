@@ -21,7 +21,7 @@ spring:
     application:
         name: ${application.name}
     datasource:
-        url: jdbc:h2:${application.path.config}/library
+        url: jdbc:h2:${application.path.config}/library;IGNORECASE=TRUE
         username: reader
         password: reader
         driver-class-name: org.h2.Driver
@@ -30,6 +30,8 @@ spring:
         max-idle: 2
         max-total: 5
         max-wait-millis: 20000
+    liquibase:
+        change-log: classpath:/db/changelog/master.xml
 
 springdoc:
     swagger-ui:

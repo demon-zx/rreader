@@ -2,8 +2,10 @@ package ru.terentjev.repository;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import ru.terentjev.repository.model.ExampleEntity;
+import ru.terentjev.repository.model.BookEntity;
+
+import java.util.UUID;
 
 @Repository
-public interface ExampleRepository extends CrudRepository<ExampleEntity, Integer> {
+public interface BookRepository extends CrudRepository<BookEntity, UUID> {
 }

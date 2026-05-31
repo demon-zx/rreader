@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.terentjev.controller.mapper.ApiInfoMapper;
 import ru.terentjev.controller.model.ApiInfo;
 import ru.terentjev.engine.pdf.PDFRender;
 
@@ -29,7 +30,7 @@ public class BookController extends AbstractController {
                         return render.getInfo(is);
                     }
                 },
-                o -> new ApiInfo(o.getPages(), o.getAuthor(), o.getTitle())
+                o -> ApiInfoMapper.mapper.from(o)
         );
     }
 

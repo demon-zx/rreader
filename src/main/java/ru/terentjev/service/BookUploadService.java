@@ -13,9 +13,11 @@ public class BookUploadService {
     private static final Logger log = LoggerFactory.getLogger(BookUploadService.class);
 
     private final Path pathBooks;
+    private final BookService bookService;
 
-    public BookUploadService(Path pathBooks) {
+    public BookUploadService(Path pathBooks, BookService bookService) {
         this.pathBooks = pathBooks;
+        this.bookService = bookService;
     }
 
     public void scan() {
