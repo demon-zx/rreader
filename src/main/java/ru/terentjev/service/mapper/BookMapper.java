@@ -7,7 +7,9 @@ import org.mapstruct.factory.Mappers;
 import ru.terentjev.repository.model.BookEntity;
 import ru.terentjev.service.model.Book;
 
-@Mapper(config = Config.class)
+import java.nio.file.Path;
+
+@Mapper(config = Config.class, uses = PathMapper.class)
 public abstract class BookMapper {
     public static BookMapper mapper = Mappers.getMapper(BookMapper.class);
 

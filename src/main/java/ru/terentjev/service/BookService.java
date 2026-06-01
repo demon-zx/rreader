@@ -7,6 +7,7 @@ import ru.terentjev.repository.BookRepository;
 import ru.terentjev.service.mapper.BookMapper;
 import ru.terentjev.service.model.Book;
 
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,8 +37,8 @@ public class BookService {
                 ));
     }
 
-    public Optional<Book> findByPath(String path) {
-        return repository.findByPath(path)
+    public Optional<Book> findByPath(Path path) {
+        return repository.findByPath(path.toString())
                 .map(BookMapper.mapper::from);
     }
 

@@ -53,16 +53,15 @@ public class BookUploadService {
     }
 
     private void process(Path file) throws IOException {
+        file = file.toAbsolutePath();
         log.info("Find file: {}", file);
-        String path = file.toAbsolutePath()
-                .toString();
-        Optional<Book> exist = bookService.findByPath(path);
+        Optional<Book> exist = bookService.findByPath(file);
         if (exist.isEmpty()) {
-            register(file, path);
+            register(file);
         }
     }
 
-    private void register(Path file, String path) throws IOException {
+    private void register(Path file) throws IOException {
         Path name = file.getFileName();
         String type = getType(name);
         Info info = info(file, type);
@@ -72,7 +71,7 @@ public class BookUploadService {
                 info.getAuthor(),
                 null,
                 type,
-                path,
+                file,
                 checksum(file),
                 null,
                 Files.size(file)

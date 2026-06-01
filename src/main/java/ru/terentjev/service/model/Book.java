@@ -2,6 +2,7 @@ package ru.terentjev.service.model;
 
 import org.jspecify.annotations.NonNull;
 
+import java.nio.file.Path;
 import java.util.UUID;
 
 public final class Book {
@@ -14,7 +15,7 @@ public final class Book {
     @NonNull
     private final String type;
     @NonNull
-    private final String path;
+    private final Path path;
     @NonNull
     private final String checksum;
     private final Long isbn;
@@ -26,7 +27,7 @@ public final class Book {
             String author,
             String language,
             @NonNull String type,
-            @NonNull String path,
+            @NonNull Path path,
             @NonNull String checksum,
             Long isbn,
             long size
@@ -62,7 +63,7 @@ public final class Book {
         return type;
     }
 
-    public @NonNull String getPath() {
+    public @NonNull Path getPath() {
         return path;
     }
 

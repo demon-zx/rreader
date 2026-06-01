@@ -217,7 +217,6 @@
 
     <div class="image-container" id="imageContainer">
         <img id="mainImage" alt="Изображение с сервера" 
-             src="http://localhost:7070/api/v1/view/test?page=7"
              style="opacity: 1;">
         <div id="loaderOverlay" class="loading-placeholder" style="display: none;">⏳ Загрузка...</div>
     </div>
@@ -238,7 +237,7 @@
 <script>
     (function() {
         // -------- конфигурация ----------
-        const BASE_URL = "http://localhost:7070/api/v1/view/test";
+        const BASE_URL = "http://localhost:7070/api/v1/view/render?id=02ff12ee-146b-4d6d-b799-5348128827a7";
         let currentPage = 7;       
         let isLoading = false;       
         let pendingPage = null;      
@@ -285,7 +284,7 @@
             }
             
             hideError();
-            const newUrl = `${BASE_URL}?page=${page}`;
+            const newUrl = `${BASE_URL}&page=${page}`;
             setLoadingState(true);
             
             // Таймаут защиты от зависания

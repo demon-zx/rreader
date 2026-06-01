@@ -1,2 +1,2 @@
 ### actuator
-GET {{host}}/api/v1/view/test?page=5
+GET {{host}}/api/v1/view/render?id=02ff12ee-146b-4d6d-b799-5348128827a7&page=25
