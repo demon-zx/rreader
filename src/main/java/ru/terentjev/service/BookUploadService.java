@@ -1,5 +1,6 @@
 package ru.terentjev.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -11,8 +12,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
-import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 @Service
 public class BookUploadService {
@@ -30,26 +30,44 @@ public class BookUploadService {
 
     public void scan() {
         log.info("Scanning books...");
-        List<Path> list;
-        try (var files = Files.walk(pathBooks)) {
-            list = files.filter(Files::isRegularFile)
-                    .toList();
+        try (var filesStream = Files.walk(pathBooks)) {
+            filesStream.filter(Files::isRegularFile)
+                    .forEach(this::process);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        for (Path path : list) {
-            log.info("File: {}", path);
-            Book book = new Book(
-                    null,
-                    path.getFileName().toString(),
-                    null,
-                    null,
-                    "pdf",
-                    path.toString(),
-                    "-",
-                    null
-            );
-            bookService.save(book);
+    }
+
+    private void process(Path file) {
+        log.info("Find file: {}", file);
+        String path = file.toAbsolutePath()
+                .toString();
+        Optional<Book> exist = bookService.findByPath(path);
+        if (exist.isEmpty()) {
+            register(file, path);
         }
     }
+
+    private void register(Path file, String path) {
+        log.info("Register file: {}", file);
+        Path filename = file.getFileName();
+        String type = getType(filename);
+        Book book = new Book(
+                null,
+                filename.toString(),
+                null,
+                null,
+                type,
+                path,
+                "-",
+                null
+        );
+        bookService.save(book);
+    }
+
+    private String getType(Path filename) {
+        return StringUtils.substringAfterLast(filename.toString(), ".");
+    }
+
+
 }

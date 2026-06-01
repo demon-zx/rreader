@@ -8,7 +8,9 @@ import ru.terentjev.service.mapper.BookMapper;
 import ru.terentjev.service.model.Book;
 import ru.terentjev.service.model.Example;
 
+import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,8 +34,13 @@ public class BookService {
         return repository.findById(id)
                 .map(BookMapper.mapper::from)
                 .orElseThrow(() -> new InvalidArgumentException(
-                        MessageFormat.format("Not found {1} with ID: {0}", id, TYPE_NAME)
+                        MessageFormat.format("Not found {1} with id: {0}", id, TYPE_NAME)
                 ));
+    }
+
+    public Optional<Book> findByPath(String path) {
+        return repository.findByPath(path)
+                .map(BookMapper.mapper::from);
     }
 
 }
