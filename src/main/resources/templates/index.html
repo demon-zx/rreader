@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Просмотр изображений | Вписывается в высоту</title>
+    <title>RReader</title>
     <style>
         /* Убираем любые отступы и устанавливаем 100% высоту */
         * {
@@ -99,7 +99,6 @@
             font-weight: 500;
         }
 
-        /* панель управления — минимальные отступы */
         .controls {
             display: flex;
             justify-content: center;
@@ -113,18 +112,22 @@
             background: #ffffffdd;
             backdrop-filter: blur(8px);
             border: none;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            padding: 0.6rem 1.8rem;
-            border-radius: 10px;
+            padding: 0.6rem 0.5rem;
+            border-radius: 60px;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
             color: #1e2a47;
             font-family: inherit;
+            /* ОДИНАКОВАЯ ШИРИНА */
+            width: 160px;
+            text-align: center;
         }
 
         button:active {
@@ -171,15 +174,6 @@
             flex-shrink: 0;
         }
 
-        .status-info {
-            font-size: 0.75rem;
-            text-align: center;
-            margin-top: 5px;
-            color: #4a5b7a;
-            font-weight: 500;
-            flex-shrink: 0;
-        }
-
         footer {
             font-size: 0.65rem;
             text-align: center;
@@ -211,12 +205,13 @@
 
 <div class="viewer-card">
     <div class="header-info">
-        <div class="title">Перельман</div>
-        <div class="page" id="page">7</div>
+        <div class="title" th:text="${title}"></div>
+        <div class="page" id="page">-</div>
     </div>
 
     <div class="image-container" id="imageContainer">
-        <img id="mainImage" alt="Изображение с сервера" 
+        <img id="mainImage" alt="Изображение с сервера"
+             src=""
              style="opacity: 1;">
         <div id="loaderOverlay" class="loading-placeholder" style="display: none;">⏳ Загрузка...</div>
     </div>
@@ -234,13 +229,15 @@
     </div>
 </div>
 
-<script>
+<script th:inline="javascript">
     (function() {
+
+        const id = /*[[${id}]]*/'';
         // -------- конфигурация ----------
-        const BASE_URL = "http://localhost:7070/api/v1/view/render?id=02ff12ee-146b-4d6d-b799-5348128827a7";
-        let currentPage = 7;       
-        let isLoading = false;       
-        let pendingPage = null;      
+        const BASE_URL = "/api/v1/view/render?id=" + id;
+        let currentPage = 1;
+        let isLoading = false;
+        let pendingPage = null;
 
         // DOM элементы
         const imgElement = document.getElementById('mainImage');
@@ -282,22 +279,22 @@
                 pendingPage = page;
                 return;
             }
-            
+
             hideError();
             const newUrl = `${BASE_URL}&page=${page}`;
             setLoadingState(true);
-            
+
             // Таймаут защиты от зависания
             let timeoutId = setTimeout(() => {
                 if (isLoading === true) {
                     setLoadingState(false);
-                    showError(`Сервер не отвечает (page=${page}). Проверьте localhost:7070`);
+                    showError(`Сервер не отвечает`);
                     pendingPage = null;
                 }
             }, 10000);
-            
+
             const tempImage = new Image();
-            
+
             tempImage.onload = () => {
                 clearTimeout(timeoutId);
                 // Обработка отложенных переходов
@@ -315,7 +312,7 @@
                 pageNumberSpan.innerText = currentPage;
                 setLoadingState(false);
             };
-            
+
             tempImage.onerror = (err) => {
                 clearTimeout(timeoutId);
                 if (pendingPage !== null && pendingPage !== page) {
@@ -329,10 +326,10 @@
                 showError(`Ошибка загрузки страницы ${page}. Изображение недоступно или сервер вернул ошибку.`);
                 pageNumberSpan.innerText = currentPage;
             };
-            
+
             tempImage.src = newUrl;
         }
-        
+
         function goToPage(newPage) {
             if (isLoading) {
                 pendingPage = newPage;
@@ -345,7 +342,7 @@
             }
             updateImageForPage(newPage);
         }
-        
+
         function onPrev() {
             if (isLoading) {
                 const targetPage = currentPage - 1;
@@ -354,7 +351,7 @@
             }
             goToPage(currentPage - 1);
         }
-        
+
         function onNext() {
             if (isLoading) {
                 const targetPage = currentPage + 1;
@@ -363,7 +360,7 @@
             }
             goToPage(currentPage + 1);
         }
-        
+
         function bindEvents() {
             prevButton.addEventListener('click', onPrev);
             nextButton.addEventListener('click', onNext);
@@ -382,13 +379,9 @@
                 }
             });
         }
-        
-        // Инициализация и старт с page=7
+
         bindEvents();
-        currentPage = 7;
-        pageNumberSpan.innerText = 7;
-        // Первичная загрузка
-        updateImageForPage(7);
+        updateImageForPage(1);
     })();
 </script>
 </body>
