@@ -32,6 +32,8 @@ public record BookEntity(
         String checksum,
         @Column("isbn")
         Long isbn,
+        @Column("size")
+        long size,
         @CreatedDate
         @Column("created_at")
         Instant createdAt,

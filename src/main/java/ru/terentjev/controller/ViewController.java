@@ -7,7 +7,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-import ru.terentjev.engine.pdf.PDFRender;
+import ru.terentjev.service.render.pdf.PDFRender;
 import ru.terentjev.service.BookService;
 
 import java.io.*;

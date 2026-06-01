@@ -6,16 +6,14 @@ import ru.terentjev.exception.InvalidArgumentException;
 import ru.terentjev.repository.BookRepository;
 import ru.terentjev.service.mapper.BookMapper;
 import ru.terentjev.service.model.Book;
-import ru.terentjev.service.model.Example;
 
-import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class BookService {
-    public static final String TYPE_NAME = Example.class.getSimpleName();
+    public static final String TYPE_NAME = Book.class.getSimpleName();
     private final BookRepository repository;
 
     public BookService(

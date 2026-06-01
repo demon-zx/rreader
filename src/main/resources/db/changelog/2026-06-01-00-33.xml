@@ -33,6 +33,7 @@
             <column name="isbn" type="bigint">
                 <constraints nullable="true"/>
             </column>
+            <column name="size" type="bigint"/>
             <column name="created_at" type="timestamp">
                 <constraints nullable="true"/>
             </column>

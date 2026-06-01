@@ -1,4 +1,4 @@
-package ru.terentjev.engine;
+package ru.terentjev.service.render;
 
 public class Info {
 

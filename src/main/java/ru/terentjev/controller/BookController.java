@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.terentjev.controller.mapper.ApiInfoMapper;
 import ru.terentjev.controller.model.ApiInfo;
-import ru.terentjev.engine.pdf.PDFRender;
+import ru.terentjev.service.render.pdf.PDFRender;
 
 import java.io.*;
 
@@ -27,7 +27,7 @@ public class BookController extends AbstractController {
         return run(
                 () -> {
                     try (InputStream is = new BufferedInputStream(new FileInputStream(name))) {
-                        return render.getInfo(is);
+                        return render.info(is);
                     }
                 },
                 o -> ApiInfoMapper.mapper.from(o)

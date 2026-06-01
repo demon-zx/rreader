@@ -2,10 +2,10 @@ package ru.terentjev.service.model;
 
 import org.jspecify.annotations.NonNull;
 
-import java.time.Instant;
 import java.util.UUID;
 
 public final class Book {
+
     private final UUID id;
     @NonNull
     private final String title;
@@ -18,6 +18,7 @@ public final class Book {
     @NonNull
     private final String checksum;
     private final Long isbn;
+    private final long size;
 
     public Book(
             UUID id,
@@ -27,7 +28,8 @@ public final class Book {
             @NonNull String type,
             @NonNull String path,
             @NonNull String checksum,
-            Long isbn
+            Long isbn,
+            long size
     ) {
         this.id = id;
         this.title = title;
@@ -37,6 +39,7 @@ public final class Book {
         this.path = path;
         this.checksum = checksum;
         this.isbn = isbn;
+        this.size = size;
     }
 
     public UUID getId() {
@@ -69,5 +72,9 @@ public final class Book {
 
     public Long getIsbn() {
         return isbn;
+    }
+
+    public long getSize() {
+        return size;
     }
 }
