@@ -24,13 +24,13 @@ public class ViewHtmlController extends AbstractController {
     }
 
     @GetMapping
-    public String index(Model model, @RequestParam UUID id) {
+    public String reader(Model model, @RequestParam UUID id) {
         if (id != null) {
             var book = run(() -> bookService.findById(id), o -> o);
             model.addAttribute("id", id.toString());
             model.addAttribute("title", book.getTitle());
             model.addAttribute("author", book.getAuthor());
         }
-        return "index";
+        return "reader";
     }
 }
