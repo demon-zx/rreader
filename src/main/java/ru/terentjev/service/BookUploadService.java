@@ -18,6 +18,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -44,7 +45,11 @@ public class BookUploadService {
             List<Path> files = filesStream.filter(Files::isRegularFile)
                     .toList();
             for (Path file : files) {
-                process(file);
+                try {
+                    process(file);
+                } catch (IOException e) {
+                    log.error("Process {} fail.", file, e);
+                }
             }
             log.info("Scanning complete.");
         } catch (IOException e) {
@@ -67,8 +72,8 @@ public class BookUploadService {
         Info info = info(file, type);
         Book book = new Book(
                 null,
-                info.getTitle(),
-                info.getAuthor(),
+                Objects.requireNonNullElse(info.getTitle(), name.toString()),
+                Objects.requireNonNullElse(info.getAuthor(), "N/A"),
                 null,
                 type,
                 file,

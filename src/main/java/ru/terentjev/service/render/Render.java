@@ -5,6 +5,7 @@ import org.apache.commons.lang3.function.FailableBiConsumer;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 public interface Render {
@@ -16,5 +17,11 @@ public interface Render {
             InputStream is,
             FailableBiConsumer<RenderedImage, Integer, IOException> renderedPageConsumer,
             List<Integer> pages
+    ) throws IOException;
+
+    void render(
+            int page,
+            InputStream is,
+            OutputStream os
     ) throws IOException;
 }

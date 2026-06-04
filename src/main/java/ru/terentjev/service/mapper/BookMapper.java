@@ -7,10 +7,8 @@ import org.mapstruct.factory.Mappers;
 import ru.terentjev.repository.model.BookEntity;
 import ru.terentjev.service.model.Book;
 
-import java.nio.file.Path;
-
 @Mapper(config = Config.class, uses = PathMapper.class)
-public abstract class BookMapper extends PageMapper<Book, BookEntity> {
+public abstract class BookMapper extends AbstractPageMapper<Book, BookEntity> {
     public static BookMapper mapper = Mappers.getMapper(BookMapper.class);
 
     public abstract Book from(BookEntity source);
@@ -21,5 +19,12 @@ public abstract class BookMapper extends PageMapper<Book, BookEntity> {
     @Mapping(target = "updatedBy", ignore = true)
     @InheritInverseConfiguration
     public abstract BookEntity to(Book source);
+
+    public String trim(String source) {
+        if (source == null) {
+            return null;
+        }
+        return source.trim();
+    }
 
 }

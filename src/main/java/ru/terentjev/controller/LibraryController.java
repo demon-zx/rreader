@@ -1,6 +1,6 @@
 package ru.terentjev.controller;
 
-import org.apache.commons.lang3.StringUtils;
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,10 +11,8 @@ import ru.terentjev.controller.mapper.ApiBookMapper;
 import ru.terentjev.controller.model.ApiBook;
 import ru.terentjev.controller.model.ApiPage;
 import ru.terentjev.service.BookService;
-import ru.terentjev.service.model.Book;
 
-import java.util.List;
-
+@Timed
 @RestController
 @RequestMapping("library")
 public class LibraryController extends AbstractController {
@@ -27,20 +25,6 @@ public class LibraryController extends AbstractController {
         this.bookService = bookService;
     }
 
-//    @GetMapping
-//    public ApiInfo info() {
-//        var render = new PDFRender();
-//        String name = "./books/perelman_fizika1.pdf";
-//        return run(
-//                () -> {
-//                    try (InputStream is = new BufferedInputStream(new FileInputStream(name))) {
-//                        return render.info(is);
-//                    }
-//                },
-//                o -> ApiInfoMapper.mapper.from(o)
-//        );
-//    }
-
     @GetMapping
     public ApiPage<ApiBook> findBooks(
             @RequestParam(required = false) String q,
@@ -49,4 +33,5 @@ public class LibraryController extends AbstractController {
     ) {
         return ApiBookMapper.mapper.from(bookService.findAll(q, from, limit));
     }
+
 }

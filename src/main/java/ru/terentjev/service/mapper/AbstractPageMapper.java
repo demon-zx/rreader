@@ -4,7 +4,7 @@ import ru.terentjev.service.model.Page;
 
 import java.util.List;
 
-public abstract class PageMapper<T, E> {
+public abstract class AbstractPageMapper<T, E> {
 
     public Page<T> from(org.springframework.data.domain.Page<E> source) {
         List<T> converted = source.stream()
