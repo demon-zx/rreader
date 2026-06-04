@@ -1,443 +1,166 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Компактный каталог книг | Вписывается в окно</title>
+    <title>RReader</title>
     <!-- Bootstrap 5 CSS -->
     <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
     <script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-        }
-        /* Занимаем всю высоту окна, убираем лишние отступы */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* запрещаем прокрутку всей страницы */
-        }
-        body {
-            background: #f4f6fa;
-            display: flex;
-            flex-direction: column;
-        }
-        /* Главный контейнер — flex-колонка, занимает всю высоту */
-        .app-wrapper {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            max-height: 100vh;
+        .book-author {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        /* Верхняя часть (шапка + поиск) — фиксированная, не скроллится */
-        .header-area {
-            flex-shrink: 0;
-            padding: 0.75rem 1rem 0.5rem 1rem;
-            background: #f4f6fa;
-            border-bottom: 1px solid #e9edf2;
-        }
-        /* Область с книгами — занимает остаток места и скроллится */
-        .books-scroll-area {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            padding: 0.5rem 1rem 0.5rem 1rem;
-            scrollbar-width: thin;
-        }
-        /* Пагинация и футер — фиксированные внизу */
-        .footer-area {
-            flex-shrink: 0;
-            padding: 0.5rem 1rem 0.75rem 1rem;
-            background: #f4f6fa;
-            border-top: 1px solid #e9edf2;
-        }
-        /* Очень компактные карточки книг */
-        .book-card {
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-            border: none;
-            border-radius: 0.7rem;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        .book-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.12);
-        }
-        /* Обложка — портрет, соотношение 2:3 (ещё более вытянутое для компактности) */
-        .book-cover {
-            position: relative;
-            background: #e9eef3;
-            overflow: hidden;
-            aspect-ratio: 2 / 3;
-            width: 100%;
-        }
-        .book-cover img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        }
-        /* Минимум отступов внутри карточки */
-        .card-body {
-            padding: 0.45rem 0.45rem 0.6rem 0.45rem;
-            background: white;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
+
         .book-title {
-            font-weight: 700;
-            font-size: 0.7rem;
-            margin-bottom: 0.1rem;
-            color: #0f172a;
-            line-height: 1.3;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        .book-author {
-            font-size: 0.6rem;
-            color: #475569;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+
+        .book-cover {
+            width: 100px; /* фиксированная ширина */
+            min-width: 100px; /* гарантия единой ширины */
+            max-width: 100px; /* никаких растяжений */
+            height: 135px;
+            object-fit: cover; /* сохраняем пропорции и заполняем блок */
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #e9ecef;
+            display: block; /* убираем лишние отступы */
         }
-        .book-size {
-            font-size: 0.55rem;
-            background: #f1f5f9;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.15rem;
-            padding: 0.1rem 0.4rem;
-            border-radius: 20px;
-            color: #1e293b;
-            font-weight: 500;
-            width: fit-content;
+
+        /* на маленьких экранах уменьшаем, но ширина всё равно единая для всех карточек */
+        @media (max-width: 576px) {
+            .book-cover {
+                width: 80px;
+                min-width: 80px;
+                max-width: 80px;
+                height: 108px;
+            }
         }
-        /* Поиск */
-        .search-input {
-            border-radius: 2rem;
-            border: 1px solid #e2e8f0;
-            padding: 0.3rem 0.8rem;
-            font-size: 0.75rem;
-            background: white;
-        }
-        .search-input:focus {
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
-        }
-        /* Пагинация маленькая */
-        .pagination {
-            margin-bottom: 0;
-        }
-        .page-link {
-            border-radius: 50px !important;
-            margin: 0 2px;
-            padding: 0.2rem 0.55rem;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-        /* Скроллбар аккуратный */
-        .books-scroll-area::-webkit-scrollbar {
-            width: 6px;
-        }
-        .books-scroll-area::-webkit-scrollbar-track {
-            background: #e9eef3;
-            border-radius: 4px;
-        }
-        .books-scroll-area::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        /* Пустое состояние */
-        .empty-state {
-            padding: 1rem;
-            text-align: center;
-        }
-        /* Сетка с минимальными промежутками */
-        .row-custom {
-            margin: 0 -6px;
-        }
-        .col-custom {
-            padding: 0 6px 12px 6px;
-        }
-        footer p {
-            font-size: 0.6rem;
-            margin: 0;
-        }
-        h1 {
-            font-size: 1.2rem;
-            margin-bottom: 0;
-        }
-        .lead-text {
-            font-size: 0.65rem;
-        }
+
     </style>
 </head>
+
 <body>
-<div class="app-wrapper">
-    <!-- Верхняя фиксированная область -->
-    <div class="header-area">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <div>
-                <h1 class="fw-semibold" style="color: #0f172a;">📚 Книги</h1>
-            </div>
-            <div style="min-width: 180px; max-width: 260px; width: 100%;">
-                <input type="text" id="searchInput" class="form-control search-input w-100" placeholder="🔍 Поиск по названию или автору" autocomplete="off">
-            </div>
+
+<script th:inline="javascript">
+    const all = /*[[${all}]]*/0;
+</script>
+<script type="module" th:src="@{/js/library.js}"></script>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-1">
+            <h1>Библиотека</h1>
         </div>
     </div>
-
-    <!-- Область с прокруткой для книг -->
-    <div class="books-scroll-area">
-        <div id="booksContainer" class="row g-2 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 row-cols-xl-6">
-            <!-- динамический рендер карточек -->
+    <div class="row">
+        <div class="col-12 mb-1">
+            <form>
+                <input id="search" class="form-control" placeholder="Поиск..."/>
+            </form>
         </div>
     </div>
-
-    <!-- Нижняя фиксированная область: пагинация + информация -->
-    <div class="footer-area">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
-            <ul class="pagination justify-content-center flex-wrap mb-0" id="pagination"></ul>
-            <div class="text-muted" style="font-size: 0.65rem;">
-                📖 Всего: <span id="totalBooksCount">0</span>
+    <div class="row" id="books">
+        <div class="col-12 col-lg-6">
+            <div class="card mb-1">
+                <div class="row g-0">
+                    <div class="col-auto">
+                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
+                             alt="...">
+                    </div>
+                    <div class="col">
+                        <div class="card-body">
+                            <h5 class="card-title book-author">Тарасов</h5>
+                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
+                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-1">
+                <div class="row g-0">
+                    <div class="col-auto">
+                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
+                             alt="...">
+                    </div>
+                    <div class="col">
+                        <div class="card-body">
+                            <h5 class="card-title book-author">Тарасов</h5>
+                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
+                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-1">
+                <div class="row g-0">
+                    <div class="col-auto">
+                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
+                             alt="...">
+                    </div>
+                    <div class="col">
+                        <div class="card-body">
+                            <h5 class="card-title book-author">Тарасов</h5>
+                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
+                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-1">
+                <div class="row g-0">
+                    <div class="col-auto">
+                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
+                             alt="...">
+                    </div>
+                    <div class="col">
+                        <div class="card-body">
+                            <h5 class="card-title book-author">Тарасов</h5>
+                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
+                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item active"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">18</a></li>
+                    <li class="page-item"><a class="page-link" href="#">19</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+
     </div>
 </div>
 
-<script>
-    // ---------- БАЗА ДАННЫХ КНИГ (20 штук) ----------
-    const BOOKS_DB = [
-        { id: 1, title: "Война и мир", author: "Лев Толстой", size: "1225 стр.", cover: "https://picsum.photos/id/104/300/450" },
-        { id: 2, title: "Преступление и наказание", author: "Фёдор Достоевский", size: "672 стр.", cover: "https://picsum.photos/id/106/300/450" },
-        { id: 3, title: "Мастер и Маргарита", author: "Михаил Булгаков", size: "512 стр.", cover: "https://picsum.photos/id/119/300/450" },
-        { id: 4, title: "1984", author: "Джордж Оруэлл", size: "328 стр.", cover: "https://picsum.photos/id/120/300/450" },
-        { id: 5, title: "Маленький принц", author: "Антуан де Сент-Экзюпери", size: "96 стр.", cover: "https://picsum.photos/id/127/300/450" },
-        { id: 6, title: "Анна Каренина", author: "Лев Толстой", size: "864 стр.", cover: "https://picsum.photos/id/132/300/450" },
-        { id: 7, title: "Улисс", author: "Джеймс Джойс", size: "736 стр.", cover: "https://picsum.photos/id/155/300/450" },
-        { id: 8, title: "Великий Гэтсби", author: "Фрэнсис Скотт Фицджеральд", size: "256 стр.", cover: "https://picsum.photos/id/169/300/450" },
-        { id: 9, title: "Моби Дик", author: "Герман Мелвилл", size: "635 стр.", cover: "https://picsum.photos/id/175/300/450" },
-        { id: 10, title: "Три товарища", author: "Эрих Мария Ремарк", size: "448 стр.", cover: "https://picsum.photos/id/180/300/450" },
-        { id: 11, title: "Гарри Поттер", author: "Дж. К. Роулинг", size: "432 стр.", cover: "https://picsum.photos/id/200/300/450" },
-        { id: 12, title: "Шерлок Холмс", author: "Артур Конан Дойл", size: "560 стр.", cover: "https://picsum.photos/id/215/300/450" },
-        { id: 13, title: "Зелёная миля", author: "Стивен Кинг", size: "528 стр.", cover: "https://picsum.photos/id/226/300/450" },
-        { id: 14, title: "Граф Монте-Кристо", author: "Александр Дюма", size: "1276 стр.", cover: "https://picsum.photos/id/239/300/450" },
-        { id: 15, title: "Над пропастью во ржи", author: "Джером Д. Сэлинджер", size: "288 стр.", cover: "https://picsum.photos/id/240/300/450" },
-        { id: 16, title: "Портрет Дориана Грея", author: "Оскар Уайльд", size: "304 стр.", cover: "https://picsum.photos/id/256/300/450" },
-        { id: 17, title: "Сто лет одиночества", author: "Гарсиа Маркес", size: "416 стр.", cover: "https://picsum.photos/id/260/300/450" },
-        { id: 18, title: "Идиот", author: "Фёдор Достоевский", size: "640 стр.", cover: "https://picsum.photos/id/264/300/450" },
-        { id: 19, title: "451° по Фаренгейту", author: "Рэй Брэдбери", size: "256 стр.", cover: "https://picsum.photos/id/276/300/450" },
-        { id: 20, title: "Тень и кость", author: "Ли Бардуго", size: "384 стр.", cover: "https://picsum.photos/id/282/300/450" }
-    ];
-
-    let allBooks = [...BOOKS_DB];
-    let filteredBooks = [...allBooks];
-    let currentPage = 1;
-    const itemsPerPage = 12;    // больше книг на страницу (6 колонок * 2 ряда = 12, помещается в высоту)
-    let searchTerm = "";
-
-    const booksContainer = document.getElementById('booksContainer');
-    const paginationContainer = document.getElementById('pagination');
-    const searchInput = document.getElementById('searchInput');
-    const totalBooksSpan = document.getElementById('totalBooksCount');
-
-    function updateTotalCounter() {
-        if (totalBooksSpan) totalBooksSpan.innerText = filteredBooks.length;
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    function applyFilter() {
-        const term = searchTerm.trim().toLowerCase();
-        if (term === "") {
-            filteredBooks = [...allBooks];
-        } else {
-            filteredBooks = allBooks.filter(book => 
-                book.title.toLowerCase().includes(term) || 
-                book.author.toLowerCase().includes(term)
-            );
-        }
-        currentPage = 1;
-        updateTotalCounter();
-        renderBooks();
-        renderPagination();
-    }
-
-    function renderBooks() {
-        if (!booksContainer) return;
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const booksToShow = filteredBooks.slice(startIndex, startIndex + itemsPerPage);
-
-        if (booksToShow.length === 0) {
-            booksContainer.innerHTML = `
-                <div class="col-12">
-                    <div class="empty-state">
-                        <div style="font-size: 2rem;">📭</div>
-                        <p class="small text-muted mb-1">Книги не найдены</p>
-                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0" style="font-size:0.7rem;" id="resetSearchBtn">Показать все</button>
-                    </div>
-                </div>
-            `;
-            const resetBtn = document.getElementById('resetSearchBtn');
-            if (resetBtn) resetBtn.addEventListener('click', () => {
-                if (searchInput) searchInput.value = '';
-                searchTerm = '';
-                applyFilter();
-            });
-            return;
-        }
-
-        let cardsHtml = '';
-        booksToShow.forEach(book => {
-            const coverSrc = book.cover && book.cover.trim() ? book.cover : 'https://picsum.photos/id/42/300/450';
-            cardsHtml += `
-                <div class="col">
-                    <div class="card book-card h-100">
-                        <div class="book-cover">
-                            <img src="${coverSrc}" alt="${escapeHtml(book.title)}" loading="lazy"
-                                 onerror="this.onerror=null; this.src='https://picsum.photos/id/20/300/450';">
-                        </div>
-                        <div class="card-body">
-                            <h5 class="book-title">${escapeHtml(book.title)}</h5>
-                            <p class="book-author">✍️ ${escapeHtml(book.author)}</p>
-                            <div class="mt-auto">
-                                <span class="book-size">📄 ${escapeHtml(book.size)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        booksContainer.innerHTML = cardsHtml;
-    }
-
-    function renderPagination() {
-        if (!paginationContainer) return;
-        const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
-        if (filteredBooks.length === 0) {
-            paginationContainer.innerHTML = '';
-            return;
-        }
-        if (totalPages <= 1) {
-            paginationContainer.innerHTML = `
-                <li class="page-item disabled"><span class="page-link">Назад</span></li>
-                <li class="page-item active"><span class="page-link">1</span></li>
-                <li class="page-item disabled"><span class="page-link">Вперёд</span></li>
-            `;
-            return;
-        }
-
-        let paginationHtml = '';
-        const prevDisabled = currentPage === 1 ? 'disabled' : '';
-        paginationHtml += `<li class="page-item ${prevDisabled}" data-action="prev"><a class="page-link" href="#">‹ Назад</a></li>`;
-
-        if (totalPages <= 5) {
-            for (let i = 1; i <= totalPages; i++) {
-                paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}" data-page="${i}"><a class="page-link" href="#">${i}</a></li>`;
-            }
-        } else {
-            let startPage = Math.max(1, currentPage - 1);
-            let endPage = Math.min(totalPages, currentPage + 1);
-            if (currentPage <= 2) { startPage = 1; endPage = 3; }
-            if (currentPage >= totalPages - 1) { startPage = totalPages - 2; endPage = totalPages; }
-            
-            if (startPage > 1) {
-                paginationHtml += `<li class="page-item" data-page="1"><a class="page-link" href="#">1</a></li>`;
-                if (startPage > 2) paginationHtml += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
-            }
-            for (let i = startPage; i <= endPage; i++) {
-                paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}" data-page="${i}"><a class="page-link" href="#">${i}</a></li>`;
-            }
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) paginationHtml += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
-                paginationHtml += `<li class="page-item" data-page="${totalPages}"><a class="page-link" href="#">${totalPages}</a></li>`;
-            }
-        }
-
-        const nextDisabled = currentPage === totalPages ? 'disabled' : '';
-        paginationHtml += `<li class="page-item ${nextDisabled}" data-action="next"><a class="page-link" href="#">Вперёд ›</a></li>`;
-        paginationContainer.innerHTML = paginationHtml;
-    }
-
-    function handlePaginationClick(e) {
-        let target = e.target.closest('.page-item');
-        if (!target) return;
-        e.preventDefault();
-        if (target.classList.contains('disabled')) return;
-
-        const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
-        if (totalPages === 0) return;
-
-        let newPage = currentPage;
-        const pageAttr = target.getAttribute('data-page');
-        const actionAttr = target.getAttribute('data-action');
-
-        if (pageAttr && !isNaN(parseInt(pageAttr))) {
-            newPage = parseInt(pageAttr);
-        } else if (actionAttr === 'prev') {
-            newPage = currentPage - 1;
-        } else if (actionAttr === 'next') {
-            newPage = currentPage + 1;
-        } else {
-            const innerText = target.querySelector('.page-link')?.innerText;
-            if (innerText && !isNaN(parseInt(innerText))) newPage = parseInt(innerText);
-            else return;
-        }
-
-        if (newPage < 1) newPage = 1;
-        if (newPage > totalPages) newPage = totalPages;
-        if (newPage !== currentPage) {
-            currentPage = newPage;
-            renderBooks();
-            renderPagination();
-            // Прокручиваем область с книгами в начало (плавно)
-            document.querySelector('.books-scroll-area')?.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
-
-    function onSearchInput(e) {
-        searchTerm = e.target.value;
-        applyFilter();
-        // после фильтрации прокрутка вверх
-        document.querySelector('.books-scroll-area')?.scrollTo({ top: 0, behavior: 'auto' });
-    }
-
-    function init() {
-        filteredBooks = [...allBooks];
-        currentPage = 1;
-        searchTerm = "";
-        if (searchInput) {
-            searchInput.value = "";
-            searchInput.addEventListener('input', onSearchInput);
-        }
-        updateTotalCounter();
-        renderBooks();
-        renderPagination();
-        if (paginationContainer) {
-            paginationContainer.addEventListener('click', handlePaginationClick);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', init);
-</script>
 </body>
 </html>

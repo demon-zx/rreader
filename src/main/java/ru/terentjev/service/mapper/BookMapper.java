@@ -10,7 +10,7 @@ import ru.terentjev.service.model.Book;
 import java.nio.file.Path;
 
 @Mapper(config = Config.class, uses = PathMapper.class)
-public abstract class BookMapper {
+public abstract class BookMapper extends PageMapper<Book, BookEntity> {
     public static BookMapper mapper = Mappers.getMapper(BookMapper.class);
 
     public abstract Book from(BookEntity source);

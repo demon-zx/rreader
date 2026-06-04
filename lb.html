@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>test</title>
+    <style>
+        .book-author {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .book-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .book-cover {
+            width: 100px; /* фиксированная ширина */
+            min-width: 100px; /* гарантия единой ширины */
+            max-width: 100px; /* никаких растяжений */
+            height: 135px;
+            object-fit: cover; /* сохраняем пропорции и заполняем блок */
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #e9ecef;
+            display: block; /* убираем лишние отступы */
+        }
+
+        /* на маленьких экранах уменьшаем, но ширина всё равно единая для всех карточек */
+        @media (max-width: 576px) {
+            .book-cover {
+                width: 80px;
+                min-width: 80px;
+                max-width: 80px;
+                height: 108px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-1">
+            <h1>Библиотека</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 mb-1">
+            <form>
+                <input id="search" class="form-control" placeholder="Поиск..."/>
+            </form>
+        </div>
+    </div>
+    <div class="row" id="books">
+        <div class="col-12 col-lg-6">
+            <div class="card mb-1">
+                <div class="row g-0">
+                    <div class="col-auto">
+                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
+                             alt="...">
+                    </div>
+                    <div class="col">
+                        <div class="card-body">
+                            <h5 class="card-title book-author">Тарасов</h5>
+                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
+                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-1">
+                <div class="row g-0">
+                    <div class="col-auto">
+                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
+                             alt="...">
+                    </div>
+                    <div class="col">
+                        <div class="card-body">
+                            <h5 class="card-title book-author">Тарасов</h5>
+                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
+                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-1">
+                <div class="row g-0">
+                    <div class="col-auto">
+                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
+                             alt="...">
+                    </div>
+                    <div class="col">
+                        <div class="card-body">
+                            <h5 class="card-title book-author">Тарасов</h5>
+                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
+                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card mb-1">
+                <div class="row g-0">
+                    <div class="col-auto">
+                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
+                             alt="...">
+                    </div>
+                    <div class="col">
+                        <div class="card-body">
+                            <h5 class="card-title book-author">Тарасов</h5>
+                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
+                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item active"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">18</a></li>
+                    <li class="page-item"><a class="page-link" href="#">19</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+
+    </div>
+</div>
+
+</body>
+</html>

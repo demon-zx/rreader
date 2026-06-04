@@ -1,11 +1,14 @@
 package ru.terentjev.service;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.terentjev.exception.InvalidArgumentException;
 import ru.terentjev.repository.BookRepository;
 import ru.terentjev.service.mapper.BookMapper;
 import ru.terentjev.service.model.Book;
+import ru.terentjev.service.model.Page;
 
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -40,6 +43,23 @@ public class BookService {
     public Optional<Book> findByPath(Path path) {
         return repository.findByPath(path.toString())
                 .map(BookMapper.mapper::from);
+    }
+
+    public long count() {
+        return repository.count();
+    }
+
+    public Page<Book> findAll(String q, long from, int limit) {
+        Pageable p = Pageable.ofSize(limit)
+                .withPage((int) (from / limit));
+        if (StringUtils.isBlank(q)) {
+            return BookMapper.mapper.from(repository.findAll(p));
+
+        } else {
+            return BookMapper.mapper.from(
+                    repository.findAllByAuthorContainingIgnoreCaseOrTitleContainingIgnoreCase(q, q, p)
+            );
+        }
     }
 
 }
