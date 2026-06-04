@@ -13,6 +13,11 @@ public interface Render {
 
     Info info(InputStream is) throws IOException;
 
+    void cover(
+            InputStream is,
+            OutputStream os
+    ) throws IOException;
+
     void render(
             int page,
             InputStream is,

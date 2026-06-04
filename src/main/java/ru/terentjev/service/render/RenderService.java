@@ -1,8 +1,7 @@
 package ru.terentjev.service.render;
 
+import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.commons.lang3.function.FailableConsumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.terentjev.exception.InvalidArgumentException;
 import ru.terentjev.service.BookService;
@@ -16,7 +15,6 @@ import java.util.UUID;
 
 @Service
 public class RenderService {
-    private static final Logger log = LoggerFactory.getLogger(RenderService.class);
 
     private final BookService service;
     private final RenderFactory renderFactory;
@@ -38,7 +36,14 @@ public class RenderService {
     ) throws IOException, InvalidArgumentException {
         Book book = service.findById(id);
         Path rendered = path(id).resolve("cover.png");
-        render(1, rendered, book);
+        render(
+                (is, os) -> {
+                    Render render = renderFactory.getRender(book.getType());
+                    render.cover(is, os);
+                },
+                rendered,
+                book
+        );
         out(mapper, rendered);
     }
 
@@ -49,11 +54,22 @@ public class RenderService {
     ) throws IOException, InvalidArgumentException {
         Book book = service.findById(id);
         Path rendered = path(id).resolve(page + ".png");
-        render(page, rendered, book);
+        render(
+                (is, os) -> {
+                    Render render = renderFactory.getRender(book.getType());
+                    render.render(page, is, os);
+                },
+                rendered,
+                book
+        );
         out(mapper, rendered);
     }
 
-    private void render(int page, Path file, Book book) throws IOException {
+    private void render(
+            FailableBiConsumer<InputStream, OutputStream, IOException> renderMethod,
+            Path file,
+            Book book
+    ) throws IOException {
         if (Files.notExists(file)) {
             if (Files.notExists(file.getParent())) {
                 Files.createDirectories(file.getParent());
@@ -62,8 +78,7 @@ public class RenderService {
                     book.getPath(),
                     is -> {
                         try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(file))) {
-                            Render render = renderFactory.getRender(book.getType());
-                            render.render(page, is, os);
+                            renderMethod.accept(is, os);
                             os.flush();
                         }
                         return null;

@@ -38,6 +38,14 @@ public class PDFRender implements Render {
     }
 
     @Override
+    public void cover(
+            InputStream is,
+            OutputStream os
+    ) throws IOException {
+        render(1, is, os);
+    }
+
+    @Override
     public void render(
             int page,
             InputStream is,
