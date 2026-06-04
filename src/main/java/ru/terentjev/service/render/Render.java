@@ -14,12 +14,6 @@ public interface Render {
     Info info(InputStream is) throws IOException;
 
     void render(
-            InputStream is,
-            FailableBiConsumer<RenderedImage, Integer, IOException> renderedPageConsumer,
-            List<Integer> pages
-    ) throws IOException;
-
-    void render(
             int page,
             InputStream is,
             OutputStream os

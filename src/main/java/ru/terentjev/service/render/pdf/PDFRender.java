@@ -1,6 +1,5 @@
 package ru.terentjev.service.render.pdf;
 
-import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -14,11 +13,9 @@ import ru.terentjev.service.render.Render;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
 @Component
 public class PDFRender implements Render {
@@ -38,21 +35,6 @@ public class PDFRender implements Render {
         String author = information.getAuthor();
         String title = information.getTitle();
         return new Info(pages, author, title);
-    }
-
-    @Override
-    public void render(
-            InputStream is,
-            FailableBiConsumer<RenderedImage, Integer, IOException> renderedPageConsumer,
-            List<Integer> pages
-    ) throws IOException {
-        PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(is));
-        PDFRenderer pdfRenderer = new PDFRenderer(document);
-        for (Integer page : pages) {
-            log.info("Rendering page {}", page);
-            BufferedImage image = pdfRenderer.renderImageWithDPI(page - 1, 150);
-            renderedPageConsumer.accept(image, page);
-        }
     }
 
     @Override
