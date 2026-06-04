@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="dmitry" id="create-table-book">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="book"/>
+            </not>
+        </preConditions>
+        <createTable tableName="book">
+            <column name="id" type="uuid" defaultValue="RANDOM_UUID()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="varchar(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author" type="varchar(1024)"/>
+            <column name="language" type="varchar(7)"/>
+            <column name="type" type="varchar(7)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="varchar(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="checksum" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="isbn" type="bigint"/>
+            <column name="size" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp"/>
+            <column name="created_by" type="varchar(128)"/>
+            <column name="updated_at" type="timestamp"/>
+            <column name="updated_by" type="varchar(128)"/>
+        </createTable>
+        <addPrimaryKey constraintName="pk_book" tableName="book" columnNames="id"/>
+        <addUniqueConstraint constraintName="uq_isbn" tableName="book" columnNames="isbn"/>
+        <createIndex tableName="book" indexName="idx_title_author_language_type">
+            <column name="title"/>
+            <column name="author"/>
+            <column name="language"/>
+            <column name="type"/>
+        </createIndex>
+        <createIndex tableName="book" indexName="idx_checksum">
+            <column name="checksum"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="dmitry" id="create-table-bookmark">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bookmark"/>
+            </not>
+        </preConditions>
+        <createTable tableName="bookmark">
+            <column name="id" type="uuid" defaultValue="RANDOM_UUID()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="varchar(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="varchar(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="book_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp"/>
+            <column name="created_by" type="varchar(128)"/>
+            <column name="updated_at" type="timestamp"/>
+            <column name="updated_by" type="varchar(128)"/>
+        </createTable>
+        <addPrimaryKey constraintName="pk_bookmark" tableName="bookmark" columnNames="id"/>
+        <addUniqueConstraint constraintName="uq_bookmark" tableName="bookmark" columnNames="username,title,book_id"/>
+        <createIndex tableName="bookmark" indexName="idx_username_title_book_id">
+            <column name="username"/>
+            <column name="title"/>
+            <column name="book_id"/>
+        </createIndex>
+
+    </changeSet>
+
+</databaseChangeLog>
