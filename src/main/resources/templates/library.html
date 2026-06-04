@@ -24,18 +24,17 @@
         }
 
         .book-cover {
-            width: 100px; /* фиксированная ширина */
-            min-width: 100px; /* гарантия единой ширины */
-            max-width: 100px; /* никаких растяжений */
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
             height: 135px;
-            object-fit: cover; /* сохраняем пропорции и заполняем блок */
+            object-fit: cover;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             background-color: #e9ecef;
-            display: block; /* убираем лишние отступы */
+            display: block;
         }
 
-        /* на маленьких экранах уменьшаем, но ширина всё равно единая для всех карточек */
         @media (max-width: 576px) {
             .book-cover {
                 width: 80px;
@@ -50,25 +49,23 @@
 
 <body>
 
-<script th:inline="javascript">
-    const all = /*[[${all}]]*/0;
-</script>
 <script type="module" th:src="@{/js/library.js}"></script>
 
 <div class="container">
     <div class="row">
         <div class="col-12 mb-1">
-            <h1>Библиотека</h1>
+            <h1>Library</h1>
         </div>
     </div>
     <div class="row">
         <div class="col-12 mb-1">
             <form>
-                <input id="search" class="form-control" placeholder="Поиск..."/>
+                <input id="search" class="form-control" placeholder="Search... (Not implemented)"/>
             </form>
         </div>
     </div>
     <div class="row" id="books">
+        <!-- example -->
         <div class="col-12 col-lg-6">
             <div class="card mb-1">
                 <div class="row g-0">
@@ -78,87 +75,20 @@
                     </div>
                     <div class="col">
                         <div class="card-body">
-                            <h5 class="card-title book-author">Тарасов</h5>
-                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
-                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
+                            <h5 class="card-title book-author">Author</h5>
+                            <p class="card-text book-title">Book title</p>
+                            <h6>Размер: <span class="badge text-bg-secondary">2 MB</span></h6>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-lg-6">
-            <div class="card mb-1">
-                <div class="row g-0">
-                    <div class="col-auto">
-                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
-                             alt="...">
-                    </div>
-                    <div class="col">
-                        <div class="card-body">
-                            <h5 class="card-title book-author">Тарасов</h5>
-                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
-                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-lg-6">
-            <div class="card mb-1">
-                <div class="row g-0">
-                    <div class="col-auto">
-                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
-                             alt="...">
-                    </div>
-                    <div class="col">
-                        <div class="card-body">
-                            <h5 class="card-title book-author">Тарасов</h5>
-                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
-                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-lg-6">
-            <div class="card mb-1">
-                <div class="row g-0">
-                    <div class="col-auto">
-                        <img src="https://ir.ozone.ru/s3/multimedia-1-r/8323763463.jpg" class="book-cover"
-                             alt="...">
-                    </div>
-                    <div class="col">
-                        <div class="card-body">
-                            <h5 class="card-title book-author">Тарасов</h5>
-                            <p class="card-text book-title">Мифы о Солженицине опровергнутые им самим</p>
-                            <h6>Размер: <span class="badge text-bg-secondary">2 МБ</span></h6>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+    </div>
+    <div class="row" id="pager">
         <div class="col-12">
-            <nav>
-                <ul class="pagination justify-content-center">
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item active"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">18</a></li>
-                    <li class="page-item"><a class="page-link" href="#">19</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+<!--            Not implemented-->
         </div>
-
-
     </div>
 </div>
 

@@ -13,7 +13,7 @@ ajax(`/api/v1/library?from=${page}&limit=${pageSize}`)
                 console.log('Книга:', i.title);
                 html += `
                     <div class="col-12 col-lg-6">
-                        <div class="card mb-1">
+                        <div class="card mb-1" onclick="location.href='/view?id=${i.id}'">
                             <div class="row g-0">
                                 <div class="col-auto">
                                     <img src="/api/v1/book/cover?id=${i.id}" class="book-cover"
