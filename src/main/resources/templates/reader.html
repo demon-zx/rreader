@@ -229,7 +229,10 @@
     </div>
 </div>
 
-<script th:inline="javascript">
+<script th:inline="javascript" type="module">
+    // import {ajax} from "./common.js";
+    import {ajax} from "../js/common.js";
+
     (function() {
 
         const id = /*[[${id}]]*/'';
@@ -273,6 +276,19 @@
             }
         }
 
+        function setPosition(page) {
+            ajax(`/api/v1/bookmark?bookId=${id}&position=${page}`, {method: 'PUT', json: false})
+                    .catch(error => showError(error))
+        }
+
+        function getPosition() {
+            ajax(`/api/v1/bookmark?bookId=${id}`)
+                    .then(data => {
+                        updateImageForPage(data);
+                    })
+                    .catch(error => showError(error))
+        }
+
         // Функция загрузки с таймаутом и обработкой очереди
         function updateImageForPage(page, options = { silentRetry: false }) {
             if (isLoading && !options.silentRetry) {
@@ -311,6 +327,7 @@
                 currentPage = page;
                 pageNumberSpan.innerText = currentPage;
                 setLoadingState(false);
+                setPosition(currentPage);
             };
 
             tempImage.onerror = (err) => {
@@ -381,7 +398,7 @@
         }
 
         bindEvents();
-        updateImageForPage(1);
+        getPosition();
     })();
 </script>
 </body>

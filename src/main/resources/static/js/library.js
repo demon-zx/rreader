@@ -5,12 +5,10 @@ const eBooks = document.getElementById('books');
 let page = 0;
 let pageSize = 10;
 
-ajax(`/api/v1/library?from=${page}&limit=${pageSize}`)
+ajax(`/api/v1/library?page=${page}&pageSize=${pageSize}`)
         .then(data => {
-            console.log('Всего:', data.all);
             let html = '';
             data.items.forEach(i => {
-                console.log('Книга:', i.title);
                 html += `
                     <div class="col-12 col-lg-6">
                         <div class="card mb-1" onclick="location.href='/view?id=${i.id}'">

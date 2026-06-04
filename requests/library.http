@@ -1,5 +1,5 @@
 ### search
-GET {{host}}/api/v1/library?q=миф&from=0&limit=10
+GET {{host}}/api/v1/library?q=миф&page=0&pageSize=10
 
 ### all
-GET {{host}}/api/v1/library?from=0&limit=10
+GET {{host}}/api/v1/library?page=0&pageSize=10

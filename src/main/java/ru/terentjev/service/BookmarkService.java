@@ -41,7 +41,7 @@ public class BookmarkService {
     public long findCurrentPosition(String username, UUID bookId) throws InvalidArgumentException {
         return repository.findByUsernameAndTitleAndBookId(username, CURRENT, bookId)
                 .map(BookmarkEntity::position)
-                .orElse(0L);
+                .orElse(1L);
     }
 
     @Transactional

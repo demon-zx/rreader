@@ -1,7 +1,9 @@
 package ru.terentjev.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.terentjev.exception.InvalidArgumentException;
@@ -49,9 +51,8 @@ public class BookService {
         return repository.count();
     }
 
-    public Page<Book> findAll(String q, long from, int limit) {
-        Pageable p = Pageable.ofSize(limit)
-                .withPage((int) (from / limit));
+    public Page<Book> findAll(String q, int page, int pageSize) {
+        Pageable p = PageRequest.of(page, pageSize, Sort.by("author", "title").ascending());
         if (StringUtils.isBlank(q)) {
             return BookMapper.mapper.from(repository.findAll(p));
 
