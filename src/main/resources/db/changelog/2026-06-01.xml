@@ -71,9 +71,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="timestamp"/>
-            <column name="created_by" type="varchar(128)"/>
             <column name="updated_at" type="timestamp"/>
-            <column name="updated_by" type="varchar(128)"/>
         </createTable>
         <addPrimaryKey constraintName="pk_bookmark" tableName="bookmark" columnNames="id"/>
         <addUniqueConstraint constraintName="uq_bookmark" tableName="bookmark" columnNames="username,title,book_id"/>
@@ -82,6 +80,9 @@
             <column name="title"/>
             <column name="book_id"/>
         </createIndex>
+        <addForeignKeyConstraint constraintName="fk_bookmark_book_id" baseTableName="bookmark" baseColumnNames="book_id"
+                                 referencedTableName="book"
+                                 referencedColumnNames="id"/>
 
     </changeSet>
 

@@ -28,8 +28,8 @@ public class BookService {
 
 
     @Transactional
-    public Book save(Book example) {
-        return BookMapper.mapper.from(repository.save(BookMapper.mapper.to(example)));
+    public Book save(Book item) {
+        return BookMapper.mapper.from(repository.save(BookMapper.mapper.to(item)));
     }
 
     public Book findById(UUID id) throws InvalidArgumentException {

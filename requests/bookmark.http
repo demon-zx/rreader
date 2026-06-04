@@ -1,0 +1,5 @@
+### read current position
+GET {{host}}/api/v1/bookmark?bookId=88bc0bdc-3c14-4917-adcb-231a346bb1d9
+
+### save current position
+PUT {{host}}/api/v1/bookmark?bookId=88bc0bdc-3c14-4917-adcb-231a346bb1d9&position=15
