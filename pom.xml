@@ -9,7 +9,7 @@
     <packaging>war</packaging>
     <groupId>ru.terentjev</groupId>
     <artifactId>rreader</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1</version>
     <name>rreader</name>
     <description>rreader</description>
     <properties>
