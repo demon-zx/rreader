@@ -42,7 +42,7 @@ public class PDFRender implements Render {
             InputStream is,
             OutputStream os
     ) throws IOException {
-        render(1, is, os);
+        render(1, is, os, 75);
     }
 
     @Override
@@ -51,10 +51,14 @@ public class PDFRender implements Render {
             InputStream is,
             OutputStream os
     ) throws IOException {
+        render(page, is, os, 300);
+    }
+
+    private static void render(int page, InputStream is, OutputStream os, int dpi) throws IOException {
         PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(is));
         PDFRenderer pdfRenderer = new PDFRenderer(document);
         log.info("Rendering page {}", page);
-        BufferedImage image = pdfRenderer.renderImageWithDPI(page - 1, 150);
+        BufferedImage image = pdfRenderer.renderImageWithDPI(page - 1, dpi);
         ImageIO.write(image, "PNG", os);
         os.flush();
     }
