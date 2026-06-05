@@ -66,3 +66,36 @@ export function ajax(url, options = {}) {
                 throw error; // Пробрасываем дальше для обработки в вызывающем коде
             });
 }
+
+/**
+ * Создаёт "тормозящую" (debounced) функцию, которая будет вызвана не чаще одного раза
+ * за указанный промежуток времени, причём только после того, как вызовы прекратятся.
+ *
+ * @param {Function} func - функция, вызов которой нужно отложить.
+ * @param {number} delayMillis - задержка в миллисекундах.
+ * @param {boolean} immediate - если true, функция выполнится сразу при первом вызове,
+ *                              а затем будет игнорироваться до окончания задержки.
+ * @returns {Function} - обёртка с отложенным вызовом.
+ */
+export function debounce(func, delayMillis, immediate = false) {
+    let timeoutId;
+
+    return function (...args) {
+        const context = this;
+
+        const later = () => {
+            timeoutId = null;
+            if (!immediate) {
+                func.apply(context, args);
+            }
+        };
+
+        const callNow = immediate && !timeoutId;
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(later, delayMillis);
+
+        if (callNow) {
+            func.apply(context, args);
+        }
+    };
+}
