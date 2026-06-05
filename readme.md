@@ -9,7 +9,7 @@
 - [ ] сохранение позиции чтения
   - [x] для пользователя admin
   - [ ] для пользователя спринг секьюрити
-- [ ] сборка в докер
+- [x] сборка в докер
 - [ ] спринг секьюрити и страничка логина
 - [ ] переверстать страничку чтения
 - [ ] загрузка книг:
@@ -27,3 +27,11 @@
 - [ ] epub
 - [ ] html
 - [ ] 
+
+## Сборка
+
+docker build -t ghcr.io/demon-zx/rreader:latest .
+
+## Запуск
+
+sudo docker run -d --name rreader -p 7070:8080 --volume /opt/rreader/config:/config --volume /opt/rreader/books:/books -e GID=$(id -g tomcat) -e UID=$(id -u tomcat) --restart=unless-stopped ghcr.io/demon-zx/rreader:latest

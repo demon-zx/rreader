@@ -20,11 +20,4 @@ public abstract class BookMapper extends AbstractPageMapper<Book, BookEntity> {
     @InheritInverseConfiguration
     public abstract BookEntity to(Book source);
 
-    public String trim(String source) {
-        if (source == null) {
-            return null;
-        }
-        return source.trim();
-    }
-
 }
