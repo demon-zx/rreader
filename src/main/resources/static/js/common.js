@@ -15,9 +15,14 @@ export function ajax(url, options = {}) {
         body = null,
         json = true
     } = options;
-
     // Подготавливаем заголовки
     const requestHeaders = new Headers(headers);
+
+    let eCsrfValue = document.querySelector('meta[name="_csrf"]');
+    let eCsrfHeader = document.querySelector('meta[name="_csrf_header"]');
+    if (eCsrfValue && eCsrfHeader) {
+        requestHeaders.set(eCsrfHeader.content, eCsrfValue.content)
+    }
 
     // Автоматически добавляем Content-Type: application/json если тело - объект
     if (body && typeof body === 'object' && !(body instanceof FormData)) {

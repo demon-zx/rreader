@@ -86,4 +86,33 @@
 
     </changeSet>
 
+    <changeSet author="dmitry" id="create-table-user">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user">
+            <column name="id" type="uuid" defaultValue="RANDOM_UUID()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="varchar(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="admin" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="boolean" defaultValue="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="compromised" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey constraintName="pk_user" tableName="user" columnNames="id"/>
+        <addUniqueConstraint constraintName="uq_user_username" tableName="user" columnNames="username"/>
+    </changeSet>
 </databaseChangeLog>

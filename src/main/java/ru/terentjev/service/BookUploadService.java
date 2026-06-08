@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
-public class BookUploadService {
+public class BookUploadService implements FirstRunService {
     private static final Logger log = LoggerFactory.getLogger(BookUploadService.class);
 
     private final Path pathBooks;
@@ -119,4 +119,8 @@ public class BookUploadService {
         }
     }
 
+    @Override
+    public void firstRun() {
+        scan();
+    }
 }
