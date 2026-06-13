@@ -104,3 +104,7 @@ export function debounce(func, delayMillis, immediate = false) {
         }
     };
 }
+
+export function showError(message) {
+    alert(`Ошибка: ${message}`);
+}

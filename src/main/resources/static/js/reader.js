@@ -1,62 +1,53 @@
-import {ajax} from "./common.js";
-import {debounce} from "./common.js";
+import { ajax, debounce, showError } from "./common.js";
 
-const eBooks = document.getElementById('books');
-const eSearch = document.getElementById('search');
+let baseBookUrl;
+let baseBookmarkUrl;
+let eView;
+let currentPage = 1;
+let pages = 0;
 
-let page = 0;
-let pageSize = 10;
-
-function showError(message) {
-    alert(`Ошибка: ${message}`);
+function showPage(page) {
+    const url = `${baseBookUrl}/render/${page}`;
+    const image = new Image();
+    image.onload = () => {
+        eView.src = url;
+        currentPage = page;
+        savePosition(page)
+    }
+    image.onerror = (err) => {
+        showError(err);
+    }
+    image.src = url;
 }
 
-function loadBooks() {
-    ajax(`/api/v1/library?page=${page}&pageSize=${pageSize}&q=${eSearch.value}`)
-            .then(data => {
-                let html = '';
-                data.items.forEach(i => {
-                    html += `
-                    <div class="col-12 col-lg-6">
-                        <div class="card mb-1" onclick="location.href='/view?id=${i.id}'">
-                            <div class="row g-0">
-                                <div class="col-auto">
-                                    <img src="/api/v1/book/cover?id=${i.id}" class="book-cover"
-                                         alt="...">
-                                </div>
-                                <div class="col">
-                                    <div class="card-body">
-                                        <h5 class="card-title book-author">${i.author}</h5>
-                                        <p class="card-text book-title" title="${i.title}">${i.title}</p>
-                                        <h6>Размер: <span class="badge text-bg-secondary">${i.size}</span></h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-`
-                })
-                eBooks.innerHTML = html;
-            })
-            .catch(error => {
-                showError(error.message);
-            })
+function loadPosition() {
+    ajax(`${baseBookmarkUrl}`)
+        .then(data => {
+            showPage(data);
+        })
+        .catch(error => showError(error));
 }
 
-function initSearch() {
-    const lb = debounce(loadBooks, 300)
-    eSearch.addEventListener('input', lb)
-    const eSearchClear = document.getElementById('search-clear');
-    eSearchClear.addEventListener('click', () => {
-        eSearch.value = '';
-        loadBooks();
-    })
+function savePosition(page) {
+    ajax(`${baseBookmarkUrl}&position=${page}`, { method: 'PUT', json: false })
+        .catch(error => showError(error))
+}
 
+function loadInfo() {
+    ajax(baseBookUrl)
+        .then(data => {
+            pages = data.pages;
+            loadPosition();
+        })
+        .catch(error => showError(error));
 }
 
 function init() {
-    loadBooks();
-    initSearch();
+    eView = document.getElementById('view');
+    const id = document.getElementById('book').getAttribute('data-id');
+    baseBookUrl = `/api/v1/book/${id}`
+    baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
+    loadInfo()
 }
 
 document.addEventListener("DOMContentLoaded", init);

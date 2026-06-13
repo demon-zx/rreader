@@ -2,6 +2,7 @@ package ru.terentjev.service.render;
 
 import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.commons.lang3.function.FailableConsumer;
+import org.apache.commons.lang3.function.FailableFunction;
 import org.springframework.stereotype.Service;
 import ru.terentjev.exception.InvalidArgumentException;
 import ru.terentjev.service.BookService;
@@ -30,20 +31,20 @@ public class RenderService {
         }
     }
 
+    public Info readInfo(UUID id) throws InvalidArgumentException, IOException {
+        Book book = service.findById(id);
+        Render render = renderFactory.getRender(book.getType());
+        return file(is -> render.info(is), book);
+    }
+
     public void renderCover(
             UUID id,
             FailableConsumer<InputStream, IOException> mapper
     ) throws IOException, InvalidArgumentException {
         Book book = service.findById(id);
+        Render render = renderFactory.getRender(book.getType());
         Path rendered = path(id).resolve("cover.png");
-        render(
-                (is, os) -> {
-                    Render render = renderFactory.getRender(book.getType());
-                    render.cover(is, os);
-                },
-                rendered,
-                book
-        );
+        render(render::cover, rendered, book);
         out(mapper, rendered);
     }
 
@@ -53,15 +54,9 @@ public class RenderService {
             FailableConsumer<InputStream, IOException> mapper
     ) throws IOException, InvalidArgumentException {
         Book book = service.findById(id);
+        Render render = renderFactory.getRender(book.getType());
         Path rendered = path(id).resolve(page + ".png");
-        render(
-                (is, os) -> {
-                    Render render = renderFactory.getRender(book.getType());
-                    render.render(page, is, os);
-                },
-                rendered,
-                book
-        );
+        render((is, os) -> render.render(page, is, os), rendered, book);
         out(mapper, rendered);
     }
 
@@ -74,17 +69,29 @@ public class RenderService {
             if (Files.notExists(file.getParent())) {
                 Files.createDirectories(file.getParent());
             }
-            IOUtil.readFile(
-                    book.getPath(),
-                    is -> {
-                        try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(file))) {
-                            renderMethod.accept(is, os);
-                            os.flush();
-                        }
-                        return null;
+            file(
+                is -> {
+                    try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(file))) {
+                        renderMethod.accept(is, os);
+                        os.flush();
                     }
+                    return null;
+                }, 
+                book
             );
         }
+    }
+
+    private <T> T file(
+            FailableFunction<InputStream, T, IOException> method,
+            Book book
+    ) throws IOException {
+        return IOUtil.readFile(
+            book.getPath(), 
+            is -> {
+                return method.apply(is);
+            }
+        );
     }
 
     private Path path(UUID id) {

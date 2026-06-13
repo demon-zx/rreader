@@ -1,15 +1,10 @@
-import {ajax} from "./common.js";
-import {debounce} from "./common.js";
+import {ajax, debounce, showError} from "./common.js";
 
-const eBooks = document.getElementById('books');
-const eSearch = document.getElementById('search');
+let eBooks;
+let eSearch;
 
 let page = 0;
 let pageSize = 10;
-
-function showError(message) {
-    alert(`Ошибка: ${message}`);
-}
 
 function loadBooks() {
     ajax(`/api/v1/library?page=${page}&pageSize=${pageSize}&q=${eSearch.value}`)
@@ -21,7 +16,7 @@ function loadBooks() {
                         <div class="card mb-1" onclick="location.href='/view?id=${i.id}'">
                             <div class="row g-0">
                                 <div class="col-auto">
-                                    <img src="/api/v1/book/cover?id=${i.id}" class="book-cover"
+                                    <img src="/api/v1/book/${i.id}/cover" class="book-cover"
                                          alt="...">
                                 </div>
                                 <div class="col">
@@ -55,6 +50,9 @@ function initSearch() {
 }
 
 function init() {
+    eBooks = document.getElementById('books');
+    eSearch = document.getElementById('search');
+
     loadBooks();
     initSearch();
 }

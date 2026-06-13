@@ -239,7 +239,7 @@
 
         const id = /*[[${id}]]*/'';
         // -------- конфигурация ----------
-        const BASE_URL = "/api/v1/book/render?id=" + id;
+        const BASE_URL = `/api/v1/book/${id}`;
         let currentPage = 1;
         let isLoading = false;
         let pendingPage = null;
@@ -299,7 +299,7 @@
             }
 
             hideError();
-            const newUrl = `${BASE_URL}&page=${page}`;
+            const newUrl = `${BASE_URL}/render/${page}`;
             setLoadingState(true);
 
             // Таймаут защиты от зависания

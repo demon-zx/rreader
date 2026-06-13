@@ -31,6 +31,6 @@ public class ViewHtmlController extends AbstractController {
             model.addAttribute("title", book.getTitle());
             model.addAttribute("author", book.getAuthor());
         }
-        return "reader";
+        return "reader2";
     }
 }
