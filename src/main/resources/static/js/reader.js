@@ -6,6 +6,11 @@ let eView;
 let currentPage = 1;
 let pages = 0;
 
+/**
+ * Show page
+ * 
+ * @param {Number} page page
+ */
 function showPage(page) {
     const url = `${baseBookUrl}/render/${page}`;
     const image = new Image();
@@ -42,11 +47,25 @@ function loadInfo() {
         .catch(error => showError(error));
 }
 
+function next() {
+    if (currentPage < pages) {
+        showPage(currentPage + 1)
+    }
+}
+
+//TODO spinner for load
+//TODO prev page
+//TODO flash controls
+//TODO pre caching
+//TODO menu
+//TODO zoom
+
 function init() {
     eView = document.getElementById('view');
     const id = document.getElementById('book').getAttribute('data-id');
     baseBookUrl = `/api/v1/book/${id}`
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
+    document.getElementById('next').onclick = () => next();
     loadInfo()
 }
 
