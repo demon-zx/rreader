@@ -3,6 +3,7 @@ import { ajax, debounce, showError } from "./common.js";
 let baseBookUrl;
 let baseBookmarkUrl;
 let eView;
+let flashTimeout;
 let currentPage = 1;
 let pages = 0;
 
@@ -47,15 +48,46 @@ function loadInfo() {
         .catch(error => showError(error));
 }
 
-function next() {
-    if (currentPage < pages) {
-        showPage(currentPage + 1)
+function flashState(on) {
+    let elements = document.querySelectorAll('.overlay');
+    for (let e of elements) {
+        if (on) {
+            e.classList.add('flash-on');
+        } else {
+            e.classList.remove('flash-on');
+        }
     }
 }
 
+function flash() {
+    if (!flashTimeout) {
+        clearTimeout(flashTimeout);
+    }
+    flashTimeout = setTimeout(
+        () => {
+            flashState(false);
+        },
+        500
+    )
+    flashState(true);
+}
+
+function next() {
+    if (currentPage < pages) {
+        showPage(currentPage + 1);
+        flash();
+    }
+}
+
+function prev() {
+    if (currentPage > 1) {
+        showPage(currentPage - 1);
+        flash();
+    }
+}
+
+//TODO book info
 //TODO spinner for load
-//TODO prev page
-//TODO flash controls
 //TODO pre caching
 //TODO menu
 //TODO zoom
@@ -66,7 +98,8 @@ function init() {
     baseBookUrl = `/api/v1/book/${id}`
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
     document.getElementById('next').onclick = () => next();
-    loadInfo()
+    document.getElementById('prev').onclick = () => prev();
+    loadInfo();
 }
 
 document.addEventListener("DOMContentLoaded", init);
