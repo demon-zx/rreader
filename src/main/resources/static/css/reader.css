@@ -59,8 +59,41 @@ body {
 }
 
 .info {
-    width: 100%;
+    position: absolute;
+    /* display: flex; */
+    /* align-items: center; */
+    /* justify-content: center; */
+    background-color: transparent;
+    border: 0;
+    font-size: 1rem;
+    color: black;
+    opacity: 0.5;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.author {
+    width: 40%;
     top: 0;
+    left: 0;
+    text-align: left;
+}
+
+.page {
+    width: 20%;
+    top: 0;
+    text-align: center;
+}
+
+.title {
+    width: 40%;
+    top: 0;
+    right: 0;
+    text-align: right;
+    /* justify-content: right; */
 }
 
 .btn-next {

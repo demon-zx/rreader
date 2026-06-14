@@ -3,6 +3,9 @@ import { ajax, debounce, showError } from "./common.js";
 let baseBookUrl;
 let baseBookmarkUrl;
 let eView;
+let eAuthor;
+let ePage;
+let eTitle;
 let flashTimeout;
 let currentPage = 1;
 let pages = 0;
@@ -18,6 +21,7 @@ function showPage(page) {
     image.onload = () => {
         eView.src = url;
         currentPage = page;
+        if (ePage) ePage.innerHTML = `${currentPage}/${pages}`;
         savePosition(page)
     }
     image.onerror = (err) => {
@@ -43,6 +47,8 @@ function loadInfo() {
     ajax(baseBookUrl)
         .then(data => {
             pages = data.pages;
+            if (eTitle) eTitle.innerHTML = data.title;
+            if (eAuthor) eAuthor.innerHTML = data.author;
             loadPosition();
         })
         .catch(error => showError(error));
@@ -86,7 +92,6 @@ function prev() {
     }
 }
 
-//TODO book info
 //TODO spinner for load
 //TODO pre caching
 //TODO menu
@@ -94,6 +99,9 @@ function prev() {
 
 function init() {
     eView = document.getElementById('view');
+    eAuthor = document.getElementById('author');
+    ePage = document.getElementById('page');
+    eTitle = document.getElementById('title');
     const id = document.getElementById('book').getAttribute('data-id');
     baseBookUrl = `/api/v1/book/${id}`
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
