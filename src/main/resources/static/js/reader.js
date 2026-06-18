@@ -1,4 +1,4 @@
-import { ajax, debounce, showError } from "./common.js";
+import { ajax, debounce } from "./common.js";
 
 let baseBookUrl;
 let baseBookmarkUrl;
@@ -6,9 +6,27 @@ let eView;
 let eAuthor;
 let ePage;
 let eTitle;
+let eLoader;
 let flashTimeout;
 let currentPage = 1;
 let pages = 0;
+
+
+export function showError(message) {
+    alert(`Ошибка: ${message}`);
+}
+
+/**
+ * Show loader
+ * @param {Boolean} on 
+ */
+function loader(on) {
+    if (on) {
+        eLoader.classList.add('loader-on');
+    } else {
+        eLoader.classList.remove('loader-on');
+    }
+}
 
 /**
  * Show page
@@ -17,12 +35,14 @@ let pages = 0;
  */
 function showPage(page) {
     const url = `${baseBookUrl}/render/${page}`;
+    loader(true);
     const image = new Image();
     image.onload = () => {
         eView.src = url;
         currentPage = page;
         if (ePage) ePage.innerHTML = `${currentPage}/${pages}`;
         savePosition(page)
+        loader(false);
     }
     image.onerror = (err) => {
         showError(err);
@@ -80,28 +100,24 @@ function flash() {
 
 function next() {
     if (currentPage < pages) {
-        showPage(currentPage + 1);
         flash();
+        showPage(currentPage + 1);
     }
 }
 
 function prev() {
     if (currentPage > 1) {
-        showPage(currentPage - 1);
         flash();
+        showPage(currentPage - 1);
     }
 }
-
-//TODO spinner for load
-//TODO pre caching
-//TODO menu
-//TODO zoom
 
 function init() {
     eView = document.getElementById('view');
     eAuthor = document.getElementById('author');
     ePage = document.getElementById('page');
     eTitle = document.getElementById('title');
+    eLoader = document.getElementById('loader');
     const id = document.getElementById('book').getAttribute('data-id');
     baseBookUrl = `/api/v1/book/${id}`
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;

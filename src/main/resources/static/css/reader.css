@@ -58,11 +58,22 @@ body {
     font-size: 2rem;
 }
 
+.btn-next {
+    width: 50%;
+    height: 30%;
+    right: 0;
+    bottom: 0;
+}
+
+.btn-prev {
+    width: 50%;
+    height: 30%;
+    left: 0;
+    bottom: 0;
+}
+
 .info {
     position: absolute;
-    /* display: flex; */
-    /* align-items: center; */
-    /* justify-content: center; */
     background-color: transparent;
     border: 0;
     font-size: 1rem;
@@ -96,16 +107,17 @@ body {
     /* justify-content: right; */
 }
 
-.btn-next {
-    width: 50%;
-    height: 30%;
-    right: 0;
-    bottom: 0;
+.loader {
+    position: absolute;
+    background-color: rgb(126, 125, 125);
+    border: 1px outset rgb(70, 70, 70);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    font-size: 1rem;
+    color: rgb(255, 255, 255);
+    display: none;
 }
 
-.btn-prev {
-    width: 50%;
-    height: 30%;
-    left: 0;
-    bottom: 0;
+.loader-on {
+    display: block;
 }
