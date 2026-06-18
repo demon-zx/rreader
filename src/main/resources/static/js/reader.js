@@ -1,4 +1,4 @@
-import { ajax, debounce } from "./common.js";
+import { ajax, debounce, HttpError } from "./common.js";
 
 let baseBookUrl;
 let baseBookmarkUrl;
@@ -12,9 +12,14 @@ let currentPage = 1;
 let pages = 0;
 
 
-export function showError(message) {
+export function showError(error) {
     loader(false);
-    alert(`Ошибка: ${message}`);
+    if (error instanceof HttpError && error.status === 401) {
+        console.log(`Authentication error`);
+        location.reload();
+        return;
+    }
+    alert(`Ошибка: ${error}`);
 }
 
 /**
@@ -37,18 +42,30 @@ function loader(on) {
 function showPage(page) {
     const url = `${baseBookUrl}/render/${page}`;
     loader(true);
-    const image = new Image();
-    image.onload = () => {
-        eView.src = url;
-        currentPage = page;
-        if (ePage) ePage.innerHTML = `${currentPage}/${pages}`;
-        savePosition(page)
-        loader(false);
-    }
-    image.onerror = (err) => {
-        showError(err);
-    }
-    image.src = url;
+    ajax(url, { json: false }).then(data => {
+        const image = new Image();
+        image.onload = () => {
+            eView.src = url;
+            currentPage = page;
+            if (ePage) ePage.innerHTML = `${currentPage}/${pages}`;
+            savePosition(page)
+            loader(false);
+        }
+        image.src = url;
+    })
+    .catch(error => {
+        showError(error);
+    })
+    // image.onload = () => {
+    //     eView.src = url;
+    //     currentPage = page;
+    //     if (ePage) ePage.innerHTML = `${currentPage}/${pages}`;
+    //     savePosition(page)
+    //     loader(false);
+    // }
+    // image.onerror = (err) => {
+    //     showError(err);
+    // }
 }
 
 function loadPosition() {

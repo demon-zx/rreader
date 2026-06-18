@@ -55,7 +55,7 @@ export function ajax(url, options = {}) {
                 if (!response.ok) {
                     // Пытаемся получить текст ошибки
                     return response.text().then(errorText => {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorText}`);
+                        throw new HttpError(response.status, `HTTP ${response.status}: ${response.statusText}. ${errorText}`);
                     });
                 }
 
@@ -70,6 +70,14 @@ export function ajax(url, options = {}) {
                 console.error('AJAX request failed:', error);
                 throw error; // Пробрасываем дальше для обработки в вызывающем коде
             });
+}
+
+export class HttpError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status;
+  }
 }
 
 /**
