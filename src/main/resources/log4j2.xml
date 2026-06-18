@@ -8,7 +8,7 @@
 
     <Loggers>
         <Logger name="ru.terentjev" level="debug"/>
-        <Logger name="org.springframework.security" level="debug"/>
+        <Logger name="org.springframework.security" level="info"/>
         <Root level="info">
             <AppenderRef ref="console"/>
         </Root>
