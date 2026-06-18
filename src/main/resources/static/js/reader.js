@@ -13,6 +13,7 @@ let pages = 0;
 
 
 export function showError(message) {
+    loader(false);
     alert(`Ошибка: ${message}`);
 }
 
