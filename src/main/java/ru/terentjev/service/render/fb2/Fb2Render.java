@@ -37,7 +37,13 @@ public class Fb2Render implements Render {
         Fb2Document document = parser.parse(is);
         Fb2Metadata metadata = document.metadata();
         int count = painter.layout(document.blocks()).size();
-        return new Info(Math.max(count, 1), metadata.author(), metadata.title());
+        return new Info(
+                Math.max(count, 1),
+                metadata.author(),
+                metadata.title(),
+                metadata.sequenceName(),
+                metadata.sequenceNumber()
+        );
     }
 
     @Override

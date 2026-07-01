@@ -75,6 +75,8 @@ public class BookUploadService implements FirstRunService {
                 Objects.requireNonNullElse(info.getTitle(), name.toString()),
                 Objects.requireNonNullElse(info.getAuthor(), "N/A"),
                 null,
+                info.getSequenceName(),
+                info.getSequenceNumber(),
                 type,
                 file,
                 checksum(file),

@@ -17,6 +17,8 @@
             </column>
             <column name="author" type="varchar(1024)"/>
             <column name="language" type="varchar(7)"/>
+            <column name="sequence_name" type="varchar(1024)"/>
+            <column name="sequence_number" type="int"/>
             <column name="type" type="varchar(7)">
                 <constraints nullable="false"/>
             </column>

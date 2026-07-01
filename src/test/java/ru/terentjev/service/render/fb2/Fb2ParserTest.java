@@ -42,6 +42,50 @@ class Fb2ParserTest {
     }
 
     @Test
+    void readsSequenceNameAndNumber() throws IOException {
+        Fb2Document document = parse("""
+                <description><title-info>
+                  <book-title>David Starr</book-title>
+                  <sequence name="Lucky Starr" number="1"/>
+                </title-info></description>
+                <body><section><p>Text</p></section></body>
+                """);
+
+        Fb2Metadata metadata = document.metadata();
+        assertEquals("Lucky Starr", metadata.sequenceName());
+        assertEquals(1, metadata.sequenceNumber());
+    }
+
+    @Test
+    void sequenceNumberIsNullWhenAbsentOrNotNumeric() throws IOException {
+        Fb2Document document = parse("""
+                <description><title-info>
+                  <book-title>T</book-title>
+                  <sequence name="Series"/>
+                </title-info></description>
+                <body><p>x</p></body>
+                """);
+
+        Fb2Metadata metadata = document.metadata();
+        assertEquals("Series", metadata.sequenceName());
+        assertNull(metadata.sequenceNumber());
+    }
+
+    @Test
+    void missingSequenceIsNull() throws IOException {
+        Fb2Document document = parse("""
+                <description><title-info>
+                  <book-title>T</book-title>
+                </title-info></description>
+                <body><p>x</p></body>
+                """);
+
+        Fb2Metadata metadata = document.metadata();
+        assertNull(metadata.sequenceName());
+        assertNull(metadata.sequenceNumber());
+    }
+
+    @Test
     void usesFirstAuthorAndIgnoresTranslator() throws IOException {
         Fb2Document document = parse("""
                 <description><title-info>

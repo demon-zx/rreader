@@ -21,6 +21,10 @@ public record BookEntity(
         String author,
         @Column("language")
         String language,
+        @Column("sequence_name")
+        String sequenceName,
+        @Column("sequence_number")
+        Integer sequenceNumber,
         @NonNull
         @Column("type")
         String type,

@@ -11,6 +11,11 @@ function loadBooks() {
             .then(data => {
                 let html = '';
                 data.items.forEach(i => {
+                    let sequence = '';
+                    if (i.sequenceName) {
+                        let number = i.sequenceNumber != null ? ` #${i.sequenceNumber}` : '';
+                        sequence = ` <span class="badge text-bg-info book-sequence">${i.sequenceName}${number}</span>`;
+                    }
                     html += `
                     <div class="col-12 col-lg-6">
                         <div class="card mb-1" onclick="location.href='/view?id=${i.id}'">
@@ -23,7 +28,7 @@ function loadBooks() {
                                     <div class="card-body">
                                         <h5 class="card-title book-author">${i.author}</h5>
                                         <p class="card-text book-title" title="${i.title}">${i.title}</p>
-                                        <h6>Размер: <span class="badge text-bg-secondary">${i.size}</span></h6>
+                                        <h6>Размер: <span class="badge text-bg-secondary">${i.size}</span>${sequence}</h6>
                                     </div>
                                 </div>
                             </div>

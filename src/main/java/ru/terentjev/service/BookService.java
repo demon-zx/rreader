@@ -57,9 +57,7 @@ public class BookService {
             return BookMapper.mapper.from(repository.findAll(p));
 
         } else {
-            return BookMapper.mapper.from(
-                    repository.findAllByAuthorContainingIgnoreCaseOrTitleContainingIgnoreCase(q, q, p)
-            );
+            return BookMapper.mapper.from(repository.search(q, p));
         }
     }
 

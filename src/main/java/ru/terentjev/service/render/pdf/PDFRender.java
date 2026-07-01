@@ -34,7 +34,7 @@ public class PDFRender implements Render {
         PDDocumentInformation information = document.getDocumentInformation();
         String author = information.getAuthor();
         String title = information.getTitle();
-        return new Info(pages, author, title);
+        return new Info(pages, author, title, null, null);
     }
 
     @Override

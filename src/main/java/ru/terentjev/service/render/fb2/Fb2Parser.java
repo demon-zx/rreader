@@ -75,6 +75,8 @@ public class Fb2Parser {
         private String author;
         private String language;
         private String coverHref;
+        private String sequenceName;
+        private Integer sequenceNumber;
         private String authorFirst;
         private String authorLast;
 
@@ -130,6 +132,11 @@ public class Fb2Parser {
                 case "coverpage" -> {
                     if (inTitleInfo) {
                         inCoverpage = true;
+                    }
+                }
+                case "sequence" -> {
+                    if (inTitleInfo) {
+                        startSequence();
                     }
                 }
                 case "image" -> startImage();
@@ -260,6 +267,25 @@ public class Fb2Parser {
             }
         }
 
+        private void startSequence() {
+            if (sequenceName != null) {
+                return;
+            }
+            String name = reader.getAttributeValue(null, "name");
+            if (name == null || name.isBlank()) {
+                return;
+            }
+            sequenceName = name.trim();
+            String number = reader.getAttributeValue(null, "number");
+            if (number != null && !number.isBlank()) {
+                try {
+                    sequenceNumber = Integer.valueOf(number.trim());
+                } catch (NumberFormatException e) {
+                    log.warn("Cannot parse sequence number '{}'", number);
+                }
+            }
+        }
+
         private void startImage() {
             String href = stripHash(hrefAttribute());
             if (href == null) {
@@ -351,7 +377,14 @@ public class Fb2Parser {
         }
 
         private Fb2Metadata buildMetadata() {
-            return new Fb2Metadata(blankToNull(title), blankToNull(author), blankToNull(language), coverHref);
+            return new Fb2Metadata(
+                    blankToNull(title),
+                    blankToNull(author),
+                    blankToNull(language),
+                    coverHref,
+                    blankToNull(sequenceName),
+                    sequenceNumber
+            );
         }
 
         private Fb2Document document() {

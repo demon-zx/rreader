@@ -12,6 +12,8 @@ public final class Book {
     private final String title;
     private final String author;
     private final String language;
+    private final String sequenceName;
+    private final Integer sequenceNumber;
     @NonNull
     private final String type;
     @NonNull
@@ -26,6 +28,8 @@ public final class Book {
             @NonNull String title,
             String author,
             String language,
+            String sequenceName,
+            Integer sequenceNumber,
             @NonNull String type,
             @NonNull Path path,
             @NonNull String checksum,
@@ -36,6 +40,8 @@ public final class Book {
         this.title = title;
         this.author = author;
         this.language = language;
+        this.sequenceName = sequenceName;
+        this.sequenceNumber = sequenceNumber;
         this.type = type;
         this.path = path;
         this.checksum = checksum;
@@ -57,6 +63,14 @@ public final class Book {
 
     public String getLanguage() {
         return language;
+    }
+
+    public String getSequenceName() {
+        return sequenceName;
+    }
+
+    public Integer getSequenceNumber() {
+        return sequenceNumber;
     }
 
     public @NonNull String getType() {
