@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,7 +35,11 @@ public class SecurityConfig {
                 .csrf(
                         b -> b.csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 )
-                // .rememberMe(Customizer.withDefaults())
+                .rememberMe(
+                        remember -> remember.key("rreader-remember-me-key")
+                                .rememberMeParameter("remember-me")
+                                .tokenValiditySeconds((int) Duration.ofDays(30).toSeconds())
+                )
                 .authorizeHttpRequests(
                         auth -> auth.requestMatchers(any.toArray(new String[0]))
                                 .permitAll()
