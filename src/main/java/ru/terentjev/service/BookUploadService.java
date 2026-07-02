@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.terentjev.config.DirectoryParameters;
 import ru.terentjev.service.model.Book;
+import ru.terentjev.service.model.ProcessResult;
 import ru.terentjev.service.render.Info;
 import ru.terentjev.service.render.Render;
 import ru.terentjev.service.render.RenderFactory;
@@ -19,7 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class BookUploadService implements FirstRunService {
@@ -27,15 +28,18 @@ public class BookUploadService implements FirstRunService {
 
     private final Path pathBooks;
     private final BookService bookService;
+    private final ProcessedFileService processedFileService;
     private final RenderFactory renderFactory;
 
     public BookUploadService(
             DirectoryParameters directoryParameters,
             BookService bookService,
+            ProcessedFileService processedFileService,
             RenderFactory renderFactory
     ) {
         this.pathBooks = directoryParameters.books();
         this.bookService = bookService;
+        this.processedFileService = processedFileService;
         this.renderFactory = renderFactory;
     }
 
@@ -45,11 +49,7 @@ public class BookUploadService implements FirstRunService {
             List<Path> files = filesStream.filter(Files::isRegularFile)
                     .toList();
             for (Path file : files) {
-                try {
-                    process(file);
-                } catch (IOException e) {
-                    log.error("Process {} fail.", file, e);
-                }
+                process(file);
             }
             log.info("Scanning complete.");
         } catch (IOException e) {
@@ -57,12 +57,26 @@ public class BookUploadService implements FirstRunService {
         }
     }
 
-    private void process(Path file) throws IOException {
+    private void process(Path file) {
         file = file.toAbsolutePath();
         log.info("Find file: {}", file);
-        Optional<Book> exist = bookService.findByPath(file);
-        if (exist.isEmpty()) {
+        boolean done = processedFileService.findByPath(file)
+                .map(pf -> pf.isProcessed() && pf.getResult() == ProcessResult.SUCCESS)
+                .orElse(false);
+        if (done) {
+            log.debug("Skip already processed file: {}", file);
+            return;
+        }
+        try {
             register(file);
+            processedFileService.markProcessed(file, ProcessResult.SUCCESS, null);
+        } catch (Exception e) {
+            log.error("Process {} fail.", file, e);
+            processedFileService.markProcessed(
+                    file,
+                    ProcessResult.ERROR,
+                    StringUtils.abbreviate(String.valueOf(e.getMessage()), 4096)
+            );
         }
     }
 
@@ -70,8 +84,11 @@ public class BookUploadService implements FirstRunService {
         Path name = file.getFileName();
         String type = getType(name);
         Info info = info(file, type);
+        UUID id = bookService.findByPath(file)
+                .map(Book::getId)
+                .orElse(null);
         Book book = new Book(
-                null,
+                id,
                 Objects.requireNonNullElse(info.getTitle(), name.toString()),
                 Objects.requireNonNullElse(info.getAuthor(), "N/A"),
                 null,
@@ -83,7 +100,7 @@ public class BookUploadService implements FirstRunService {
                 null,
                 Files.size(file)
         );
-        log.info("Register file ({}): {}", book.getChecksum(), file);
+        log.info("{} file ({}): {}", id == null ? "Register" : "Update", book.getChecksum(), file);
         bookService.save(book);
     }
 

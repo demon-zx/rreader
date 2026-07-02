@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.terentjev.exception.InvalidArgumentException;
 import ru.terentjev.repository.BookRepository;
+import ru.terentjev.repository.model.BookEntity;
 import ru.terentjev.service.mapper.BookMapper;
 import ru.terentjev.service.model.Book;
 import ru.terentjev.service.model.Page;
@@ -31,7 +32,15 @@ public class BookService {
 
     @Transactional
     public Book save(Book item) {
-        return BookMapper.mapper.from(repository.save(BookMapper.mapper.to(item)));
+        BookEntity mapped = BookMapper.mapper.to(item);
+        BookEntity entity = mapped;
+        if (mapped.id() != null) {
+            entity = repository.findById(mapped.id())
+                    .map(existing -> BookMapper.mapper.copy(
+                            mapped, existing.createdAt(), existing.createdBy()))
+                    .orElse(mapped);
+        }
+        return BookMapper.mapper.from(repository.save(entity));
     }
 
     public Book findById(UUID id) throws InvalidArgumentException {
