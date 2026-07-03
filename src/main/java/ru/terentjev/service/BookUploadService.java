@@ -1,6 +1,7 @@
 package ru.terentjev.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.function.FailableConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -14,19 +15,26 @@ import ru.terentjev.util.IOUtil;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 @Service
 public class BookUploadService implements FirstRunService {
-    private static final Logger log = LoggerFactory.getLogger(BookUploadService.class);
 
+    private static final Logger log = LoggerFactory.getLogger(BookUploadService.class);
     private final Path pathBooks;
     private final BookService bookService;
     private final ProcessedFileService processedFileService;
@@ -44,41 +52,57 @@ public class BookUploadService implements FirstRunService {
         this.renderFactory = renderFactory;
     }
 
-    public void scan() {
-        log.info("Scanning books...");
-        try (var filesStream = Files.walk(pathBooks)) {
+    public void walk(Path path, FailableConsumer<Path, IOException> fileConsumer) {
+        log.info("Scanning books in {}.", path);
+        try (var filesStream = Files.walk(path)) {
             List<Path> files = filesStream.filter(Files::isRegularFile)
                     .toList();
             for (Path file : files) {
-                process(file);
+                fileConsumer.accept(file);
             }
-            log.info("Scanning complete.");
+            log.info("Scanning {} complete.", path);
         } catch (IOException e) {
-            log.error("Scanning fail.", e);
+            log.error("Scanning {} fail.", path, e);
         }
     }
 
     private void process(Path file) {
         file = file.toAbsolutePath();
         log.info("Find file: {}", file);
-        boolean done = processedFileService.findByPath(file)
-                .map(pf -> pf.isProcessed() && pf.getResult() == ProcessResult.SUCCESS)
-                .orElse(false);
-        if (done) {
-            log.debug("Skip already processed file: {}", file);
+        boolean needProcess = processedFileService.findByPath(file)
+                .map(pf -> !pf.isProcessed())
+                .orElse(true);
+        if (needProcess) {
+            try {
+                boolean archive = file.toString()
+                        .toLowerCase()
+                        .endsWith(".zip");
+                if (archive) {
+                    processArchive(file);
+                } else {
+                    register(file);
+                }
+                processedFileService.markProcessed(file, ProcessResult.SUCCESS, null);
+            } catch (Exception e) {
+                log.error("Process {} fail.", file, e);
+                processedFileService.markProcessed(
+                        file,
+                        ProcessResult.ERROR,
+                        StringUtils.abbreviate(String.valueOf(e.getMessage()), 4096)
+                );
+            }
             return;
+        } else {
+            log.debug("Skip already processed file: {}", file);
         }
-        try {
-            register(file);
-            processedFileService.markProcessed(file, ProcessResult.SUCCESS, null);
-        } catch (Exception e) {
-            log.error("Process {} fail.", file, e);
-            processedFileService.markProcessed(
-                    file,
-                    ProcessResult.ERROR,
-                    StringUtils.abbreviate(String.valueOf(e.getMessage()), 4096)
-            );
+    }
+
+    private void processArchive(Path archive) throws IOException {
+        log.info("Scan archive.");
+        try (var fs = FileSystems.newFileSystem(archive, Map.of())) {
+            walk(fs.getPath("/"), file -> register(file));
         }
+        log.info("Scan archive complete.");
     }
 
     private void register(Path file) throws IOException {
@@ -112,29 +136,24 @@ public class BookUploadService implements FirstRunService {
     }
 
     private Info info(Path file, String type) throws IOException {
-        return IOUtil.readFile(
-                file, is -> {
-                    Render render = renderFactory.getRender(type);
-                    return render.info(is);
-                }
-        );
+        return IOUtil.readFile(file, is -> {
+            Render render = renderFactory.getRender(type);
+            return render.info(is);
+        });
     }
 
     private String checksum(Path file) throws IOException {
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
-            return IOUtil.readFile(
-                    file,
-                    is -> {
-                        byte[] buffer = new byte[1024];
-                        int rb;
-                        while ((rb = is.read(buffer)) > 0) {
-                            digest.update(buffer, 0, rb);
-                        }
-                        return HexFormat.of()
-                                .formatHex(digest.digest());
-                    }
-            );
+            return IOUtil.readFile(file, is -> {
+                byte[] buffer = new byte[1024];
+                int rb;
+                while ((rb = is.read(buffer)) > 0) {
+                    digest.update(buffer, 0, rb);
+                }
+                return HexFormat.of()
+                        .formatHex(digest.digest());
+            });
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -142,6 +161,9 @@ public class BookUploadService implements FirstRunService {
 
     @Override
     public void firstRun() {
-        scan();
+        log.info("Start scan books...");
+        walk(pathBooks, file -> process(file));
+        log.info("Stop all scan books.");
     }
+
 }
