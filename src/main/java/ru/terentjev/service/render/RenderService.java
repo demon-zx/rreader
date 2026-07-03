@@ -87,7 +87,7 @@ public class RenderService {
             Book book
     ) throws IOException {
         return IOUtil.readFile(
-            book.getPath(), 
+            book.getUri(),
             is -> {
                 return method.apply(is);
             }

@@ -15,6 +15,6 @@ public interface BookRepository
         ListPagingAndSortingRepository<BookEntity, UUID>,
         BookRepositorySearch {
 
-    Optional<BookEntity> findByPath(String path);
+    Optional<BookEntity> findByUri(String uri);
 
 }

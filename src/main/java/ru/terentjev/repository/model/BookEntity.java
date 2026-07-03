@@ -29,8 +29,8 @@ public record BookEntity(
         @Column("type")
         String type,
         @NonNull
-        @Column("path")
-        String path,
+        @Column("uri")
+        String uri,
         @NonNull
         @Column("checksum")
         String checksum,

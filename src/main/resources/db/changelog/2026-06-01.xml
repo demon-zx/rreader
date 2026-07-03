@@ -22,7 +22,7 @@
             <column name="type" type="varchar(7)">
                 <constraints nullable="false"/>
             </column>
-            <column name="path" type="varchar(1024)">
+            <column name="uri" type="varchar(1024)">
                 <constraints nullable="false"/>
             </column>
             <column name="checksum" type="varchar(128)">

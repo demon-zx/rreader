@@ -13,6 +13,7 @@ import ru.terentjev.service.render.RenderFactory;
 import ru.terentjev.util.IOUtil;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -84,7 +85,8 @@ public class BookUploadService implements FirstRunService {
         Path name = file.getFileName();
         String type = getType(name);
         Info info = info(file, type);
-        UUID id = bookService.findByPath(file)
+        URI uri = file.toUri();
+        UUID id = bookService.findByUri(uri)
                 .map(Book::getId)
                 .orElse(null);
         Book book = new Book(
@@ -95,7 +97,7 @@ public class BookUploadService implements FirstRunService {
                 info.getSequenceName(),
                 info.getSequenceNumber(),
                 type,
-                file,
+                uri,
                 checksum(file),
                 null,
                 Files.size(file)

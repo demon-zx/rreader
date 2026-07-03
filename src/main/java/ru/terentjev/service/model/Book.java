@@ -2,7 +2,7 @@ package ru.terentjev.service.model;
 
 import org.jspecify.annotations.NonNull;
 
-import java.nio.file.Path;
+import java.net.URI;
 import java.util.UUID;
 
 public final class Book {
@@ -17,7 +17,7 @@ public final class Book {
     @NonNull
     private final String type;
     @NonNull
-    private final Path path;
+    private final URI uri;
     @NonNull
     private final String checksum;
     private final Long isbn;
@@ -31,7 +31,7 @@ public final class Book {
             String sequenceName,
             Integer sequenceNumber,
             @NonNull String type,
-            @NonNull Path path,
+            @NonNull URI uri,
             @NonNull String checksum,
             Long isbn,
             long size
@@ -43,7 +43,7 @@ public final class Book {
         this.sequenceName = sequenceName;
         this.sequenceNumber = sequenceNumber;
         this.type = type;
-        this.path = path;
+        this.uri = uri;
         this.checksum = checksum;
         this.isbn = isbn;
         this.size = size;
@@ -77,8 +77,8 @@ public final class Book {
         return type;
     }
 
-    public @NonNull Path getPath() {
-        return path;
+    public @NonNull URI getUri() {
+        return uri;
     }
 
     public @NonNull String getChecksum() {

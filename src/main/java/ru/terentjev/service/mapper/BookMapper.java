@@ -9,7 +9,7 @@ import ru.terentjev.service.model.Book;
 
 import java.time.Instant;
 
-@Mapper(config = Config.class, uses = PathMapper.class)
+@Mapper(config = Config.class, uses = UriMapper.class)
 public abstract class BookMapper extends AbstractPageMapper<Book, BookEntity> {
     public static BookMapper mapper = Mappers.getMapper(BookMapper.class);
 
