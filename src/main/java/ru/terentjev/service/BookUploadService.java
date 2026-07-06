@@ -12,11 +12,10 @@ import ru.terentjev.service.render.Info;
 import ru.terentjev.service.render.Render;
 import ru.terentjev.service.render.RenderFactory;
 import ru.terentjev.util.IOUtil;
+import ru.terentjev.util.fs.FileSystems;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -26,10 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 
 @Service
 public class BookUploadService implements FirstRunService {
@@ -91,7 +86,6 @@ public class BookUploadService implements FirstRunService {
                         StringUtils.abbreviate(String.valueOf(e.getMessage()), 4096)
                 );
             }
-            return;
         } else {
             log.debug("Skip already processed file: {}", file);
         }
@@ -99,7 +93,7 @@ public class BookUploadService implements FirstRunService {
 
     private void processArchive(Path archive) throws IOException {
         log.info("Scan archive.");
-        try (var fs = FileSystems.newFileSystem(archive, Map.of())) {
+        try (var fs = FileSystems.newFileSystem(archive)) {
             walk(fs.getPath("/"), file -> register(file));
         }
         log.info("Scan archive complete.");

@@ -1,13 +1,13 @@
 package ru.terentjev.util;
 
 import org.apache.commons.lang3.function.FailableFunction;
+import ru.terentjev.util.fs.FileSystems;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -24,10 +24,10 @@ public final class IOUtil {
 
     public static <T> T readFile(URI file, FailableFunction<InputStream, T, IOException> mapper) throws IOException {
         String scheme = file.getScheme();
-        if (scheme.equalsIgnoreCase("jar")) {
-            try (FileSystem fs = FileSystems.newFileSystem(file, Map.of())) {
+        if (!scheme.equals("file")) {
+            try (FileSystem fs = FileSystems.newFileSystem(file)) {
                 String part = file.getSchemeSpecificPart();
-                return IOUtil.readFile(fs.getPath(part.split("!")[1]), mapper);
+                return IOUtil.readFile(fs.getPath(part.split("!/")[1]), mapper);
             }
         }
         return IOUtil.readFile(Path.of(file), mapper);

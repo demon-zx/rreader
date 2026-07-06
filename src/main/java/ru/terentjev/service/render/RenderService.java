@@ -34,7 +34,7 @@ public class RenderService {
     public Info readInfo(UUID id) throws InvalidArgumentException, IOException {
         Book book = service.findById(id);
         Render render = renderFactory.getRender(book.getType());
-        return file(is -> render.info(is), book);
+        return file(render::info, book);
     }
 
     public void renderCover(
@@ -87,10 +87,8 @@ public class RenderService {
             Book book
     ) throws IOException {
         return IOUtil.readFile(
-            book.getUri(),
-            is -> {
-                return method.apply(is);
-            }
+                book.getUri(),
+                method
         );
     }
 
