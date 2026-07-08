@@ -44,14 +44,20 @@ public class BookController extends AbstractController {
     }
 
     @GetMapping("{id}")
-    public ApiInfo info(@PathVariable UUID id) {
+    public ApiInfo info(
+            @PathVariable UUID id,
+            @RequestParam UUID deviceUuid,
+            @RequestParam int width,
+            @RequestParam int height
+    ) {
         return run(
             () -> {
+                log.debug("info id={} deviceUuid={} viewport={}x{}", id, deviceUuid, width, height);
                 var book = bookService.findById(id);
                 var info = renderService.readInfo(id);
                 // author and title may by overrided
                 return new ApiInfo(info.getPages(), book.getAuthor(), book.getTitle());
-            }, 
+            },
             b -> b
         );
     }
@@ -63,8 +69,13 @@ public class BookController extends AbstractController {
     }
 
     @GetMapping("{id}/render/{page}")
-    public void render(HttpServletResponse response, @PathVariable UUID id, @PathVariable int page) throws IOException {
-        run(() -> renderService.renderPage(id, page, is -> out(response, is)));
+    public void render(
+            HttpServletResponse response,
+            @PathVariable UUID id,
+            @PathVariable int page,
+            @RequestParam UUID deviceUuid
+    ) throws IOException {
+        run(() -> renderService.renderPage(id, page, deviceUuid, is -> out(response, is)));
     }
 
 }

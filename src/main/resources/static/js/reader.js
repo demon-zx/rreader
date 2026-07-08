@@ -1,4 +1,6 @@
-import { ajax, debounce, HttpError } from "./common.js";
+import { ajax, debounce, HttpError, getDeviceUuid } from "./common.js";
+
+const deviceUuid = getDeviceUuid();
 
 let baseBookUrl;
 let baseBookmarkUrl;
@@ -40,7 +42,7 @@ function loader(on) {
  * @param {Number} page page
  */
 function showPage(page) {
-    const url = `${baseBookUrl}/render/${page}`;
+    const url = `${baseBookUrl}/render/${page}?deviceUuid=${deviceUuid}`;
     loader(true);
     ajax(url, { json: false }).then(data => {
         const image = new Image();
@@ -82,7 +84,10 @@ function savePosition(page) {
 }
 
 function loadInfo() {
-    ajax(baseBookUrl)
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const url = `${baseBookUrl}?deviceUuid=${deviceUuid}&width=${width}&height=${height}`;
+    ajax(url)
         .then(data => {
             pages = data.pages;
             if (eTitle) eTitle.innerHTML = data.title;

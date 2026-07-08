@@ -51,11 +51,12 @@ public class RenderService {
     public void renderPage(
             UUID id,
             int page,
+            UUID deviceUuid,
             FailableConsumer<InputStream, IOException> mapper
     ) throws IOException, InvalidArgumentException {
         Book book = service.findById(id);
         Render render = renderFactory.getRender(book.getType());
-        Path rendered = path(id).resolve(page + ".png");
+        Path rendered = path(id, deviceUuid).resolve(page + ".png");
         render((is, os) -> render.render(page, is, os), rendered, book);
         out(mapper, rendered);
     }
@@ -94,5 +95,9 @@ public class RenderService {
 
     private Path path(UUID id) {
         return Path.of("pages", id.toString());
+    }
+
+    private Path path(UUID id, UUID deviceUuid) {
+        return Path.of("pages", id.toString(), deviceUuid.toString());
     }
 }

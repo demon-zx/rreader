@@ -72,6 +72,21 @@ export function ajax(url, options = {}) {
             });
 }
 
+/**
+ * Возвращает уникальный идентификатор браузера (устройства).
+ * Генерируется один раз и сохраняется в localStorage.
+ *
+ * @returns {string} deviceUuid
+ */
+export function getDeviceUuid() {
+    let id = localStorage.getItem('deviceUuid');
+    if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem('deviceUuid', id);
+    }
+    return id;
+}
+
 export class HttpError extends Error {
   constructor(status, message) {
     super(message);
