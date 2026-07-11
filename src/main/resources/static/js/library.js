@@ -1,4 +1,6 @@
-import {ajax, debounce, showError} from "./common.js";
+import {ajax, debounce, showError, getDeviceUuid } from "./common.js";
+
+const deviceUuid = getDeviceUuid();
 
 let eBooks;
 let eSearch;
@@ -21,7 +23,7 @@ function loadBooks() {
                         <div class="card mb-1" onclick="location.href='/view?id=${i.id}'">
                             <div class="row g-0">
                                 <div class="col-auto">
-                                    <img src="/api/v1/book/${i.id}/cover" class="book-cover"
+                                    <img src="/api/v1/book/${i.id}/cover?deviceUuid=${deviceUuid}" class="book-cover"
                                          alt="...">
                                 </div>
                                 <div class="col">

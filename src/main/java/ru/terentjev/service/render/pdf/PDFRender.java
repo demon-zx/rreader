@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 
 @Component
 public class PDFRender implements Render {
@@ -28,7 +29,7 @@ public class PDFRender implements Render {
     }
 
     @Override
-    public Info info(InputStream is) throws IOException {
+    public Info open(InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException {
         PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(is));
         int pages = document.getNumberOfPages();
         PDDocumentInformation information = document.getDocumentInformation();
@@ -40,6 +41,7 @@ public class PDFRender implements Render {
     @Override
     public void cover(
             InputStream is,
+            Path bookDirectory,
             OutputStream os
     ) throws IOException {
         render(1, is, os, 75);
@@ -48,7 +50,9 @@ public class PDFRender implements Render {
     @Override
     public void render(
             int page,
-            InputStream is,
+            InputStream is, 
+            Path bookDirectory, 
+            Path deviceDirectory,
             OutputStream os
     ) throws IOException {
         render(page, is, os, 300);

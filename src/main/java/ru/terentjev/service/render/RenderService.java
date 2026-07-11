@@ -31,20 +31,22 @@ public class RenderService {
         }
     }
 
-    public Info readInfo(UUID id) throws InvalidArgumentException, IOException {
+    public Info open(UUID id, UUID deviceUuid) throws InvalidArgumentException, IOException {
         Book book = service.findById(id);
         Render render = renderFactory.getRender(book.getType());
-        return file(render::info, book);
+        return file(is -> render.open(is, path(id), path(id, deviceUuid)), book);
     }
 
     public void renderCover(
             UUID id,
+            UUID deviceUuid,
             FailableConsumer<InputStream, IOException> mapper
     ) throws IOException, InvalidArgumentException {
         Book book = service.findById(id);
         Render render = renderFactory.getRender(book.getType());
-        Path rendered = path(id).resolve("cover.png");
-        render(render::cover, rendered, book);
+        Path bookDirectory = path(id);
+        Path rendered = bookDirectory.resolve("cover.png");
+        render((is, os) -> render.cover(is, bookDirectory, os), rendered, book);
         out(mapper, rendered);
     }
 
@@ -56,8 +58,10 @@ public class RenderService {
     ) throws IOException, InvalidArgumentException {
         Book book = service.findById(id);
         Render render = renderFactory.getRender(book.getType());
-        Path rendered = path(id, deviceUuid).resolve(page + ".png");
-        render((is, os) -> render.render(page, is, os), rendered, book);
+        Path bookDirectory = path(id);
+        Path deviceDirectory = path(id, deviceUuid);
+        Path rendered = deviceDirectory.resolve(page + ".png");
+        render((is, os) -> render.render(page, is, bookDirectory, deviceDirectory, os), rendered, book);
         out(mapper, rendered);
     }
 

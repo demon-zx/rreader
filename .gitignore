@@ -6,6 +6,8 @@ target
 *.iml
 /.idea/*
 
+/etalon/*
+
 application-local.yml
 .checkstyle
 .factorypath

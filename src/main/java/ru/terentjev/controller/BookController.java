@@ -54,7 +54,7 @@ public class BookController extends AbstractController {
             () -> {
                 log.debug("info id={} deviceUuid={} viewport={}x{}", id, deviceUuid, width, height);
                 var book = bookService.findById(id);
-                var info = renderService.readInfo(id);
+                var info = renderService.open(id, deviceUuid);
                 // author and title may by overrided
                 return new ApiInfo(info.getPages(), book.getAuthor(), book.getTitle());
             },
@@ -64,8 +64,8 @@ public class BookController extends AbstractController {
     
 
     @GetMapping("{id}/cover")
-    public void cover(HttpServletResponse response, @PathVariable UUID id) throws IOException {
-        run(() -> renderService.renderCover(id, is -> out(response, is)));
+    public void cover(HttpServletResponse response, @PathVariable UUID id, @RequestParam UUID deviceUuid) throws IOException {
+        run(() -> renderService.renderCover(id, deviceUuid, is -> out(response, is)));
     }
 
     @GetMapping("{id}/render/{page}")

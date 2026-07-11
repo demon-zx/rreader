@@ -1,11 +1,11 @@
-FROM eclipse-temurin:17-jre-alpine as builder
+FROM eclipse-temurin:21-jre-alpine as builder
 WORKDIR /application
 ARG FILE=target/*.war
 ARG TARGET=application.war
 COPY ${FILE} ${TARGET}
 RUN java -Djarmode=tools -jar ${TARGET} extract --layers --destination extracted
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 RUN apk add --no-cache tzdata && ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 ENV UID=${UID:-998}
 ENV GID=${GID:-998}

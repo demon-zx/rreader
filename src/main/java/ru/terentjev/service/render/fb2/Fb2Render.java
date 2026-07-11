@@ -1,31 +1,32 @@
 package ru.terentjev.service.render.fb2;
 
 import org.springframework.stereotype.Component;
+
 import ru.terentjev.service.render.Info;
 import ru.terentjev.service.render.Render;
+import ru.terentjev.service.render.fb2.layout.Drawer;
+import ru.terentjev.service.render.fb2.layout.LayoutManager;
+import ru.terentjev.service.render.fb2.layout.Page;
+import ru.terentjev.service.render.fb2.parser.FB2;
+import ru.terentjev.service.render.fb2.parser.FB2.Sequence;
+import ru.terentjev.service.render.fb2.parser.FB2Parser;
+import ru.terentjev.service.render.fb2.parser.FB2RenderSettings;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-/**
- * {@link Render} implementation for the FB2 format. All three operations stream the file exactly
- * once through {@link Fb2Parser}; pages are produced on demand by {@link Fb2Painter} and cached as
- * PNG by the surrounding render pipeline.
- */
 @Component
 public class Fb2Render implements Render {
 
-    private final Fb2Parser parser;
-    private final Fb2Painter painter = new Fb2Painter();
-
-    public Fb2Render(Fb2Parser parser) {
-        this.parser = parser;
-    }
+    FB2RenderSettings settings = new FB2RenderSettings(1080, 1527, 50, 50, 50, 50, "Arial", 28, 1.2f);
+    LayoutManager manager = new LayoutManager(settings);
+    Drawer drawer = new Drawer(settings);
 
     @Override
     public String type() {
@@ -33,46 +34,60 @@ public class Fb2Render implements Render {
     }
 
     @Override
-    public Info info(InputStream is) throws IOException {
-        Fb2Document document = parser.parse(is);
-        Fb2Metadata metadata = document.metadata();
-        int count = painter.layout(document.blocks()).size();
+    public Info open(InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException {
+        FB2Parser parser = new FB2Parser(bookDirectory);
+        FB2 document = parser.parse(is);
+        List<Page> pages = manager.layout(document);
+        String author = document.authors()
+            .stream()
+            .findFirst()
+            .orElse(null);
+        Optional<Sequence> sequence = document.sequences()
+            .stream()
+            .findFirst();
         return new Info(
-                Math.max(count, 1),
-                metadata.author(),
-                metadata.title(),
-                metadata.sequenceName(),
-                metadata.sequenceNumber()
+                pages.size(),
+                author,
+                document.title(),
+                sequence.map(Sequence::name)
+                        .orElse(null),
+                sequence.map(Sequence::number)
+                        .orElse(null)
         );
     }
 
     @Override
-    public void cover(InputStream is, OutputStream os) throws IOException {
-        Fb2Document document = parser.parse(is);
-        String href = document.metadata().coverHref();
-        byte[] cover = href == null ? null : document.binary(href);
-        if (cover != null && writeRaster(cover, os)) {
-            return;
+    public void cover(InputStream is, Path bookDirectory, OutputStream os) throws IOException {
+        FB2Parser parser = new FB2Parser(bookDirectory);
+        FB2 document = parser.parse(is);
+        Path file = Optional.of(document.binaries())
+            .map(s -> s.get(document.cover()))
+            .filter(Objects::nonNull)
+            .map(s -> Path.of(s))
+            .filter(s -> Files.exists(s))
+            .orElse(null);
+        if (file != null) {
+            Files.copy(file, os);
+        } else {
+            Page first = manager.layout(document)
+                .stream()
+                .findFirst()
+                .orElse(null);
+            if (first != null) {
+                drawer.draw(first, os);
+            }
         }
-        List<Fb2Painter.Page> pages = painter.layout(document.blocks());
-        painter.draw(pages.get(0), document, os);
+        os.flush();
     }
 
     @Override
-    public void render(int page, InputStream is, OutputStream os) throws IOException {
-        Fb2Document document = parser.parse(is);
-        List<Fb2Painter.Page> pages = painter.layout(document.blocks());
+    public void render(int page, InputStream is, Path bookDirectory, Path deviceDirectory, OutputStream os) throws IOException {
+        FB2Parser parser = new FB2Parser(bookDirectory);
+        FB2 document = parser.parse(is);
+        List<Page> pages = manager.layout(document);
         int index = Math.min(Math.max(page - 1, 0), pages.size() - 1);
-        painter.draw(pages.get(index), document, os);
+        drawer.draw(pages.get(index), os);
+        os.flush();
     }
 
-    private boolean writeRaster(byte[] data, OutputStream os) throws IOException {
-        BufferedImage image = ImageIO.read(new ByteArrayInputStream(data));
-        if (image == null) {
-            return false;
-        }
-        ImageIO.write(image, "PNG", os);
-        os.flush();
-        return true;
-    }
 }

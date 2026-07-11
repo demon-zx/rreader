@@ -1,26 +1,18 @@
 package ru.terentjev.service.render;
 
-import org.apache.commons.lang3.function.FailableBiConsumer;
-
-import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
+import java.nio.file.Path;
 
 public interface Render {
+
     String type();
 
-    Info info(InputStream is) throws IOException;
+    Info open(InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException;
 
-    void cover(
-            InputStream is,
-            OutputStream os
-    ) throws IOException;
+    void cover(InputStream is, Path bookDirectory, OutputStream os) throws IOException;
 
-    void render(
-            int page,
-            InputStream is,
-            OutputStream os
-    ) throws IOException;
+    void render(int page, InputStream is, Path bookDirectory, Path deviceDirectory, OutputStream os) throws IOException;
+
 }

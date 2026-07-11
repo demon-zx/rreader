@@ -5,6 +5,7 @@ import org.apache.commons.lang3.function.FailableConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
 import ru.terentjev.config.DirectoryParameters;
 import ru.terentjev.service.model.Book;
 import ru.terentjev.service.model.ProcessResult;
@@ -22,7 +23,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -34,17 +34,19 @@ public class BookUploadService implements FirstRunService {
     private final BookService bookService;
     private final ProcessedFileService processedFileService;
     private final RenderFactory renderFactory;
+    private final Path tmp;
 
     public BookUploadService(
             DirectoryParameters directoryParameters,
             BookService bookService,
             ProcessedFileService processedFileService,
             RenderFactory renderFactory
-    ) {
+    ) throws IOException {
         this.pathBooks = directoryParameters.books();
         this.bookService = bookService;
         this.processedFileService = processedFileService;
         this.renderFactory = renderFactory;
+        tmp = Files.createTempDirectory("book-upload-service");
     }
 
     public void walk(Path path, FailableConsumer<Path, IOException> fileConsumer) {
@@ -132,7 +134,7 @@ public class BookUploadService implements FirstRunService {
     private Info info(Path file, String type) throws IOException {
         return IOUtil.readFile(file, is -> {
             Render render = renderFactory.getRender(type);
-            return render.info(is);
+            return render.open(is, tmp, tmp);
         });
     }
 
