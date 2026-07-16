@@ -1,13 +1,11 @@
 package ru.terentjev.service.render.fb2.parser;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 import ru.terentjev.service.render.fb2.parser.FB2.Block;
 import ru.terentjev.service.render.fb2.parser.FB2.EmptyLineBlock;
 import ru.terentjev.service.render.fb2.parser.FB2.ImageBlock;
-import ru.terentjev.service.render.fb2.parser.FB2.Kind;
 import ru.terentjev.service.render.fb2.parser.FB2.ParagraphBlock;
 import ru.terentjev.service.render.fb2.parser.FB2.Piece;
 import ru.terentjev.service.render.fb2.parser.FB2.Sequence;
@@ -401,16 +399,4 @@ public class FB2Parser {
         }
     }
 
-
-
-    public static void main(String[] args) throws Exception {
-        FB2Parser parser = new FB2Parser(Path.of("d:/tmp/0"));
-        // Path file = Path.of("etalon", "more-images.fb2");
-        Path file = Path.of("etalon", "0.fb2");
-        FB2 document;
-        try(var is = Files.newInputStream(file)) {
-            document = parser.parse(is);
-        }
-        System.out.println(document);
-    }
 }

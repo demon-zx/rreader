@@ -2,11 +2,6 @@ package ru.terentjev.service.render.fb2.parser;
 
 import org.jspecify.annotations.Nullable;
 
-import ru.terentjev.service.render.fb2.layout.Page.ImageObject;
-import ru.terentjev.service.render.fb2.parser.FB2.AbstractPiecesBlock;
-import ru.terentjev.service.render.fb2.parser.FB2.Piece;
-
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -28,11 +23,6 @@ public record FB2(
     public record Sequence(String name, @Nullable Integer number) {
     }
 
-    public enum Kind {
-        TITLE, SUBTITLE, PARAGRAPH, EMPTY_LINE, IMAGE
-    }
-
-    //public sealed class Block(Kind kind, int position, List<Piece> pieces, String href) {
     public static sealed class Block permits AbstractPiecesBlock, EmptyLineBlock, ImageBlock {
 
         private final int position;
@@ -108,7 +98,6 @@ public record FB2(
         }
         
     }
-
 
     public record Piece(String text, boolean bold, boolean italic, String linkId) {
     }
