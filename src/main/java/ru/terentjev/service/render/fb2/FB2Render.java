@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Component
-public class Fb2Render implements Render {
+public class FB2Render implements Render {
 
     FB2RenderSettings settings = new FB2RenderSettings(1080, 1527, 50, 50, 50, 50, "Arial", 28, 1.2f);
     LayoutManager manager = new LayoutManager(settings);
