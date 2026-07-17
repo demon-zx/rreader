@@ -14,12 +14,12 @@ public final class Fonts {
     private final Font subTitle;
 
     public Fonts(FB2RenderSettings settings) {
-        body = new Font(Font.SERIF, Font.PLAIN, settings.fontSize());
+        body = new Font(settings.fontName(), Font.PLAIN, settings.fontSize());
         bodyBold = body.deriveFont(Font.BOLD);
         bodyItalic = body.deriveFont(Font.ITALIC);
         bodyBoldItalic = body.deriveFont(Font.BOLD | Font.ITALIC);
-        title = new Font(Font.SERIF, Font.BOLD, settings.fontSize() * 2);
-        subTitle = new Font(Font.SERIF, Font.BOLD, (int) (settings.fontSize() * 1.5));
+        title = new Font(settings.fontName(), Font.BOLD, settings.fontSize() * 2);
+        subTitle = new Font(settings.fontName(), Font.BOLD, (int) (settings.fontSize() * 1.5));
     }
 
     

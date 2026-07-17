@@ -34,14 +34,27 @@ public class FB2Render implements Render {
     }
 
     private FB2RenderSettings settings(RenderSettings source) {
+        if (source.viewportWidth() < 500) {
+            return new FB2RenderSettings(
+                    source.viewportWidth(),
+                    source.viewportHeight(),
+                    10,
+                    20,
+                    10,
+                    10,
+                    "SansSerif",
+                    16,
+                    1f
+            );
+        }
         return new FB2RenderSettings(
                 source.viewportWidth(),
                 source.viewportHeight(),
+                100,
                 50,
+                100,
                 50,
-                50,
-                50,
-                "Arial",
+                "SansSerif",
                 28,
                 1.2f
         );
