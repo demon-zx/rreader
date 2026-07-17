@@ -14,7 +14,6 @@ let currentPage = 1;
 let pages = 0;
 let positionByPage;
 
-
 export function showError(error) {
     loader(false);
     if (error instanceof HttpError && error.status === 401) {

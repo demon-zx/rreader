@@ -1,5 +1,6 @@
 package ru.terentjev.service;
 
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.terentjev.exception.InvalidArgumentException;
@@ -9,14 +10,22 @@ import ru.terentjev.service.mapper.BookmarkMapper;
 import ru.terentjev.service.model.Bookmark;
 
 import java.text.MessageFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class BookmarkService {
+
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BookmarkService.class);
+
     public static final String TYPE_NAME = Bookmark.class.getSimpleName();
     public static final String CURRENT = "$current$";
     private final BookmarkRepository repository;
+    private final Lock insertLock = new ReentrantLock();
 
     public BookmarkService(
             BookmarkRepository repository
@@ -46,11 +55,27 @@ public class BookmarkService {
 
     @Transactional
     public void saveCurrentPosition(String username, UUID bookId, long position) {
-        repository.findByUsernameAndTitleAndBookId(username, CURRENT, bookId)
-                .map(b -> update(b, position))
-                .or(() -> Optional.of(new BookmarkEntity(null, username, CURRENT, bookId, position, null, null)))
+        Optional<BookmarkEntity> exist = repository.findByUsernameAndTitleAndBookId(username, CURRENT, bookId);
+        if (exist.isEmpty()) {
+            try {
+                if (insertLock.tryLock(1, TimeUnit.SECONDS)) {
+                    try {
+                        exist = repository.findByUsernameAndTitleAndBookId(username, CURRENT, bookId);
+                        if (exist.isEmpty()) {
+                            repository.save(new BookmarkEntity(null, username, CURRENT, bookId, position, null, null));
+                        }
+                    }  finally {
+                        insertLock.unlock();
+                    }
+                }
+            } catch (InterruptedException ie) {
+                throw new IllegalStateException(ie);
+            }
+        }
+        exist.map(b -> update(b, position))
                 .ifPresent(repository::save);
     }
+
 
     private static BookmarkEntity update(BookmarkEntity source, long position) {
         return new BookmarkEntity(
