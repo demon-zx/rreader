@@ -17,7 +17,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -45,6 +47,11 @@ public class FB2Render implements Render {
         Optional<Sequence> sequence = document.sequences()
             .stream()
             .findFirst();
+        Map<Integer, Integer> positionByPage = new HashMap<>();
+        int i = 0;
+        for (var page: pages) {
+            positionByPage.put(++i, page.position());
+        }
         return new Info(
                 pages.size(),
                 author,
@@ -52,7 +59,8 @@ public class FB2Render implements Render {
                 sequence.map(Sequence::name)
                         .orElse(null),
                 sequence.map(Sequence::number)
-                        .orElse(null)
+                        .orElse(null),
+                positionByPage
         );
     }
 

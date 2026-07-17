@@ -1,15 +1,19 @@
 package ru.terentjev.controller.model;
 
+import java.util.Map;
+
 public class ApiInfo {
 
     private final int pages;
     private final String author;
     private final String title;
+    private final Map<Integer, Integer> positionByPage;
 
-    public ApiInfo(int pages, String author, String title) {
+    public ApiInfo(int pages, String author, String title, Map<Integer, Integer> positionByPage) {
         this.pages = pages;
         this.author = author;
         this.title = title;
+        this.positionByPage = positionByPage;
     }
 
     public int getPages() {
@@ -23,4 +27,9 @@ public class ApiInfo {
     public String getTitle() {
         return title;
     }
+    
+    public Map<Integer, Integer> getPositionByPage() {
+        return positionByPage;
+    }
+    
 }

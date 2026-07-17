@@ -1,5 +1,7 @@
 package ru.terentjev.service.render;
 
+import java.util.Map;
+
 public class Info {
 
     private final int pages;
@@ -7,13 +9,15 @@ public class Info {
     private final String title;
     private final String sequenceName;
     private final Integer sequenceNumber;
+    private final Map<Integer, Integer> positionByPage;
 
-    public Info(int pages, String author, String title, String sequenceName, Integer sequenceNumber) {
+    public Info(int pages, String author, String title, String sequenceName, Integer sequenceNumber, Map<Integer, Integer> positionByPage) {
         this.pages = pages;
         this.author = author;
         this.title = title;
         this.sequenceName = sequenceName;
         this.sequenceNumber = sequenceNumber;
+        this.positionByPage = positionByPage;
     }
 
     public int getPages() {
@@ -35,4 +39,9 @@ public class Info {
     public Integer getSequenceNumber() {
         return sequenceNumber;
     }
+    
+    public Map<Integer, Integer> getPositionByPage() {
+        return positionByPage;
+    }
+    
 }

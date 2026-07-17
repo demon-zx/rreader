@@ -1,14 +1,18 @@
 package ru.terentjev.controller.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import ru.terentjev.controller.model.ApiInfo;
+import ru.terentjev.service.model.Book;
 import ru.terentjev.service.render.Info;
 
 @Mapper(config = Config.class)
 public abstract class ApiInfoMapper {
     public static ApiInfoMapper mapper = Mappers.getMapper(ApiInfoMapper.class);
 
-    public abstract ApiInfo from(Info source);
+    @Mapping(target = "author", source = "sourceBook.author")
+    @Mapping(target = "title", source = "sourceBook.title")
+    public abstract ApiInfo from(Info source, Book sourceBook);
 
 }

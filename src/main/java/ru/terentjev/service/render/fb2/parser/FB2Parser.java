@@ -35,6 +35,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.xml.stream.Location;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -154,7 +155,6 @@ public class FB2Parser {
     }
 
     private void text(XMLStreamReader reader) {
-        position = reader.getTextStart();
         textAccumulator.append(reader.getText());
     }
 
@@ -162,6 +162,8 @@ public class FB2Parser {
         String name = reader.getLocalName();
         path.push(name);
         tags.add(name);
+        Location location = reader.getLocation();
+        position = location.getCharacterOffset();
         switch (name) {
             case "sequence" -> sequence(reader);
             case "body" -> body(reader);

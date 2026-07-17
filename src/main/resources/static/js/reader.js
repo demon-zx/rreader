@@ -12,6 +12,7 @@ let eLoader;
 let flashTimeout;
 let currentPage = 1;
 let pages = 0;
+let positionByPage;
 
 
 export function showError(error) {
@@ -58,28 +59,55 @@ function showPage(page) {
     .catch(error => {
         showError(error);
     })
-    // image.onload = () => {
-    //     eView.src = url;
-    //     currentPage = page;
-    //     if (ePage) ePage.innerHTML = `${currentPage}/${pages}`;
-    //     savePosition(page)
-    //     loader(false);
-    // }
-    // image.onerror = (err) => {
-    //     showError(err);
-    // }
+}
+
+/**
+ * Convert a server position to a page number.
+ * If positionByPage is empty, the page number equals the position.
+ *
+ * @param {Number} position server position
+ * @returns {Number} page number
+ */
+function positionToPage(position) {
+    if (!positionByPage || Object.keys(positionByPage).length === 0) {
+        return position;
+    }
+    let result = 1;
+    let best = -1;
+    for (const [page, pagePosition] of Object.entries(positionByPage)) {
+        if (pagePosition <= position && pagePosition > best) {
+            best = pagePosition;
+            result = Number(page);
+        }
+    }
+    return result;
+}
+
+/**
+ * Convert a page number to a server position.
+ * If positionByPage is empty, the position equals the page number.
+ *
+ * @param {Number} page page number
+ * @returns {Number} server position
+ */
+function pageToPosition(page) {
+    if (!positionByPage || Object.keys(positionByPage).length === 0) {
+        return page;
+    }
+    return positionByPage[page];
 }
 
 function loadPosition() {
     ajax(`${baseBookmarkUrl}`)
         .then(data => {
-            showPage(data);
+            showPage(positionToPage(data));
         })
         .catch(error => showError(error));
 }
 
 function savePosition(page) {
-    ajax(`${baseBookmarkUrl}&position=${page}`, { method: 'PUT', json: false })
+    const position = pageToPosition(page);
+    ajax(`${baseBookmarkUrl}&position=${position}`, { method: 'PUT', json: false })
         .catch(error => showError(error))
 }
 
@@ -92,6 +120,7 @@ function loadInfo() {
             pages = data.pages;
             if (eTitle) eTitle.innerHTML = data.title;
             if (eAuthor) eAuthor.innerHTML = data.author;
+            positionByPage = data.positionByPage;
             loadPosition();
         })
         .catch(error => showError(error));

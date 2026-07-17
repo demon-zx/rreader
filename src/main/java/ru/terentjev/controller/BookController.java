@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ru.terentjev.controller.mapper.ApiInfoMapper;
 import ru.terentjev.controller.model.ApiInfo;
 import ru.terentjev.service.BookService;
 import ru.terentjev.service.render.RenderService;
@@ -44,7 +45,7 @@ public class BookController extends AbstractController {
     }
 
     @GetMapping("{id}")
-    public ApiInfo info(
+    public ApiInfo open(
             @PathVariable UUID id,
             @RequestParam UUID deviceUuid,
             @RequestParam int width,
@@ -56,7 +57,7 @@ public class BookController extends AbstractController {
                 var book = bookService.findById(id);
                 var info = renderService.open(id, deviceUuid);
                 // author and title may by overrided
-                return new ApiInfo(info.getPages(), book.getAuthor(), book.getTitle());
+                return ApiInfoMapper.mapper.from(info, book);
             },
             b -> b
         );

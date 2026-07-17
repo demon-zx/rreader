@@ -8,15 +8,18 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
 import ru.terentjev.service.render.Info;
 import ru.terentjev.service.render.Render;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 @Component
 public class PDFRender implements Render {
@@ -35,7 +38,7 @@ public class PDFRender implements Render {
         PDDocumentInformation information = document.getDocumentInformation();
         String author = information.getAuthor();
         String title = information.getTitle();
-        return new Info(pages, author, title, null, null);
+        return new Info(pages, author, title, null, null, Map.of());
     }
 
     @Override
