@@ -69,7 +69,12 @@ public class FB2Render implements Render {
     }
 
     @Override
-    public OpenInfo open(RenderSettings settings, InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException {
+    public OpenInfo open(
+        RenderSettings settings, 
+        InputStream is, 
+        Path bookDirectory, 
+        Path deviceDirectory
+    ) throws IOException {
         FB2Parser parser = new FB2Parser(bookDirectory);
         FB2 document = parser.parse(is);
         LayoutManager manager = new LayoutManager(settings(settings));
@@ -83,7 +88,7 @@ public class FB2Render implements Render {
             .findFirst();
         Map<Integer, Integer> positionByPage = new HashMap<>();
         int i = 0;
-        for (var page: pages) {
+        for (var page : pages) {
             positionByPage.put(++i, page.position());
         }
         return new OpenInfo(
@@ -117,7 +122,14 @@ public class FB2Render implements Render {
     }
 
     @Override
-    public void render(RenderSettings settings, int page, InputStream is, Path bookDirectory, Path deviceDirectory, OutputStream os) throws IOException {
+    public void render(
+            RenderSettings settings,
+            int page,
+            InputStream is,
+            Path bookDirectory,
+            Path deviceDirectory,
+            OutputStream os
+    ) throws IOException {
         FB2Parser parser = new FB2Parser(bookDirectory);
         FB2 document = parser.parse(is);
         var fb2settings = settings(settings);

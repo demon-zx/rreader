@@ -44,7 +44,12 @@ public class PDFRender implements Render {
 
 
     @Override
-    public OpenInfo open(RenderSettings settings, InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException {
+    public OpenInfo open(
+        RenderSettings settings, 
+        InputStream is, 
+        Path bookDirectory, 
+        Path deviceDirectory
+    ) throws IOException {
         PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(is));
         int pages = document.getNumberOfPages();
         PDDocumentInformation information = document.getDocumentInformation();

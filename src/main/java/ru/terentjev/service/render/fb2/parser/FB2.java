@@ -60,7 +60,10 @@ public record FB2(
         
     }
 
-    public abstract static sealed class AbstractPiecesBlock extends Block permits TitleBlock, SubTitleBlock, ParagraphBlock  {
+    public abstract static sealed class AbstractPiecesBlock extends Block permits
+            TitleBlock,
+            SubTitleBlock,
+            ParagraphBlock {
 
         private final List<Piece> pieces;
 
@@ -75,7 +78,7 @@ public record FB2(
         
     }
 
-    public final static class TitleBlock extends AbstractPiecesBlock {
+    public static final class TitleBlock extends AbstractPiecesBlock {
 
         public TitleBlock(int position, List<Piece> pieces) {
             super(position, pieces);
@@ -83,7 +86,7 @@ public record FB2(
         
     }
     
-    public final static class SubTitleBlock extends AbstractPiecesBlock {
+    public static final class SubTitleBlock extends AbstractPiecesBlock {
 
         public SubTitleBlock(int position, List<Piece> pieces) {
             super(position, pieces);
@@ -91,7 +94,7 @@ public record FB2(
         
     }
 
-    public final static class ParagraphBlock extends AbstractPiecesBlock {
+    public static final class ParagraphBlock extends AbstractPiecesBlock {
 
         public ParagraphBlock(int position, List<Piece> pieces) {
             super(position, pieces);

@@ -38,7 +38,10 @@ public class LayoutManager extends AbstractGraphicsHolder {
     }
 
     public List<Page> layout(FB2 document) throws IOException {
-        return withGraphics(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB), g -> new Layout(settings, g).layout(document));
+        return withGraphics(
+            new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB), 
+            g -> new Layout(settings, g).layout(document)
+        );
     }
 
     private static class Layout {
@@ -131,7 +134,7 @@ public class LayoutManager extends AbstractGraphicsHolder {
             if (breakPage && !objects.isEmpty()) {
                 newPage(block.position());
             }
-            int half = lineHeight(font)/2;
+            int half = lineHeight(font) / 2;
             advance(block.position(), half);
             paging(block, font, p -> font, true, 0);
             advance(block.position(), half);
@@ -261,13 +264,13 @@ public class LayoutManager extends AbstractGraphicsHolder {
         var pages = layout.layout(document);
         Drawer drawer = new Drawer(settings);
         Path pathPages = base.resolve("pages");
-        if( Files.notExists(pathPages)) {
+        if (Files.notExists(pathPages)) {
             Files.createDirectories(pathPages);
         }
         int i = 0;
         for (Page page : pages) {
             Path pathPage = pathPages.resolve(++i + ".png");
-            try(var os = Files.newOutputStream(pathPage)) {
+            try (var os = Files.newOutputStream(pathPage)) {
                 System.out.println("Draw page " + i);
                 drawer.draw(page, os);
                 if (i > 10) {

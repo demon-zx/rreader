@@ -67,7 +67,11 @@ public class BookController extends AbstractController {
     
 
     @GetMapping("{id}/cover")
-    public void cover(HttpServletResponse response, @PathVariable UUID id, @RequestParam UUID deviceUuid) throws IOException {
+    public void cover(
+        HttpServletResponse response, 
+        @PathVariable UUID id, 
+        @RequestParam UUID deviceUuid
+    ) throws IOException {
         run(() -> renderService.renderCover(id, deviceUuid, is -> out(response, is)));
     }
 

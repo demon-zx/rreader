@@ -141,7 +141,7 @@ public class FB2Parser {
 
     private boolean inAny(String... any) {
         for (String t : any) {
-            if(this.tags.contains(t)) {
+            if (this.tags.contains(t)) {
                 return true;
             }
         }
@@ -180,6 +180,8 @@ public class FB2Parser {
                 italic++;
             }
             case BINARY -> binaryStart(reader);
+            default -> {
+            }
         }
     }
     
@@ -205,6 +207,8 @@ public class FB2Parser {
             }
             case SUBTITLE, PARAGRAPH, STROPHA, TEXT_AUTHOR, SUB, SUP -> paragraph();
             case BINARY -> binaryEnd();
+            default -> {
+            }
         }
         if (!in("body")) {
             // clear content unprocessed tags
@@ -260,7 +264,7 @@ public class FB2Parser {
                 file = binaryDirectory.resolve(binaryId + "." + ext);
             }
             if (Files.notExists(file)) {
-                try(var os = new BufferedOutputStream(Files.newOutputStream(file, StandardOpenOption.CREATE_NEW))) {
+                try (var os = new BufferedOutputStream(Files.newOutputStream(file, StandardOpenOption.CREATE_NEW))) {
                     os.write(value);
                     os.flush();
                 }
@@ -334,7 +338,7 @@ public class FB2Parser {
     }
 
     private void style() {
-        if(inAny(SUBTITLE, PARAGRAPH, STROPHA, TEXT_AUTHOR)) {
+        if (inAny(SUBTITLE, PARAGRAPH, STROPHA, TEXT_AUTHOR)) {
             piece();
         }
     }
@@ -348,19 +352,19 @@ public class FB2Parser {
     }
 
     private void language() {
-        if(in(TITLE_INFO)) {
+        if (in(TITLE_INFO)) {
             language = text();
         }
     }
 
     private void title() {
-        if(in(TITLE_INFO)) {
+        if (in(TITLE_INFO)) {
             title = text();
         }
     }
 
     private void author() {
-        if(in(TITLE_INFO)) {
+        if (in(TITLE_INFO)) {
             String name = Stream.of(nameFirst, nameLast)
                 .map(StringUtils::trimToNull)
                 .filter(Objects::nonNull)
@@ -372,13 +376,13 @@ public class FB2Parser {
     }
 
     private void nameFirst() {
-        if(in(AUTHOR)) {
+        if (in(AUTHOR)) {
             nameFirst = text();
         }
     }
 
     private void nameLast() {
-        if(in(AUTHOR)) {
+        if (in(AUTHOR)) {
             nameLast = text();
         }
     }
@@ -388,8 +392,8 @@ public class FB2Parser {
     }
 
     private void sequence(XMLStreamReader reader) {
-            String name = StringUtils.trimToNull(reader.getAttributeValue(null, "name"));
-            if (name != null) {
+        String name = StringUtils.trimToNull(reader.getAttributeValue(null, "name"));
+        if (name != null) {
             String number = StringUtils.trimToNull(reader.getAttributeValue(null, "number"));
             if (number != null) {
                 try {

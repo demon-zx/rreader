@@ -53,7 +53,7 @@ public class ZipPath implements Path {
     @Override
     public Path getFileName() {
         String[] split = path.split("/");
-        return new ZipPath(fileSystem, split[split.length-1], false);
+        return new ZipPath(fileSystem, split[split.length - 1], false);
     }
 
     @Override
@@ -66,8 +66,8 @@ public class ZipPath implements Path {
             return getRoot();
         }
         String parent = Stream.of(split)
-            .limit(split.length-1)
-            .collect(Collectors.joining("/")) + "/";
+                .limit(split.length - 1)
+                .collect(Collectors.joining("/")) + "/";
         return new ZipPath(fileSystem, parent, true);
     }
 

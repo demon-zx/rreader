@@ -59,7 +59,7 @@ public class Drawer extends AbstractGraphicsHolder {
         Path pathImage = Path.of(o.href());
         if (Files.exists(pathImage)) {
             BufferedImage image;
-            try(var is = Files.newInputStream(pathImage)) {
+            try (var is = Files.newInputStream(pathImage)) {
                 image = ImageIO.read(is);
             }
 

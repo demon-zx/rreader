@@ -15,6 +15,13 @@ public interface Render {
 
     void cover(InputStream is, Path bookDirectory, OutputStream os) throws IOException;
 
-    void render(RenderSettings settings, int page, InputStream is, Path bookDirectory, Path deviceDirectory, OutputStream os) throws IOException;
+    void render(
+            RenderSettings settings,
+            int page,
+            InputStream is,
+            Path bookDirectory,
+            Path deviceDirectory,
+            OutputStream os
+    ) throws IOException;
 
 }
