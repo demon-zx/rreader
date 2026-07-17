@@ -28,6 +28,8 @@ import java.util.Optional;
 @Component
 public class FB2Render implements Render {
 
+    private static final int M = 2;
+
     @Override
     public String type() {
         return "FB2";
@@ -36,26 +38,26 @@ public class FB2Render implements Render {
     private FB2RenderSettings settings(RenderSettings source) {
         if (source.viewportWidth() < 500) {
             return new FB2RenderSettings(
-                    source.viewportWidth(),
-                    source.viewportHeight(),
-                    10,
-                    20,
-                    10,
-                    10,
-                    "SansSerif",
-                    16,
+                    source.viewportWidth() * M,
+                    source.viewportHeight() * M,
+                    10 * M,
+                    20 * M,
+                    10 * M,
+                    10 * M,
+                    "Serif",
+                    16 * M,
                     1f
             );
         }
         return new FB2RenderSettings(
-                source.viewportWidth(),
-                source.viewportHeight(),
-                100,
-                50,
-                100,
-                50,
-                "SansSerif",
-                28,
+                source.viewportWidth() * M,
+                source.viewportHeight() * M,
+                100 * M,
+                50 * M,
+                100 * M,
+                50 * M,
+                "Serif",
+                28 * M,
                 1.2f
         );
     }
