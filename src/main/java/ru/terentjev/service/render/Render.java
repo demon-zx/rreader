@@ -9,10 +9,12 @@ public interface Render {
 
     String type();
 
-    Info open(InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException;
+    Info info(InputStream is) throws IOException;
+
+    OpenInfo open(RenderSettings settings, InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException;
 
     void cover(InputStream is, Path bookDirectory, OutputStream os) throws IOException;
 
-    void render(int page, InputStream is, Path bookDirectory, Path deviceDirectory, OutputStream os) throws IOException;
+    void render(RenderSettings settings, int page, InputStream is, Path bookDirectory, Path deviceDirectory, OutputStream os) throws IOException;
 
 }

@@ -43,7 +43,9 @@ function loader(on) {
  * @param {Number} page page
  */
 function showPage(page) {
-    const url = `${baseBookUrl}/render/${page}?deviceUuid=${deviceUuid}`;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const url = `${baseBookUrl}/render/${page}?deviceUuid=${deviceUuid}&width=${width}&height=${height}`;
     loader(true);
     ajax(url, { json: false }).then(data => {
         const image = new Image();
@@ -78,6 +80,7 @@ function positionToPage(position) {
         if (pagePosition <= position && pagePosition > best) {
             best = pagePosition;
             result = Number(page);
+        } else {
         }
     }
     return result;
@@ -175,6 +178,8 @@ function init() {
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
     document.getElementById('next').onclick = () => next();
     document.getElementById('prev').onclick = () => prev();
+    window.addEventListener('resize', debounce(() => loadInfo(), 300));
+    window.addEventListener('focus', () => loadPosition());
     loadInfo();
 }
 

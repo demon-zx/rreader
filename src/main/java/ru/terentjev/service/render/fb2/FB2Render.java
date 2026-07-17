@@ -3,7 +3,9 @@ package ru.terentjev.service.render.fb2;
 import org.springframework.stereotype.Component;
 
 import ru.terentjev.service.render.Info;
+import ru.terentjev.service.render.OpenInfo;
 import ru.terentjev.service.render.Render;
+import ru.terentjev.service.render.RenderSettings;
 import ru.terentjev.service.render.fb2.layout.Drawer;
 import ru.terentjev.service.render.fb2.layout.LayoutManager;
 import ru.terentjev.service.render.fb2.layout.Page;
@@ -26,19 +28,51 @@ import java.util.Optional;
 @Component
 public class FB2Render implements Render {
 
-    FB2RenderSettings settings = new FB2RenderSettings(1080, 1527, 50, 50, 50, 50, "Arial", 28, 1.2f);
-    LayoutManager manager = new LayoutManager(settings);
-    Drawer drawer = new Drawer(settings);
-
     @Override
     public String type() {
         return "FB2";
     }
 
+    private FB2RenderSettings settings(RenderSettings source) {
+        return new FB2RenderSettings(
+                source.viewportWidth(),
+                source.viewportHeight(),
+                50,
+                50,
+                50,
+                50,
+                "Arial",
+                28,
+                1.2f
+        );
+    }
+
     @Override
-    public Info open(InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException {
+    public Info info(InputStream is) throws IOException {
+        FB2Parser parser = new FB2Parser(Files.createTempDirectory("fb2-parser"));
+        FB2 document = parser.parse(is);
+        String author = document.authors()
+            .stream()
+            .findFirst()
+            .orElse(null);
+        Optional<Sequence> sequence = document.sequences()
+            .stream()
+            .findFirst();
+        return new Info(
+                author,
+                document.title(),
+                sequence.map(Sequence::name)
+                        .orElse(null),
+                sequence.map(Sequence::number)
+                        .orElse(null)
+        );
+    }
+
+    @Override
+    public OpenInfo open(RenderSettings settings, InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException {
         FB2Parser parser = new FB2Parser(bookDirectory);
         FB2 document = parser.parse(is);
+        LayoutManager manager = new LayoutManager(settings(settings));
         List<Page> pages = manager.layout(document);
         String author = document.authors()
             .stream()
@@ -52,10 +86,10 @@ public class FB2Render implements Render {
         for (var page: pages) {
             positionByPage.put(++i, page.position());
         }
-        return new Info(
-                pages.size(),
+        return new OpenInfo(
                 author,
                 document.title(),
+                pages.size(),
                 sequence.map(Sequence::name)
                         .orElse(null),
                 sequence.map(Sequence::number)
@@ -77,21 +111,18 @@ public class FB2Render implements Render {
         if (file != null) {
             Files.copy(file, os);
         } else {
-            Page first = manager.layout(document)
-                .stream()
-                .findFirst()
-                .orElse(null);
-            if (first != null) {
-                drawer.draw(first, os);
-            }
+            //TODO вставить NO IMAGE какой-нить
         }
         os.flush();
     }
 
     @Override
-    public void render(int page, InputStream is, Path bookDirectory, Path deviceDirectory, OutputStream os) throws IOException {
+    public void render(RenderSettings settings, int page, InputStream is, Path bookDirectory, Path deviceDirectory, OutputStream os) throws IOException {
         FB2Parser parser = new FB2Parser(bookDirectory);
         FB2 document = parser.parse(is);
+        var fb2settings = settings(settings);
+        LayoutManager manager = new LayoutManager(fb2settings);
+        Drawer drawer = new Drawer(fb2settings);
         List<Page> pages = manager.layout(document);
         int index = Math.min(Math.max(page - 1, 0), pages.size() - 1);
         drawer.draw(pages.get(index), os);

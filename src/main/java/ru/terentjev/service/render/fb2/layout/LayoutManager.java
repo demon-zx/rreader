@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 public class LayoutManager extends AbstractGraphicsHolder {
@@ -62,6 +63,11 @@ public class LayoutManager extends AbstractGraphicsHolder {
         }
 
         public List<Page> layout(FB2 document) {
+            position = document.body()
+                .stream()
+                .findFirst()
+                .map(Block::position)
+                .orElse(0);
             for (Block block : document.body()) {
                 block(document, block);
             }
@@ -69,7 +75,6 @@ public class LayoutManager extends AbstractGraphicsHolder {
         }
 
         private void block(FB2 document, Block block) {
-            position = block.position();
             switch (block) {
                 case TitleBlock b -> title(b);
                 case SubTitleBlock b -> subTitle(b);
@@ -104,7 +109,7 @@ public class LayoutManager extends AbstractGraphicsHolder {
         }
 
         private void emptyLine(EmptyLineBlock block) {
-            advance(lineHeight(fonts.body()));
+            advance(block.position(), lineHeight(fonts.body()));
         }
 
         private void image(FB2 document, ImageBlock block) {
@@ -112,10 +117,10 @@ public class LayoutManager extends AbstractGraphicsHolder {
                     .get(StringUtils.stripStart(block.href(), "#"));
             if (pathToImage != null) {
                 if (!objects.isEmpty()) {
-                    newPage();
+                    newPage(block.position());
                 }
                 objects.add(new ImageObject(pathToImage));
-                newPage();
+                newPage(block.position());
             }
         }
 
@@ -124,12 +129,12 @@ public class LayoutManager extends AbstractGraphicsHolder {
 
         private void heading(AbstractPiecesBlock block, Font font, boolean breakPage) {
             if (breakPage && !objects.isEmpty()) {
-                newPage();
+                newPage(block.position());
             }
             int half = lineHeight(font)/2;
-            advance(half);
+            advance(block.position(), half);
             paging(block, font, p -> font, true, 0);
-            advance(half);
+            advance(block.position(), half);
         }
 
         private void paging(
@@ -139,6 +144,7 @@ public class LayoutManager extends AbstractGraphicsHolder {
                 boolean centered,
                 int paragraphIndent
         ) {
+            int position = block.position();
             List<Token> tokens = tokens(block, fontPiece);
             FontMetrics base = graphics.getFontMetrics(fontBase);
             int ascent = base.getAscent();
@@ -151,20 +157,22 @@ public class LayoutManager extends AbstractGraphicsHolder {
                 int tokenWidth = graphics.getFontMetrics(token.font())
                         .stringWidth(token.text());
                 if (indent + lineWidth + space + tokenWidth > contentWidth) {
-                    newLine(List.copyOf(line), lineWidth, indent, ascent, height, space, centered);
+                    newLine(position, List.copyOf(line), lineWidth, indent, ascent, height, space, centered);
                     line.clear();
                     lineWidth = 0;
                     indent = 0;
                 }
+                position += token.text().length() + 1;
                 lineWidth += lineWidth == 0 ? tokenWidth : space + tokenWidth;
                 line.add(token);
             }
             if (!line.isEmpty()) {
-                newLine(line, lineWidth, indent, ascent, height, space, centered);
+                newLine(position, line, lineWidth, indent, ascent, height, space, centered);
             }
         }
 
         private void newLine(
+                int newPosition,
                 List<Token> tokens,
                 int lineWidth,
                 int indent,
@@ -174,7 +182,7 @@ public class LayoutManager extends AbstractGraphicsHolder {
                 boolean centered
         ) {
             if (y + height > contentBottom) {
-                newPage();
+                newPage(newPosition);
             }
             int startX;
             if (centered) {
@@ -214,10 +222,10 @@ public class LayoutManager extends AbstractGraphicsHolder {
             return tokens;
         }
 
-        private void advance(int amount) {
+        private void advance(int newPosition, int amount) {
             y += amount;
             if (y > contentBottom) {
-                newPage();
+                newPage(newPosition);
             }
         }
 
@@ -226,11 +234,12 @@ public class LayoutManager extends AbstractGraphicsHolder {
             return Math.round(fontMetrics.getHeight() * settings.lineHeight());
         }
 
-        private void newPage() {
+        private void newPage(int newPosition) {
             var page = new Page(position, List.copyOf(objects));
             objects.clear();
             pages.add(page);
             y = contentTop;
+            position = newPosition;
         }
 
         private record Token(String text, Font font) {

@@ -4,12 +4,17 @@ import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.commons.lang3.function.FailableConsumer;
 import org.apache.commons.lang3.function.FailableFunction;
 import org.springframework.stereotype.Service;
-import ru.terentjev.exception.InvalidArgumentException;
+
+import ru.terentjev.exception.ServiceException;
 import ru.terentjev.service.BookService;
 import ru.terentjev.service.model.Book;
 import ru.terentjev.util.IOUtil;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -31,17 +36,22 @@ public class RenderService {
         }
     }
 
-    public Info open(UUID id, UUID deviceUuid) throws InvalidArgumentException, IOException {
+    private RenderSettings settings(UUID deviceUuid, int width, int heigth) throws ServiceException {
+        return new RenderSettings(width, heigth);
+    }
+
+    public OpenInfo open(UUID id, UUID deviceUuid, int width, int height) throws ServiceException, IOException {
         Book book = service.findById(id);
         Render render = renderFactory.getRender(book.getType());
-        return file(is -> render.open(is, path(id), path(id, deviceUuid)), book);
+        var settings = settings(deviceUuid, width, height);
+        return file(is -> render.open(settings, is, path(id), path(id, deviceUuid, width, height)), book);
     }
 
     public void renderCover(
             UUID id,
             UUID deviceUuid,
             FailableConsumer<InputStream, IOException> mapper
-    ) throws IOException, InvalidArgumentException {
+    ) throws IOException, ServiceException {
         Book book = service.findById(id);
         Render render = renderFactory.getRender(book.getType());
         Path bookDirectory = path(id);
@@ -54,14 +64,17 @@ public class RenderService {
             UUID id,
             int page,
             UUID deviceUuid,
+            int width, 
+            int height,
             FailableConsumer<InputStream, IOException> mapper
-    ) throws IOException, InvalidArgumentException {
+    ) throws IOException, ServiceException {
         Book book = service.findById(id);
         Render render = renderFactory.getRender(book.getType());
         Path bookDirectory = path(id);
-        Path deviceDirectory = path(id, deviceUuid);
+        Path deviceDirectory = path(id, deviceUuid, width, height);
         Path rendered = deviceDirectory.resolve(page + ".png");
-        render((is, os) -> render.render(page, is, bookDirectory, deviceDirectory, os), rendered, book);
+        var settings = settings(deviceUuid, width, height);
+        render((is, os) -> render.render(settings, page, is, bookDirectory, deviceDirectory, os), rendered, book);
         out(mapper, rendered);
     }
 
@@ -101,7 +114,7 @@ public class RenderService {
         return Path.of("pages", id.toString());
     }
 
-    private Path path(UUID id, UUID deviceUuid) {
-        return Path.of("pages", id.toString(), deviceUuid.toString());
+    private Path path(UUID id, UUID deviceUuid, int widht, int height) {
+        return Path.of("pages", id.toString(), deviceUuid.toString(), widht + "x" + height);
     }
 }

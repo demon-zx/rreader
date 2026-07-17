@@ -4,10 +4,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+
 import ru.terentjev.controller.model.ApiBook;
-import ru.terentjev.controller.model.ApiInfo;
 import ru.terentjev.service.model.Book;
-import ru.terentjev.service.render.Info;
 
 @Mapper(config = Config.class)
 public abstract class ApiBookMapper extends ApiPageMapper<ApiBook, Book> {

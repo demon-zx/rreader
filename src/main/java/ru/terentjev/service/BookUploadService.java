@@ -34,7 +34,6 @@ public class BookUploadService implements FirstRunService {
     private final BookService bookService;
     private final ProcessedFileService processedFileService;
     private final RenderFactory renderFactory;
-    private final Path tmp;
 
     public BookUploadService(
             DirectoryParameters directoryParameters,
@@ -46,7 +45,6 @@ public class BookUploadService implements FirstRunService {
         this.bookService = bookService;
         this.processedFileService = processedFileService;
         this.renderFactory = renderFactory;
-        tmp = Files.createTempDirectory("book-upload-service");
     }
 
     public void walk(Path path, FailableConsumer<Path, IOException> fileConsumer) {
@@ -134,7 +132,7 @@ public class BookUploadService implements FirstRunService {
     private Info info(Path file, String type) throws IOException {
         return IOUtil.readFile(file, is -> {
             Render render = renderFactory.getRender(type);
-            return render.open(is, tmp, tmp);
+            return render.info(is);
         });
     }
 

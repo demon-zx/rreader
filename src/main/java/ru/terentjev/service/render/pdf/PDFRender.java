@@ -10,7 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import ru.terentjev.service.render.Info;
+import ru.terentjev.service.render.OpenInfo;
 import ru.terentjev.service.render.Render;
+import ru.terentjev.service.render.RenderSettings;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -32,29 +34,36 @@ public class PDFRender implements Render {
     }
 
     @Override
-    public Info open(InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException {
+    public Info info(InputStream is) throws IOException {
+        PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(is));
+        PDDocumentInformation information = document.getDocumentInformation();
+        String author = information.getAuthor();
+        String title = information.getTitle();
+        return new Info(author, title, null, null);
+    }
+
+
+    @Override
+    public OpenInfo open(RenderSettings settings, InputStream is, Path bookDirectory, Path deviceDirectory) throws IOException {
         PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(is));
         int pages = document.getNumberOfPages();
         PDDocumentInformation information = document.getDocumentInformation();
         String author = information.getAuthor();
         String title = information.getTitle();
-        return new Info(pages, author, title, null, null, Map.of());
+        return new OpenInfo(author, title, pages, null, null, Map.of());
     }
 
     @Override
-    public void cover(
-            InputStream is,
-            Path bookDirectory,
-            OutputStream os
-    ) throws IOException {
+    public void cover(InputStream is, Path bookDirectory, OutputStream os) throws IOException {
         render(1, is, os, 75);
     }
 
     @Override
     public void render(
+            RenderSettings settings,
             int page,
-            InputStream is, 
-            Path bookDirectory, 
+            InputStream is,
+            Path bookDirectory,
             Path deviceDirectory,
             OutputStream os
     ) throws IOException {

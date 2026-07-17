@@ -30,7 +30,10 @@ public class BookController extends AbstractController {
     private final RenderService renderService;
     private final BookService bookService;
 
-    public BookController(RenderService renderService, BookService bookService) {
+    public BookController(
+            RenderService renderService,
+            BookService bookService
+    ) {
         super(log);
         this.renderService = renderService;
         this.bookService = bookService;
@@ -55,8 +58,7 @@ public class BookController extends AbstractController {
             () -> {
                 log.debug("info id={} deviceUuid={} viewport={}x{}", id, deviceUuid, width, height);
                 var book = bookService.findById(id);
-                var info = renderService.open(id, deviceUuid);
-                // author and title may by overrided
+                var info = renderService.open(id, deviceUuid, width, height);
                 return ApiInfoMapper.mapper.from(info, book);
             },
             b -> b
@@ -74,9 +76,11 @@ public class BookController extends AbstractController {
             HttpServletResponse response,
             @PathVariable UUID id,
             @PathVariable int page,
-            @RequestParam UUID deviceUuid
+            @RequestParam UUID deviceUuid,
+            @RequestParam int width,
+            @RequestParam int height
     ) throws IOException {
-        run(() -> renderService.renderPage(id, page, deviceUuid, is -> out(response, is)));
+        run(() -> renderService.renderPage(id, page, deviceUuid, width, height, is -> out(response, is)));
     }
 
 }
