@@ -61,7 +61,7 @@ class FB2ParserTest {
         assertEquals(List.of("sf"), fb2.genres());
         assertEquals("en", fb2.lang());
         assertEquals(LocalDate.of(1952, 1, 15), fb2.date());
-        assertEquals("#cover.jpg", fb2.cover());
+        assertEquals("cover.jpg", fb2.cover());
     }
 
     @Test
@@ -204,7 +204,7 @@ class FB2ParserTest {
         assertInstanceOf(EmptyLineBlock.class, blocks.get(3));
 
         assertInstanceOf(ImageBlock.class, blocks.get(4));
-        assertEquals("#img1", ((ImageBlock) blocks.get(4)).href());
+        assertEquals("img1", ((ImageBlock) blocks.get(4)).href());
 
         assertInstanceOf(SubTitleBlock.class, blocks.get(5));
         assertEquals("Deep", text(blocks.get(5)));

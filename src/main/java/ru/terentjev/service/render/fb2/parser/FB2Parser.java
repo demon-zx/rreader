@@ -280,7 +280,7 @@ public class FB2Parser {
     private void image(XMLStreamReader reader) {
         String href = href(reader);
         if (href != null) {
-            imageHandler.accept(href);
+            imageHandler.accept(StringUtils.stripStart(href, "#"));
         }
     }
 
@@ -370,6 +370,8 @@ public class FB2Parser {
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(" "));
             if (!name.isBlank()) {
+                nameFirst = null;
+                nameLast = null;
                 authors.add(name);
             }
         }
