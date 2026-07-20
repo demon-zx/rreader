@@ -26,7 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 
 public class LayoutManager extends AbstractGraphicsHolder {
@@ -74,6 +73,9 @@ public class LayoutManager extends AbstractGraphicsHolder {
             for (Block block : document.body()) {
                 block(document, block);
             }
+            if (!objects.isEmpty()) {
+                newPage(position);
+            }
             return pages;
         }
 
@@ -117,7 +119,7 @@ public class LayoutManager extends AbstractGraphicsHolder {
 
         private void image(FB2 document, ImageBlock block) {
             String pathToImage = document.binaries()
-                    .get(StringUtils.stripStart(block.href(), "#"));
+                    .get(block.href());
             if (pathToImage != null) {
                 if (!objects.isEmpty()) {
                     newPage(block.position());
