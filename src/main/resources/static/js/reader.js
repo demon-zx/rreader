@@ -16,7 +16,7 @@ let positionByPage;
 
 export function showError(error) {
     loader(false);
-    if (error instanceof HttpError && error.status === 401) {
+    if (error instanceof HttpError && (error.status === 401 || error.status === 403)) {
         console.log(`Authentication error`);
         location.reload();
         return;
