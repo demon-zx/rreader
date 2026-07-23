@@ -5,7 +5,7 @@
 - [ ] локализация
 - [ ] ошибка "is locked." на cover
 - [ ] ошибка java.nio.file.FileSystemAlreadyExistsException: null (чистим куки и открываем книгу в zip)
-- [ ] ошибка Failed to convert value of type 'java.lang.String' to required type 'long'; For input string: \"undefined\" (рестарт + ctrl+F5 на открытой книге)
+- [x] ошибка Failed to convert value of type 'java.lang.String' to required type 'long'; For input string: \"undefined\" (рестарт + ctrl+F5 на открытой книге)
 - [x] рендер страниц в отдельную папку устройства (pages\uniq)
 - [ ] чистка дискового кеша по расписанию
 - [ ] отслеживание изменений в каталоге с книгами

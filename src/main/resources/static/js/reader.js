@@ -13,6 +13,7 @@ let flashTimeout;
 let currentPage = 1;
 let pages = 0;
 let positionByPage;
+let onFocusNotInit = true;
 
 export function showError(error) {
     loader(false);
@@ -79,7 +80,6 @@ function positionToPage(position) {
         if (pagePosition <= position && pagePosition > best) {
             best = pagePosition;
             result = Number(page);
-        } else {
         }
     }
     return result;
@@ -117,12 +117,15 @@ function loadInfo() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const url = `${baseBookUrl}?deviceUuid=${deviceUuid}&width=${width}&height=${height}`;
-    ajax(url)
-        .then(data => {
+    ajax(url).then(data => {
             pages = data.pages;
             if (eTitle) eTitle.innerHTML = data.title;
             if (eAuthor) eAuthor.innerHTML = data.author;
             positionByPage = data.positionByPage;
+            if (onFocusNotInit) {
+                onFocusNotInit = false
+                window.addEventListener('focus', () => loadPosition());
+            }
             loadPosition();
         })
         .catch(error => showError(error));
@@ -178,7 +181,6 @@ function init() {
     document.getElementById('next').onclick = () => next();
     document.getElementById('prev').onclick = () => prev();
     window.addEventListener('resize', debounce(() => loadInfo(), 300));
-    window.addEventListener('focus', () => loadPosition());
     loadInfo();
 }
 
