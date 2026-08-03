@@ -180,6 +180,15 @@ function init() {
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
     document.getElementById('next').onclick = () => next();
     document.getElementById('prev').onclick = () => prev();
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            next();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            prev();
+        }
+    });
     window.addEventListener('resize', debounce(() => loadInfo(), 300));
     loadInfo();
 }
