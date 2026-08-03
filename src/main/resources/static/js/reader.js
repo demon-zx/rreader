@@ -2,6 +2,9 @@ import { ajax, debounce, HttpError, getDeviceUuid } from "./common.js";
 
 const deviceUuid = getDeviceUuid();
 
+let eMenu;
+let eMenuTrigger;
+let menuTimeout;
 let baseBookUrl;
 let baseBookmarkUrl;
 let eView;
@@ -155,6 +158,34 @@ function flash() {
     flashState(true);
 }
 
+function showMenu() {
+    if (menuTimeout) {
+        clearTimeout(menuTimeout);
+    }
+    eMenu.classList.remove('menu-hidden');
+    eMenu.classList.add('menu-visible');
+    menuTimeout = setTimeout(() => {
+        hideMenu();
+    }, 3000);
+}
+
+function hideMenu() {
+    if (menuTimeout) {
+        clearTimeout(menuTimeout);
+        menuTimeout = null;
+    }
+    eMenu.classList.remove('menu-visible');
+    eMenu.classList.add('menu-hidden');
+}
+
+function toggleMenu() {
+    if (eMenu.classList.contains('menu-visible')) {
+        hideMenu();
+    } else {
+        showMenu();
+    }
+}
+
 function next() {
     if (currentPage < pages) {
         flash();
@@ -175,11 +206,14 @@ function init() {
     ePage = document.getElementById('page');
     eTitle = document.getElementById('title');
     eLoader = document.getElementById('loader');
+    eMenu = document.getElementById('menu');
+    eMenuTrigger = document.getElementById('menu-trigger');
     const id = document.getElementById('book').getAttribute('data-id');
     baseBookUrl = `/api/v1/book/${id}`
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
     document.getElementById('next').onclick = () => next();
     document.getElementById('prev').onclick = () => prev();
+    eMenuTrigger.onclick = () => toggleMenu();
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
             e.preventDefault();

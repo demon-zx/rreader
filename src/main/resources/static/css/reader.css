@@ -56,6 +56,7 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 2rem;
+    cursor: pointer;
 }
 
 .btn-next {
@@ -70,6 +71,53 @@ body {
     height: 30%;
     left: 0;
     bottom: 0;
+}
+
+.menu-trigger {
+    width: 100%;
+    height: 33%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+.menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(224, 224, 224, 0.95);
+    border-bottom: 2px outset rgb(70, 70, 70);
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 0;
+    z-index: 100;
+    transition: transform 0.2s ease-in-out;
+}
+
+.menu-hidden {
+    transform: translateY(-100%);
+}
+
+.menu-visible {
+    transform: translateY(0);
+}
+
+.menu-item {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.2rem;
+    color: black;
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+.menu-item:hover {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .info {
