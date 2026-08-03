@@ -2,8 +2,12 @@ import { ajax, debounce, HttpError, getDeviceUuid } from "./common.js";
 
 const deviceUuid = getDeviceUuid();
 
+const VIEWPORT_WIDTH_KEY = 'rreader_viewport_width';
+
 let eMenu;
 let eMenuTrigger;
+let eMenuWidth100;
+let eMenuWidth50;
 let menuTimeout;
 let baseBookUrl;
 let baseBookmarkUrl;
@@ -17,6 +21,7 @@ let currentPage = 1;
 let pages = 0;
 let positionByPage;
 let onFocusNotInit = true;
+let viewportWidthPercent = 100;
 
 export function showError(error) {
     loader(false);
@@ -46,7 +51,7 @@ function loader(on) {
  * @param {Number} page page
  */
 function showPage(page) {
-    const width = window.innerWidth;
+    const width = Math.round(window.innerWidth * viewportWidthPercent / 100);
     const height = window.innerHeight;
     const url = `${baseBookUrl}/render/${page}?deviceUuid=${deviceUuid}&width=${width}&height=${height}`;
     loader(true);
@@ -117,7 +122,7 @@ function savePosition(page) {
 }
 
 function loadInfo() {
-    const width = window.innerWidth;
+    const width = Math.round(window.innerWidth * viewportWidthPercent / 100);
     const height = window.innerHeight;
     const url = `${baseBookUrl}?deviceUuid=${deviceUuid}&width=${width}&height=${height}`;
     ajax(url).then(data => {
@@ -186,6 +191,32 @@ function toggleMenu() {
     }
 }
 
+function setViewportWidth(percent) {
+    viewportWidthPercent = percent;
+    localStorage.setItem(VIEWPORT_WIDTH_KEY, String(percent));
+    updateMenuVisibility();
+    loadInfo();
+}
+
+function loadViewportWidth() {
+    const saved = localStorage.getItem(VIEWPORT_WIDTH_KEY);
+    if (saved !== null) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && (parsed === 50 || parsed === 100)) {
+            viewportWidthPercent = parsed;
+        }
+    }
+}
+
+function updateMenuVisibility() {
+    if (eMenuWidth100) {
+        eMenuWidth100.style.display = viewportWidthPercent === 100 ? 'none' : '';
+    }
+    if (eMenuWidth50) {
+        eMenuWidth50.style.display = viewportWidthPercent === 50 ? 'none' : '';
+    }
+}
+
 function next() {
     if (currentPage < pages) {
         flash();
@@ -208,12 +239,18 @@ function init() {
     eLoader = document.getElementById('loader');
     eMenu = document.getElementById('menu');
     eMenuTrigger = document.getElementById('menu-trigger');
+    eMenuWidth100 = document.getElementById('menu-width-100');
+    eMenuWidth50 = document.getElementById('menu-width-50');
     const id = document.getElementById('book').getAttribute('data-id');
     baseBookUrl = `/api/v1/book/${id}`
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
     document.getElementById('next').onclick = () => next();
     document.getElementById('prev').onclick = () => prev();
     eMenuTrigger.onclick = () => toggleMenu();
+    if (eMenuWidth100) eMenuWidth100.onclick = () => setViewportWidth(100);
+    if (eMenuWidth50) eMenuWidth50.onclick = () => setViewportWidth(50);
+    loadViewportWidth();
+    updateMenuVisibility();
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
             e.preventDefault();
