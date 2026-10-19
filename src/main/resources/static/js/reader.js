@@ -247,6 +247,11 @@ function init() {
     document.getElementById('next').onclick = () => next();
     document.getElementById('prev').onclick = () => prev();
     eMenuTrigger.onclick = () => toggleMenu();
+    const eMenuSettings = document.getElementById('menu-settings');
+    if (eMenuSettings) eMenuSettings.onclick = () => {
+        const scope = document.getElementById('book').getAttribute('data-scope') || 'GLOBAL';
+        window.location.href = `/settings?scope=${scope}`;
+    };
     if (eMenuWidth100) eMenuWidth100.onclick = () => setViewportWidth(100);
     if (eMenuWidth50) eMenuWidth50.onclick = () => setViewportWidth(50);
     loadViewportWidth();

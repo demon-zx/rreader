@@ -3,11 +3,20 @@ package ru.terentjev.service.render;
 import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.commons.lang3.function.FailableConsumer;
 import org.apache.commons.lang3.function.FailableFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import ru.terentjev.exception.ServiceException;
 import ru.terentjev.service.BookService;
+import ru.terentjev.service.SettingsChangedEvent;
+import ru.terentjev.service.SettingsService;
+import ru.terentjev.service.mapper.SettingsMapper;
 import ru.terentjev.service.model.Book;
+import ru.terentjev.service.model.KeyValue;
+import ru.terentjev.service.model.Settings;
+import ru.terentjev.service.model.SettingsScope;
 import ru.terentjev.util.IOUtil;
 
 import java.io.BufferedInputStream;
@@ -17,17 +26,25 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 public class RenderService {
 
+    private static final Logger log = LoggerFactory.getLogger(RenderService.class);
+
     private final BookService service;
     private final RenderFactory renderFactory;
+    private final SettingsService settingsService;
 
-    public RenderService(BookService service, RenderFactory renderFactory) {
+    public RenderService(BookService service, RenderFactory renderFactory, SettingsService settingsService) {
         this.service = service;
         this.renderFactory = renderFactory;
+        this.settingsService = settingsService;
     }
 
     private void out(FailableConsumer<InputStream, IOException> mapper, Path fileForOut) throws IOException {
@@ -36,14 +53,23 @@ public class RenderService {
         }
     }
 
-    private RenderSettings settings(UUID deviceUuid, int width, int heigth) throws ServiceException {
-        return new RenderSettings(width, heigth);
+    private RenderSettings settings(Book book, UUID deviceUuid, int width, int height) throws ServiceException {
+        Settings effective = settingsService.read(deviceUuid, scope(book.getType()));
+        Map<String, String> values = new LinkedHashMap<>();
+        for (KeyValue kv : effective.getSettings()) {
+            values.put(kv.getKey(), kv.getValue());
+        }
+        return new RenderSettings(width, height, values);
+    }
+
+    private SettingsScope scope(String bookType) {
+        return SettingsMapper.mapper.scope(bookType);
     }
 
     public OpenInfo open(UUID id, UUID deviceUuid, int width, int height) throws ServiceException, IOException {
         Book book = service.findById(id);
         Render render = renderFactory.getRender(book.getType());
-        var settings = settings(deviceUuid, width, height);
+        var settings = settings(book, deviceUuid, width, height);
         return file(is -> render.open(settings, is, path(id), path(id, deviceUuid, width, height)), book);
     }
 
@@ -73,7 +99,7 @@ public class RenderService {
         Path bookDirectory = path(id);
         Path deviceDirectory = path(id, deviceUuid, width, height);
         Path rendered = deviceDirectory.resolve(page + ".png");
-        var settings = settings(deviceUuid, width, height);
+        var settings = settings(book, deviceUuid, width, height);
         render((is, os) -> render.render(settings, page, is, bookDirectory, deviceDirectory, os), rendered, book);
         out(mapper, rendered);
     }
@@ -117,4 +143,34 @@ public class RenderService {
     private Path path(UUID id, UUID deviceUuid, int widht, int height) {
         return Path.of("pages", id.toString(), deviceUuid.toString(), widht + "x" + height);
     }
+
+    @EventListener
+    public void onSettingsChanged(SettingsChangedEvent event) throws IOException {
+        Path root = Path.of("pages");
+        if (Files.notExists(root)) {
+            return;
+        }
+        try (Stream<Path> books = Files.list(root)) {
+            for (Path book : books.toList()) {
+                Path deviceDirectory = book.resolve(event.deviceUuid().toString());
+                if (Files.exists(deviceDirectory)) {
+                    deleteRecursively(deviceDirectory);
+                }
+            }
+        }
+    }
+
+    private void deleteRecursively(Path directory) throws IOException {
+        try (Stream<Path> paths = Files.walk(directory)) {
+            paths.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            log.warn("Failed to delete cached file {}", path, e);
+                        }
+                    });
+        }
+    }
+
 }

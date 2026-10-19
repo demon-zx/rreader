@@ -16,6 +16,7 @@ import ru.terentjev.service.render.fb2.parser.FB2.SubTitleBlock;
 import ru.terentjev.service.render.fb2.parser.FB2.TitleBlock;
 import ru.terentjev.service.render.fb2.parser.FB2RenderSettings;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,6 +62,27 @@ class LayoutManagerTest {
         // An empty line only advances the vertical cursor; it adds no page object,
         // so there is nothing to flush.
         assertEquals(0, layout(doc(Map.of(), new EmptyLineBlock(0)), WIDE).size());
+    }
+
+    @Test
+    void firstParagraphLineIsIndentedByIndentSetting() throws IOException {
+        FB2RenderSettings settings = new FB2RenderSettings(
+                400, 10000, 20, 0, 20, 0, 40, "Arial", FONT_SIZE, 1.2f, Color.BLACK, Color.WHITE
+        );
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(1, List.of(
+                piece("aa bb cc dd ee ff gg hh ii jj kk ll mm nn oo pp")
+        )));
+
+        List<Page> pages = layout(fb2, settings);
+
+        assertEquals(1, pages.size());
+        List<LineObject> lines = pages.get(0).objects().stream()
+                .filter(o -> o instanceof LineObject)
+                .map(o -> (LineObject) o)
+                .toList();
+        assertTrue(lines.size() > 1, "expected the paragraph to wrap onto multiple lines");
+        assertEquals(20 + 40, lines.get(0).words().get(0).x());
+        assertEquals(20, lines.get(1).words().get(0).x());
     }
 
     @Test
@@ -214,7 +236,9 @@ class LayoutManagerTest {
     }
 
     private static FB2RenderSettings settings(int width, int height) {
-        return new FB2RenderSettings(width, height, 0, 0, 0, 0, "Arial", FONT_SIZE, 1.2f);
+        return new FB2RenderSettings(
+                width, height, 0, 0, 0, 0, 0, "Arial", FONT_SIZE, 1.2f, Color.BLACK, Color.WHITE
+        );
     }
 
     private static FB2 doc(Map<String, String> binaries, Block... blocks) {

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>RReader</title>
+    <!-- Bootstrap 5 CSS -->
+    <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/css/settings.css}" rel="stylesheet">
+</head>
+
+<body>
+<script defer th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script defer type="module" th:src="@{/js/settings.js}"></script>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-1 d-flex justify-content-between align-items-center settings-header">
+            <h1>Settings</h1>
+            <button type="button" id="back" class="btn btn-outline-secondary" title="Back">⬅️</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card form-card">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="scope" class="form-label">Scope</label>
+                        <select id="scope" class="form-select">
+                            <option value="GLOBAL" selected>Global</option>
+                            <option value="FB2">FB2</option>
+                            <option value="PDF">PDF</option>
+                        </select>
+                    </div>
+                    <div id="settings-form">
+                        <div class="mb-3" data-setting="font">
+                            <label for="font" class="form-label">Font</label>
+                            <select id="font" class="form-select"></select>
+                        </div>
+                        <div class="mb-3" data-setting="size">
+                            <label for="font-size" class="form-label">Font size</label>
+                            <input id="font-size" type="number" class="form-control" min="8" max="72" value="28">
+                        </div>
+                        <div class="mb-3" data-setting="color">
+                            <label for="color" class="form-label">Text color</label>
+                            <div class="color-presets mb-1"></div>
+                            <input id="color" type="color" class="form-control form-control-color" value="#000000">
+                        </div>
+                        <div class="mb-3" data-setting="background">
+                            <label for="background" class="form-label">Background</label>
+                            <div class="color-presets mb-1"></div>
+                            <input id="background" type="color" class="form-control form-control-color" value="#FFFFFF">
+                        </div>
+                        <div class="mb-3" data-setting="indent">
+                            <label for="indent" class="form-label">First line indent</label>
+                            <input id="indent" type="number" class="form-control" min="0" max="200" value="50">
+                        </div>
+                        <div id="padding-group">
+                            <div class="form-label">Padding</div>
+                            <div class="padding-layout">
+                                <div class="padding-cell padding-top" data-setting="paddingTop">
+                                    <label for="padding-top">Top</label>
+                                    <input id="padding-top" type="number" class="form-control" min="0" max="200" value="50">
+                                </div>
+                                <div class="padding-cell padding-left" data-setting="paddingLeft">
+                                    <label for="padding-left">Left</label>
+                                    <input id="padding-left" type="number" class="form-control" min="0" max="200" value="50">
+                                </div>
+                                <div class="padding-preview" id="padding-preview">Aa</div>
+                                <div class="padding-cell padding-right" data-setting="paddingRight">
+                                    <label for="padding-right">Right</label>
+                                    <input id="padding-right" type="number" class="form-control" min="0" max="200" value="50">
+                                </div>
+                                <div class="padding-cell padding-bottom" data-setting="paddingBottom">
+                                    <label for="padding-bottom">Bottom</label>
+                                    <input id="padding-bottom" type="number" class="form-control" min="0" max="200" value="50">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,5 +1,30 @@
 package ru.terentjev.service.render;
 
-public record RenderSettings(int viewportWidth, int viewportHeight) {
+import java.util.Map;
 
+public record RenderSettings(int viewportWidth, int viewportHeight, Map<String, String> settings) {
+
+    public RenderSettings {
+        settings = settings == null ? Map.of() : Map.copyOf(settings);
+    }
+
+    public RenderSettings(int viewportWidth, int viewportHeight) {
+        this(viewportWidth, viewportHeight, Map.of());
+    }
+
+    public String value(String key, String defaultValue) {
+        return settings.getOrDefault(key, defaultValue);
+    }
+
+    public int intValue(String key, int defaultValue) {
+        String value = settings.get(key);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 }

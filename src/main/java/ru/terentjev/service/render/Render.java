@@ -4,10 +4,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.List;
 
 public interface Render {
 
     String type();
+
+    /**
+     * Ключи настроек, которые рендер поддерживает; страница настроек
+     * показывает только их.
+     */
+    List<String> settingsDefinitions();
 
     Info info(InputStream is) throws IOException;
 

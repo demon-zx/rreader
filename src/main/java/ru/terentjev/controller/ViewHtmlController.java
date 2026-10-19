@@ -30,6 +30,7 @@ public class ViewHtmlController extends AbstractController {
             model.addAttribute("id", id.toString());
             model.addAttribute("title", book.getTitle());
             model.addAttribute("author", book.getAuthor());
+            model.addAttribute("type", book.getType());
         }
         return "reader";
     }

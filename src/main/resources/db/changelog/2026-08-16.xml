@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="dmitry" id="create-table-settings">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="settings"/>
+            </not>
+        </preConditions>
+        <createTable tableName="settings">
+            <column name="id" type="uuid" defaultValue="RANDOM_UUID()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="device_uuid" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scope" type="varchar(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="setting_key" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="setting_value" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp"/>
+            <column name="updated_by" type="varchar(128)"/>
+        </createTable>
+        <addPrimaryKey constraintName="pk_settings" tableName="settings" columnNames="id"/>
+        <addUniqueConstraint constraintName="uq_settings" tableName="settings" columnNames="device_uuid,scope,setting_key"/>
+    </changeSet>
+</databaseChangeLog>

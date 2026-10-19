@@ -13,10 +13,12 @@ import ru.terentjev.service.render.fb2.parser.FB2;
 import ru.terentjev.service.render.fb2.parser.FB2.Sequence;
 import ru.terentjev.service.render.fb2.parser.FB2Parser;
 import ru.terentjev.service.render.fb2.parser.FB2RenderSettings;
+import ru.terentjev.service.model.SettingKeys;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -30,36 +32,55 @@ public class FB2Render implements Render {
 
     private static final int M = 2;
 
+    private static final List<String> DEFINITIONS = List.of(
+            SettingKeys.FONT,
+            SettingKeys.SIZE,
+            SettingKeys.COLOR,
+            SettingKeys.BACKGROUND,
+            SettingKeys.PADDING_LEFT,
+            SettingKeys.PADDING_TOP,
+            SettingKeys.PADDING_RIGHT,
+            SettingKeys.PADDING_BOTTOM,
+            SettingKeys.INDENT
+    );
+
     @Override
     public String type() {
         return "FB2";
     }
 
+    @Override
+    public List<String> settingsDefinitions() {
+        return DEFINITIONS;
+    }
+
     private FB2RenderSettings settings(RenderSettings source) {
-        if (source.viewportWidth() < 500) {
-            return new FB2RenderSettings(
-                    source.viewportWidth() * M,
-                    source.viewportHeight() * M,
-                    10 * M,
-                    20 * M,
-                    10 * M,
-                    10 * M,
-                    "Serif",
-                    16 * M,
-                    1f
-            );
-        }
+        String fontName = source.value(SettingKeys.FONT, "Arial");
+        int fontSize = source.intValue(SettingKeys.SIZE, 28);
+        Color color = color(source.value(SettingKeys.COLOR, "#000000"), Color.BLACK);
+        Color background = color(source.value(SettingKeys.BACKGROUND, "#FFFFFF"), Color.WHITE);
         return new FB2RenderSettings(
                 source.viewportWidth() * M,
                 source.viewportHeight() * M,
-                100 * M,
-                50 * M,
-                100 * M,
-                50 * M,
-                "Serif",
-                28 * M,
-                1.2f
+                source.intValue(SettingKeys.PADDING_LEFT, 50) * M,
+                source.intValue(SettingKeys.PADDING_TOP, 50) * M,
+                source.intValue(SettingKeys.PADDING_RIGHT, 50) * M,
+                source.intValue(SettingKeys.PADDING_BOTTOM, 50) * M,
+                source.intValue(SettingKeys.INDENT, 50) * M,
+                fontName,
+                fontSize * M,
+                1.2f,
+                color,
+                background
         );
+    }
+
+    private Color color(String value, Color fallback) {
+        try {
+            return Color.decode(value);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
     }
 
     @Override

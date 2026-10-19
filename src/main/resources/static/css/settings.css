@@ -1,0 +1,83 @@
+.form-card {
+    max-width: 480px;
+    margin-inline: auto;
+}
+
+.settings-header {
+    max-width: 480px;
+    margin-inline: auto;
+}
+
+.color-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.color-swatch {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid #adb5bd;
+    border-radius: 6px;
+}
+
+.color-swatch:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, .25);
+}
+
+.padding-layout {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto auto;
+    gap: 8px;
+    align-items: center;
+    justify-items: center;
+    margin-bottom: 1rem;
+}
+
+.padding-top {
+    grid-area: 1 / 2;
+}
+
+.padding-left {
+    grid-area: 2 / 1;
+}
+
+.padding-preview {
+    grid-area: 2 / 2;
+    width: 140px;
+    height: 100px;
+    border: 1px solid #adb5bd;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    background: #ffffff;
+}
+
+.padding-right {
+    grid-area: 2 / 3;
+}
+
+.padding-bottom {
+    grid-area: 3 / 2;
+}
+
+.padding-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.padding-cell label {
+    font-size: .875rem;
+    color: #6c757d;
+}
+
+.padding-cell input {
+    width: 90px;
+}

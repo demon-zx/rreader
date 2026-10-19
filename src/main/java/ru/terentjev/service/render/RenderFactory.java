@@ -25,4 +25,12 @@ public class RenderFactory {
         return render;
     }
 
+    public List<String> settingsDefinitions(String type) {
+        Render render = renders.get(type);
+        if (render == null) {
+            return List.of();
+        }
+        return render.settingsDefinitions();
+    }
+
 }

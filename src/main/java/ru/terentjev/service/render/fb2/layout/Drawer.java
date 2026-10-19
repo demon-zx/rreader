@@ -6,7 +6,6 @@ import ru.terentjev.service.render.fb2.layout.Page.PageObject;
 import ru.terentjev.service.render.fb2.layout.Page.Word;
 import ru.terentjev.service.render.fb2.parser.FB2RenderSettings;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -31,9 +30,9 @@ public class Drawer extends AbstractGraphicsHolder {
             BufferedImage.TYPE_INT_RGB
         );
         withGraphics(image, g -> {
-            g.setColor(Color.WHITE);
+            g.setColor(settings.background());
             g.fillRect(0, 0, settings.pageWidth(), settings.pageHeight());
-            g.setColor(Color.BLACK);
+            g.setColor(settings.color());
             for (PageObject object : page.objects()) {
                 switch (object) {
                     case ImageObject o -> drawImage(g, o);

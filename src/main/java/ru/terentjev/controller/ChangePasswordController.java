@@ -1,10 +1,7 @@
 package ru.terentjev.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -12,7 +9,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import ru.terentjev.security.SecurityUtil;
 import ru.terentjev.service.UserService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class ChangePasswordController {
@@ -29,12 +30,13 @@ public class ChangePasswordController {
         this.passwordEncoder = passwordEncoder;
     }
 
+
     @GetMapping("/change-password")
     public String changePasswordPage() {
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
-        String username = authentication.getName();
-        if (!userService.isCompromised(username)) {
+        boolean notCompromised = SecurityUtil.user()
+            .filter(userService::isCompromised)
+            .isEmpty();
+        if (notCompromised) {
             return "redirect:/";
         }
         return "change-password";
@@ -48,9 +50,7 @@ public class ChangePasswordController {
             Model model,
             HttpServletRequest request
     ) {
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
-        String username = authentication.getName();
+        String username = SecurityUtil.userRequired();
         if (!userService.isCompromised(username)) {
             return "redirect:/";
         }

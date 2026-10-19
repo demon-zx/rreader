@@ -17,6 +17,7 @@ import ru.terentjev.service.render.fb2.parser.FB2.TitleBlock;
 import ru.terentjev.service.render.fb2.parser.FB2Parser;
 import ru.terentjev.service.render.fb2.parser.FB2RenderSettings;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
@@ -99,18 +100,24 @@ public class LayoutManager extends AbstractGraphicsHolder {
         }
 
         private void paragraph(ParagraphBlock block) {
-            paging(block, fonts.body(), p -> {
-                if (p.bold() && p.italic()) {
-                    return fonts.bodyBoldItalic();
-                }
-                if (p.bold()) {
-                    return fonts.bodyBold();
-                }
-                if (p.italic()) {
-                    return fonts.bodyItalic();
-                }
-                return fonts.body();
-            }, false, settings.paddingLeft());
+            paging(
+                block, 
+                fonts.body(), 
+                p -> {
+                    if (p.bold() && p.italic()) {
+                        return fonts.bodyBoldItalic();
+                    }
+                    if (p.bold()) {
+                        return fonts.bodyBold();
+                    }
+                    if (p.italic()) {
+                        return fonts.bodyItalic();
+                    }
+                    return fonts.body();
+                }, 
+                false, 
+                settings.indent()
+            );
         }
 
         private void emptyLine(EmptyLineBlock block) {
@@ -261,7 +268,9 @@ public class LayoutManager extends AbstractGraphicsHolder {
         try (var is = Files.newInputStream(file)) {
             document = parser.parse(is);
         }
-        FB2RenderSettings settings = new FB2RenderSettings(1080, 1527, 50, 50, 50, 50, "Arial", 28, 1.2f);
+        FB2RenderSettings settings = new FB2RenderSettings(
+                1080, 1527, 50, 50, 50, 50, 50, "Arial", 28, 1.2f, Color.BLACK, Color.WHITE
+        );
         LayoutManager layout = new LayoutManager(settings);
         var pages = layout.layout(document);
         Drawer drawer = new Drawer(settings);

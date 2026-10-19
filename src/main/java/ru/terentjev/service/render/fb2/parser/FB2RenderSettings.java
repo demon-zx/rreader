@@ -1,5 +1,7 @@
 package ru.terentjev.service.render.fb2.parser;
 
+import java.awt.Color;
+
 public record FB2RenderSettings(
     int pageWidth,
     int pageHeight,
@@ -7,9 +9,12 @@ public record FB2RenderSettings(
     int paddingTop,
     int paddingRight,
     int paddingBottom,
+    int indent,
     String fontName,
     int fontSize,
-    float lineHeight
+    float lineHeight,
+    Color color,
+    Color background
 ) {
 
 }

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -31,6 +32,11 @@ public class PDFRender implements Render {
     @Override
     public String type() {
         return "PDF";
+    }
+
+    @Override
+    public List<String> settingsDefinitions() {
+        return List.of();
     }
 
     @Override
