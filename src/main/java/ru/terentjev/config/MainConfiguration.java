@@ -1,8 +1,6 @@
 package ru.terentjev.config;
 
 
-import io.micrometer.core.aop.TimedAspect;
-import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -12,15 +10,16 @@ import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.method.HandlerTypePredicate;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import ru.terentjev.repository.BookRepository;
-import ru.terentjev.service.BookService;
-import ru.terentjev.service.BookUploadService;
+
+import io.micrometer.core.aop.TimedAspect;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import java.time.Clock;
 import java.time.ZoneId;
@@ -30,6 +29,7 @@ import java.util.Map;
 
 @Configuration
 @EnableAspectJAutoProxy(proxyTargetClass = true)
+@EnableScheduling
 @ConfigurationPropertiesScan(basePackageClasses = MainConfiguration.class)
 public class MainConfiguration implements WebMvcConfigurer {
 

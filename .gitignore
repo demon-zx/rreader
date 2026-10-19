@@ -11,3 +11,4 @@ target
 application-local.yml
 .checkstyle
 .factorypath
+pages/

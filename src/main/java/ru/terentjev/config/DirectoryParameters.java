@@ -10,7 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @ConfigurationProperties(prefix = "application.path")
-public record DirectoryParameters(Path config, Path books) {
+public record DirectoryParameters(Path config, Path books, Path pages) {
 
     private static final Logger log = LoggerFactory.getLogger(DirectoryParameters.class);
 
@@ -18,6 +18,7 @@ public record DirectoryParameters(Path config, Path books) {
         try {
             checkAndCreate(config);
             checkAndCreate(books);
+            checkAndCreate(pages);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

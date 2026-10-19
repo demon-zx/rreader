@@ -3,7 +3,7 @@
 ## TODO
 
 - [ ] при получении фокуса читать позицию и перезагружать страницу, только если позиция изменилась
-- [ ] чистка дискового кеша по расписанию
+- [x] чистка дискового кеша по расписанию (application.cache.cleanup, по умолчанию ежедневно в 03:30, файлы старше 30 дней)
 - [ ] ошибка "is locked." на cover
 - [ ] ошибка java.nio.file.FileSystemAlreadyExistsException: null (чистим куки и открываем книгу в zip)
 - [x] ошибка Failed to convert value of type 'java.lang.String' to required type 'long'; For input string: \"undefined\" (рестарт + ctrl+F5 на открытой книге)

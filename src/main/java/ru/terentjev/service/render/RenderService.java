@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import ru.terentjev.config.DirectoryParameters;
 import ru.terentjev.exception.ServiceException;
 import ru.terentjev.service.BookService;
 import ru.terentjev.service.SettingsChangedEvent;
@@ -40,11 +41,18 @@ public class RenderService {
     private final BookService service;
     private final RenderFactory renderFactory;
     private final SettingsService settingsService;
+    private final DirectoryParameters directories;
 
-    public RenderService(BookService service, RenderFactory renderFactory, SettingsService settingsService) {
+    public RenderService(
+            BookService service,
+            RenderFactory renderFactory,
+            SettingsService settingsService,
+            DirectoryParameters directories
+    ) {
         this.service = service;
         this.renderFactory = renderFactory;
         this.settingsService = settingsService;
+        this.directories = directories;
     }
 
     private void out(FailableConsumer<InputStream, IOException> mapper, Path fileForOut) throws IOException {
@@ -137,11 +145,14 @@ public class RenderService {
     }
 
     private Path path(UUID id) {
-        return Path.of("pages", id.toString());
+        return directories.pages().resolve(id.toString());
     }
 
     private Path path(UUID id, UUID deviceUuid, int widht, int height) {
-        return Path.of("pages", id.toString(), deviceUuid.toString(), widht + "x" + height);
+        return directories.pages()
+                .resolve(id.toString())
+                .resolve(deviceUuid.toString())
+                .resolve(widht + "x" + height);
     }
 
     @EventListener

@@ -8,6 +8,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import ru.terentjev.config.DirectoryParameters;
 import ru.terentjev.service.BookService;
 import ru.terentjev.service.SettingsService;
 import ru.terentjev.service.model.Book;
@@ -17,7 +18,6 @@ import ru.terentjev.service.model.SettingsScope;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -54,7 +54,16 @@ class RenderServiceTest {
 
     @BeforeEach
     void setUp() {
-        renderService = new RenderService(service, renderFactory, settingsService);
+        renderService = new RenderService(
+                service,
+                renderFactory,
+                settingsService,
+                new DirectoryParameters(
+                        tempDir.resolve("config"),
+                        tempDir.resolve("books"),
+                        tempDir.resolve("pages")
+                )
+        );
     }
 
     @Test

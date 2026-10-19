@@ -7,6 +7,12 @@ application:
     path:
         books: ./books
         config: ./config
+        pages: ./pages
+    cache:
+        cleanup:
+            enabled: true
+            cron: "0 30 3 * * *"
+            max-age: 30d
 
 management:
     endpoint:
