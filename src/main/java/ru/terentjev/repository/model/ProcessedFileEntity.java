@@ -25,6 +25,10 @@ public record ProcessedFileEntity(
         String error,
         @Column("processed_at")
         Instant processedAt,
+        @Column("size")
+        Long size,
+        @Column("modified_at")
+        Instant modifiedAt,
         @CreatedDate
         @Column("created_at")
         Instant createdAt,

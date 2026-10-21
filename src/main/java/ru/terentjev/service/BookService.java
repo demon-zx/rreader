@@ -15,8 +15,10 @@ import ru.terentjev.service.model.Page;
 
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 public class BookService {
@@ -54,6 +56,44 @@ public class BookService {
     public Optional<Book> findByUri(URI uri) {
         return repository.findByUri(uri.toString())
                 .map(BookMapper.mapper::from);
+    }
+
+    /**
+     * Книги, чей URI содержит указанный путь. Схема URI не проверяется:
+     * uri обычного файла начинается с file:/, а книги внутри архивов —
+     * с scheme архиватора (zip:, в будущем другие), при этом путь архива
+     * входит в URI книги как подстрока.
+     *
+     * Вхождение считается по границе: за путём должен следовать символ '/',
+     * '!' (разделитель записи внутри архива) или конец URI, поэтому архив
+     * не совпадает с одноимёнными соседями (1.zip и 2.zip).
+     *
+     * @param path закодированный путь в формате URI (например из Path.toUri())
+     */
+    public List<Book> findByUriContaining(String path) {
+        try (Stream<BookEntity> stream = repository.findAllAsStream()) {
+            return stream
+                    .map(BookMapper.mapper::from)
+                    .filter(book -> containsPath(book.getUri().toString(), path))
+                    .toList();
+        }
+    }
+
+    private static boolean containsPath(String uri, String path) {
+        int index = uri.indexOf(path);
+        while (index >= 0) {
+            int end = index + path.length();
+            if (end == uri.length() || uri.charAt(end) == '/' || uri.charAt(end) == '!') {
+                return true;
+            }
+            index = uri.indexOf(path, index + 1);
+        }
+        return false;
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        repository.deleteById(id);
     }
 
     public long count() {

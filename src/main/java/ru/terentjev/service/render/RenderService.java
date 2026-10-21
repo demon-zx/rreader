@@ -155,6 +155,13 @@ public class RenderService {
                 .resolve(widht + "x" + height);
     }
 
+    public void deleteCache(UUID bookId) throws IOException {
+        Path bookDirectory = path(bookId);
+        if (Files.exists(bookDirectory)) {
+            deleteRecursively(bookDirectory);
+        }
+    }
+
     @EventListener
     public void onSettingsChanged(SettingsChangedEvent event) throws IOException {
         Path root = Path.of("pages");

@@ -17,20 +17,24 @@ import org.springframework.data.domain.Sort;
 import ru.terentjev.repository.model.BookEntity;
 
 import java.time.Clock;
+import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Verifies the {@link BookRepositorySearch} fragment against an in-memory H2 with the real
  * Liquibase schema. Note the embedded datasource has no {@code IGNORECASE} flag, so any
  * case-insensitive matching proven here comes from {@code Criteria.ignoreCase(true)}, not the URL.
  */
-@DataJdbcTest(properties =
-        "spring.datasource.url=jdbc:h2:mem:searchtest;IGNORECASE=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1")
+@DataJdbcTest(properties = "spring.datasource.url=" + BookRepositorySearchTest.DB_URL)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ImportAutoConfiguration(LiquibaseAutoConfiguration.class)
 @Import(BookRepositorySearchTest.TestConfig.class)
 class BookRepositorySearchTest {
+
+    static final String DB_URL = "jdbc:h2:mem:searchtest;" + TestH2.OPTIONS;
 
     /**
      * The slice pulls in {@code JdbcConfiguration} (an {@code AbstractJdbcConfiguration}) but not
@@ -59,30 +63,24 @@ class BookRepositorySearchTest {
     void matchesAuthorIgnoringCase() {
         Page<BookEntity> result = repository.search("asimov", PageRequest.of(0, 10));
 
-        assertThat(result.getContent())
-                .singleElement()
-                .extracting(BookEntity::author)
-                .isEqualTo("Isaac Asimov");
+        assertEquals(1, result.getContent().size());
+        assertEquals("Isaac Asimov", result.getContent().get(0).author());
     }
 
     @Test
     void matchesTitleIgnoringCase() {
         Page<BookEntity> result = repository.search("RENDEZVOUS", PageRequest.of(0, 10));
 
-        assertThat(result.getContent())
-                .singleElement()
-                .extracting(BookEntity::author)
-                .isEqualTo("Arthur Clarke");
+        assertEquals(1, result.getContent().size());
+        assertEquals("Arthur Clarke", result.getContent().get(0).author());
     }
 
     @Test
     void matchesSequenceName() {
         Page<BookEntity> result = repository.search("ring", PageRequest.of(0, 10));
 
-        assertThat(result.getContent())
-                .singleElement()
-                .extracting(BookEntity::title)
-                .isEqualTo("Andromeda");
+        assertEquals(1, result.getContent().size());
+        assertEquals("Andromeda", result.getContent().get(0).title());
     }
 
     @Test
@@ -91,19 +89,18 @@ class BookRepositorySearchTest {
 
         Page<BookEntity> result = repository.search("a", firstPage);
 
-        assertThat(result.getTotalElements()).isEqualTo(3);
-        assertThat(result.getTotalPages()).isEqualTo(2);
-        assertThat(result.getContent())
-                .extracting(BookEntity::author)
-                .containsExactly("Arthur Clarke", "Isaac Asimov");
+        assertEquals(3, result.getTotalElements());
+        assertEquals(2, result.getTotalPages());
+        List<String> authors = result.getContent().stream().map(BookEntity::author).toList();
+        assertIterableEquals(List.of("Arthur Clarke", "Isaac Asimov"), authors);
     }
 
     @Test
     void returnsEmptyWhenNothingMatches() {
         Page<BookEntity> result = repository.search("zzz", PageRequest.of(0, 10));
 
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isZero();
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0, result.getTotalElements());
     }
 
     private static BookEntity book(String author, String title, String sequenceName) {

@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.FailableConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import ru.terentjev.config.DirectoryParameters;
@@ -21,12 +22,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 @Service
+@Order(1)
 public class BookUploadService implements FirstRunService {
 
     private static final Logger log = LoggerFactory.getLogger(BookUploadService.class);
@@ -47,7 +50,7 @@ public class BookUploadService implements FirstRunService {
         this.renderFactory = renderFactory;
     }
 
-    public void walk(Path path, FailableConsumer<Path, IOException> fileConsumer) {
+    private void walk(Path path, FailableConsumer<Path, IOException> fileConsumer) {
         log.info("Scanning books in {}.", path);
         try (var filesStream = Files.walk(path)) {
             List<Path> files = filesStream.filter(Files::isRegularFile)
@@ -61,33 +64,42 @@ public class BookUploadService implements FirstRunService {
         }
     }
 
-    private void process(Path file) {
+    public void processDirectory(Path path) {
+        walk(path, this::process);
+    }
+
+    public void process(Path file) {
         file = file.toAbsolutePath();
         log.info("Find file: {}", file);
-        boolean needProcess = processedFileService.findByPath(file)
-                .map(pf -> !pf.isProcessed())
-                .orElse(true);
-        if (needProcess) {
-            try {
-                boolean archive = file.toString()
-                        .toLowerCase()
-                        .endsWith(".zip");
-                if (archive) {
-                    processArchive(file);
-                } else {
-                    register(file);
-                }
-                processedFileService.markProcessed(file, ProcessResult.SUCCESS, null);
-            } catch (Exception e) {
-                log.error("Process {} fail.", file, e);
-                processedFileService.markProcessed(
-                        file,
-                        ProcessResult.ERROR,
-                        StringUtils.abbreviate(String.valueOf(e.getMessage()), 4096)
-                );
+        try {
+            if (!processedFileService.isChanged(file)) {
+                log.debug("Skip unchanged file: {}", file);
+                return;
             }
-        } else {
-            log.debug("Skip already processed file: {}", file);
+            boolean archive = file.toString()
+                    .toLowerCase()
+                    .endsWith(".zip");
+            if (archive) {
+                processArchive(file);
+            } else {
+                register(file);
+            }
+            processedFileService.markProcessed(
+                    file,
+                    ProcessResult.SUCCESS,
+                    null,
+                    Files.size(file),
+                    modifiedAt(file)
+            );
+        } catch (Exception e) {
+            log.error("Process {} fail.", file, e);
+            processedFileService.markProcessed(
+                    file,
+                    ProcessResult.ERROR,
+                    StringUtils.abbreviate(String.valueOf(e.getMessage()), 4096),
+                    null,
+                    null
+            );
         }
     }
 
@@ -151,6 +163,10 @@ public class BookUploadService implements FirstRunService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Instant modifiedAt(Path file) throws IOException {
+        return Files.getLastModifiedTime(file).toInstant();
     }
 
     @Override

@@ -54,6 +54,11 @@ public class BookmarkService {
     }
 
     @Transactional
+    public void deleteByBook(UUID bookId) {
+        repository.deleteByBookId(bookId);
+    }
+
+    @Transactional
     public void saveCurrentPosition(String username, UUID bookId, long position) {
         Optional<BookmarkEntity> exist = repository.findByUsernameAndTitleAndBookId(username, CURRENT, bookId);
         if (exist.isEmpty()) {

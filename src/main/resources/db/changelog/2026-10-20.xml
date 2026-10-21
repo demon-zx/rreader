@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="dmitry" id="add-size-mtime-to-processed-file">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="processed_file" columnName="size"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="processed_file">
+            <column name="size" type="bigint"/>
+        </addColumn>
+        <addColumn tableName="processed_file">
+            <column name="modified_at" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

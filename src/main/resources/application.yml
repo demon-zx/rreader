@@ -13,6 +13,10 @@ application:
             enabled: true
             cron: "0 30 3 * * *"
             max-age: 30d
+    watch:
+        enabled: true
+        debounce: 5s
+        poll-interval: 100
 
 management:
     endpoint:

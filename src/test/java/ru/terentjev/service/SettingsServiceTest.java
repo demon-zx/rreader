@@ -20,11 +20,16 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -67,20 +72,20 @@ class SettingsServiceTest {
 
         Settings result = service.read(DEVICE, SettingsScope.FB2);
 
-        assertThat(result.getScope()).isEqualTo("FB2");
-        assertThat(keys(result)).containsExactlyInAnyOrder(
+        assertEquals("FB2", result.getScope());
+        assertContainsInAnyOrder(List.of(
                 "font", "size", "color", "background",
                 "paddingLeft", "paddingTop", "paddingRight", "paddingBottom", "indent"
-        );
-        assertThat(valueOf(result, "font")).isEqualTo("Arial");
-        assertThat(valueOf(result, "size")).isEqualTo("28");
-        assertThat(valueOf(result, "color")).isEqualTo("#000000");
-        assertThat(valueOf(result, "background")).isEqualTo("#FFFFFF");
-        assertThat(valueOf(result, "paddingLeft")).isEqualTo("50");
-        assertThat(valueOf(result, "paddingTop")).isEqualTo("50");
-        assertThat(valueOf(result, "paddingRight")).isEqualTo("50");
-        assertThat(valueOf(result, "paddingBottom")).isEqualTo("50");
-        assertThat(valueOf(result, "indent")).isEqualTo("50");
+        ), keys(result));
+        assertEquals("Arial", valueOf(result, "font"));
+        assertEquals("28", valueOf(result, "size"));
+        assertEquals("#000000", valueOf(result, "color"));
+        assertEquals("#FFFFFF", valueOf(result, "background"));
+        assertEquals("50", valueOf(result, "paddingLeft"));
+        assertEquals("50", valueOf(result, "paddingTop"));
+        assertEquals("50", valueOf(result, "paddingRight"));
+        assertEquals("50", valueOf(result, "paddingBottom"));
+        assertEquals("50", valueOf(result, "indent"));
     }
 
     @Test
@@ -91,23 +96,22 @@ class SettingsServiceTest {
         );
         when(renderFactory.settingsDefinitions("FB2")).thenReturn(fb2);
 
-        assertThat(service.definitions(SettingsScope.FB2)).isSameAs(fb2);
-        assertThat(service.definitions(SettingsScope.GLOBAL)).containsExactly(
+        assertSame(fb2, service.definitions(SettingsScope.FB2));
+        assertIterableEquals(List.of(
                 "font", "size", "color", "background",
                 "paddingLeft", "paddingTop", "paddingRight", "paddingBottom", "indent"
-        );
+        ), service.definitions(SettingsScope.GLOBAL));
     }
 
     @Test
     void definitionsForScopeWithoutRenderAreEmpty() {
-        assertThat(service.definitions(SettingsScope.PDF)).isEmpty();
+        assertTrue(service.definitions(SettingsScope.PDF).isEmpty());
     }
 
     @Test
     void definitionsRejectsNullScope() {
-        assertThatThrownBy(() -> service.definitions(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("scope");
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> service.definitions(null));
+        assertTrue(e.getMessage().contains("scope"));
     }
 
     @Test
@@ -120,9 +124,9 @@ class SettingsServiceTest {
 
         Settings result = service.read(DEVICE, SettingsScope.FB2);
 
-        assertThat(valueOf(result, "font")).isEqualTo("Times New Roman");
-        assertThat(valueOf(result, "size")).isEqualTo("20");
-        assertThat(valueOf(result, "color")).isEqualTo("#000000");
+        assertEquals("Times New Roman", valueOf(result, "font"));
+        assertEquals("20", valueOf(result, "size"));
+        assertEquals("#000000", valueOf(result, "color"));
     }
 
     @Test
@@ -136,8 +140,8 @@ class SettingsServiceTest {
 
         Settings result = service.read(DEVICE, SettingsScope.FB2);
 
-        assertThat(valueOf(result, "font")).isEqualTo("Georgia");
-        assertThat(valueOf(result, "size")).isEqualTo("28");
+        assertEquals("Georgia", valueOf(result, "font"));
+        assertEquals("28", valueOf(result, "size"));
     }
 
     @Test
@@ -147,14 +151,15 @@ class SettingsServiceTest {
 
         Settings result = service.read(DEVICE, SettingsScope.GLOBAL);
 
-        assertThat(valueOf(result, "font")).isEqualTo("Courier");
+        assertEquals("Courier", valueOf(result, "font"));
     }
 
     @Test
     void readRejectsNullScope() {
-        assertThatThrownBy(() -> service.read(DEVICE, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("scope");
+        IllegalArgumentException e = assertThrows(
+                IllegalArgumentException.class, () -> service.read(DEVICE, null)
+        );
+        assertTrue(e.getMessage().contains("scope"));
     }
 
     // endregion
@@ -171,13 +176,13 @@ class SettingsServiceTest {
         ArgumentCaptor<SettingsEntity> captor = ArgumentCaptor.forClass(SettingsEntity.class);
         verify(repository, times(1)).save(captor.capture());
         SettingsEntity saved = captor.getValue();
-        assertThat(saved.id()).isNull();
-        assertThat(saved.deviceUuid()).isEqualTo(DEVICE);
-        assertThat(saved.scope()).isEqualTo("FB2");
-        assertThat(saved.key()).isEqualTo("font");
-        assertThat(saved.value()).isEqualTo("Verdana");
-        assertThat(saved.updatedAt()).isEqualTo(NOW);
-        assertThat(saved.updatedBy()).isEqualTo("alice");
+        assertNull(saved.id());
+        assertEquals(DEVICE, saved.deviceUuid());
+        assertEquals("FB2", saved.scope());
+        assertEquals("font", saved.key());
+        assertEquals("Verdana", saved.value());
+        assertEquals(NOW, saved.updatedAt());
+        assertEquals("alice", saved.updatedBy());
         verify(repository, never()).delete(any(SettingsEntity.class));
         verify(publisher).publishEvent(new SettingsChangedEvent(DEVICE));
     }
@@ -195,10 +200,10 @@ class SettingsServiceTest {
         ArgumentCaptor<SettingsEntity> captor = ArgumentCaptor.forClass(SettingsEntity.class);
         verify(repository, times(1)).save(captor.capture());
         SettingsEntity updated = captor.getValue();
-        assertThat(updated.id()).isEqualTo(SETTING_ID);
-        assertThat(updated.value()).isEqualTo("Georgia");
-        assertThat(updated.updatedAt()).isEqualTo(NOW);
-        assertThat(updated.updatedBy()).isEqualTo("alice");
+        assertEquals(SETTING_ID, updated.id());
+        assertEquals("Georgia", updated.value());
+        assertEquals(NOW, updated.updatedAt());
+        assertEquals("alice", updated.updatedBy());
         verify(repository, never()).delete(any(SettingsEntity.class));
     }
 
@@ -229,7 +234,7 @@ class SettingsServiceTest {
         verify(repository, times(1)).delete(existing);
         ArgumentCaptor<SettingsEntity> captor = ArgumentCaptor.forClass(SettingsEntity.class);
         verify(repository, times(1)).save(captor.capture());
-        assertThat(captor.getValue().key()).isEqualTo("size");
+        assertEquals("size", captor.getValue().key());
     }
 
     @Test
@@ -258,43 +263,57 @@ class SettingsServiceTest {
         ArgumentCaptor<SettingsEntity> captor = ArgumentCaptor.forClass(SettingsEntity.class);
         verify(repository, times(2)).save(captor.capture());
         List<SettingsEntity> saved = captor.getAllValues();
-        assertThat(saved).anySatisfy(e -> {
-            assertThat(e.key()).isEqualTo("font");
-            assertThat(e.value()).isEqualTo("Georgia");
-            assertThat(e.id()).isEqualTo(oldFont.id());
-        });
-        assertThat(saved).anySatisfy(e -> {
-            assertThat(e.key()).isEqualTo("background");
-            assertThat(e.value()).isEqualTo("#EEEEEE");
-            assertThat(e.id()).isNull();
-        });
+        SettingsEntity savedFont = findByKey(saved, "font");
+        assertEquals("Georgia", savedFont.value());
+        assertEquals(oldFont.id(), savedFont.id());
+        SettingsEntity savedBackground = findByKey(saved, "background");
+        assertEquals("#EEEEEE", savedBackground.value());
+        assertNull(savedBackground.id());
     }
 
     @Test
     void saveRejectsNullScope() {
-        assertThatThrownBy(() -> service.save(DEVICE, null, List.of(), "user"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("scope");
+        IllegalArgumentException e = assertThrows(
+                IllegalArgumentException.class, () -> service.save(DEVICE, null, List.of(), "user")
+        );
+        assertTrue(e.getMessage().contains("scope"));
         verify(repository, never()).findByDeviceUuidAndScopeIn(any(), any());
     }
 
     @Test
     void saveRejectsNullValues() {
-        assertThatThrownBy(() -> service.save(DEVICE, SettingsScope.GLOBAL, null, "user"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("values");
+        IllegalArgumentException e = assertThrows(
+                IllegalArgumentException.class, () -> service.save(DEVICE, SettingsScope.GLOBAL, null, "user")
+        );
+        assertTrue(e.getMessage().contains("values"));
     }
 
     @Test
     void saveRejectsBlankKey() {
         List<KeyValue> values = new ArrayList<>();
         values.add(new KeyValue("", "v"));
-        assertThatThrownBy(() -> service.save(DEVICE, SettingsScope.GLOBAL, values, "user"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("key");
+        IllegalArgumentException e = assertThrows(
+                IllegalArgumentException.class, () -> service.save(DEVICE, SettingsScope.GLOBAL, values, "user")
+        );
+        assertTrue(e.getMessage().contains("key"));
     }
 
     // endregion
+
+    private static void assertContainsInAnyOrder(List<String> expected, List<String> actual) {
+        List<String> sortedExpected = new ArrayList<>(expected);
+        List<String> sortedActual = new ArrayList<>(actual);
+        Collections.sort(sortedExpected);
+        Collections.sort(sortedActual);
+        assertIterableEquals(sortedExpected, sortedActual);
+    }
+
+    private static SettingsEntity findByKey(List<SettingsEntity> entities, String key) {
+        return entities.stream()
+                .filter(e -> e.key().equals(key))
+                .findFirst()
+                .orElseThrow();
+    }
 
     private static SettingsEntity entity(String scope, String key, String value) {
         return new SettingsEntity(null, DEVICE, scope, key, value, null, null);

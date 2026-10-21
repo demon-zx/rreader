@@ -16,6 +16,11 @@ public interface SettingsRepository
 
     List<SettingsEntity> findByDeviceUuidAndScopeIn(UUID deviceUuid, List<String> scopes);
 
+    /**
+     * Удаление настроек устройства и scope. Используется явный {@code @Modifying @Query},
+     * а не derived-метод {@code deleteByDeviceUuidAndScope}: в Spring Data JDBC
+     * derived-удаление с void-результатом молча не выполняет никакого SQL.
+     */
     @Modifying
     @Query("delete from settings where device_uuid = :deviceUuid and scope = :scope")
     void deleteByDeviceUuidAndScope(

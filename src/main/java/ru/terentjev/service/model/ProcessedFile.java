@@ -15,6 +15,8 @@ public final class ProcessedFile {
     private final ProcessResult result;
     private final String error;
     private final Instant processedAt;
+    private final Long size;
+    private final Instant modifiedAt;
 
     public ProcessedFile(
             UUID id,
@@ -22,7 +24,9 @@ public final class ProcessedFile {
             boolean processed,
             ProcessResult result,
             String error,
-            Instant processedAt
+            Instant processedAt,
+            Long size,
+            Instant modifiedAt
     ) {
         this.id = id;
         this.path = path;
@@ -30,6 +34,8 @@ public final class ProcessedFile {
         this.result = result;
         this.error = error;
         this.processedAt = processedAt;
+        this.size = size;
+        this.modifiedAt = modifiedAt;
     }
 
     public UUID getId() {
@@ -54,5 +60,13 @@ public final class ProcessedFile {
 
     public Instant getProcessedAt() {
         return processedAt;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public Instant getModifiedAt() {
+        return modifiedAt;
     }
 }
