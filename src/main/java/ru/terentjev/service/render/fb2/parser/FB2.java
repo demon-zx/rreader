@@ -19,90 +19,74 @@ public record FB2(
         Map<String, List<Block>> notes,
         Map<String, String> binaries
 ) {
-
     public record Sequence(String name, @Nullable Integer number) {
     }
 
     public static sealed class Block permits AbstractPiecesBlock, EmptyLineBlock, ImageBlock {
-
         private final int position;
 
         public Block(int position) {
             this.position = position;
         }
-        
+
         public int position() {
             return position;
         }
-        
     }
 
     public static final class EmptyLineBlock extends Block {
-
         public EmptyLineBlock(int position) {
             super(position);
         }
-        
     }
 
     public static final class ImageBlock extends Block {
-
         private final String href;
 
         public ImageBlock(int position, String href) {
             super(position);
             this.href = href;
         }
-        
+
         public String href() {
             return href;
         }
-        
     }
 
     public abstract static sealed class AbstractPiecesBlock extends Block permits
             TitleBlock,
             SubTitleBlock,
             ParagraphBlock {
-
         private final List<Piece> pieces;
 
         public AbstractPiecesBlock(int position, List<Piece> pieces) {
             super(position);
             this.pieces = pieces;
         }
-        
+
         public List<Piece> pieces() {
             return pieces;
         }
-        
     }
 
     public static final class TitleBlock extends AbstractPiecesBlock {
-
         public TitleBlock(int position, List<Piece> pieces) {
             super(position, pieces);
         }
-        
     }
-    
-    public static final class SubTitleBlock extends AbstractPiecesBlock {
 
+    public static final class SubTitleBlock extends AbstractPiecesBlock {
         public SubTitleBlock(int position, List<Piece> pieces) {
             super(position, pieces);
         }
-        
     }
 
     public static final class ParagraphBlock extends AbstractPiecesBlock {
-
         public ParagraphBlock(int position, List<Piece> pieces) {
             super(position, pieces);
         }
-        
     }
 
     public record Piece(String text, boolean bold, boolean italic, String linkId) {
     }
-
 }

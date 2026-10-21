@@ -32,5 +32,4 @@ public abstract class SettingsMapper {
             return SettingsScope.GLOBAL;
         }
     }
-
 }

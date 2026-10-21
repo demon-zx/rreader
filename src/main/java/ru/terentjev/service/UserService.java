@@ -18,9 +18,7 @@ import java.util.UUID;
 @Service
 public class UserService implements FirstRunService {
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
-
     public static final String TYPE_NAME = User.class.getSimpleName();
-
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
 
@@ -40,9 +38,11 @@ public class UserService implements FirstRunService {
     public User findById(UUID id) throws InvalidArgumentException {
         return repository.findById(id)
                 .map(UserMapper.mapper::from)
-                .orElseThrow(() -> new InvalidArgumentException(
-                        MessageFormat.format("Not found {1} with id: {0}", id, TYPE_NAME)
-                ));
+                .orElseThrow(
+                        () -> new InvalidArgumentException(
+                                MessageFormat.format("Not found {1} with id: {0}", id, TYPE_NAME)
+                        )
+                );
     }
 
     @Transactional
@@ -54,10 +54,11 @@ public class UserService implements FirstRunService {
     @Transactional
     public void changePassword(String username, String newPassword) throws InvalidArgumentException {
         UserEntity user = repository.findByUsername(username)
-                .orElseThrow(() -> new InvalidArgumentException(
-                        MessageFormat.format("User not found: {0}", username)
-                ));
-
+                .orElseThrow(
+                        () -> new InvalidArgumentException(
+                                MessageFormat.format("User not found: {0}", username)
+                        )
+                );
         UserEntity updatedUser = new UserEntity(
                 user.id(),
                 user.username(),
@@ -66,7 +67,6 @@ public class UserService implements FirstRunService {
                 user.enabled(),
                 false
         );
-
         repository.save(updatedUser);
     }
 
@@ -84,7 +84,6 @@ public class UserService implements FirstRunService {
         long userCount = repository.count();
         if (userCount == 0) {
             log.info("No users found. Creating default admin user...");
-
             UserEntity adminUser = new UserEntity(
                     null,
                     DEFAULT_ADMIN_USERNAME,
@@ -93,7 +92,6 @@ public class UserService implements FirstRunService {
                     true,
                     true
             );
-
             repository.save(adminUser);
             log.info("Default admin user created with username: '{}'", DEFAULT_ADMIN_USERNAME);
         } else {

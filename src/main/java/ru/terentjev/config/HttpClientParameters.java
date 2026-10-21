@@ -8,7 +8,6 @@ import java.time.Duration;
 
 @Validated
 public class HttpClientParameters {
-
     @NotEmpty
     private String url;
     private Duration connectionTimeout = Duration.ofSeconds(5);

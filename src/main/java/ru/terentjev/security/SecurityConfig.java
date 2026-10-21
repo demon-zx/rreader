@@ -21,7 +21,6 @@ import java.util.Set;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
     public static final String ROLE_ADMINISTRATOR = "ADMINISTRATOR";
     public static final String ROLE_READER = "READER";
 
@@ -38,7 +37,10 @@ public class SecurityConfig {
                 .rememberMe(
                         remember -> remember.key("rreader-remember-me-key")
                                 .rememberMeParameter("remember-me")
-                                .tokenValiditySeconds((int) Duration.ofDays(30).toSeconds())
+                                .tokenValiditySeconds(
+                                        (int) Duration.ofDays(30)
+                                                .toSeconds()
+                                )
                 )
                 .authorizeHttpRequests(
                         auth -> auth.requestMatchers(any.toArray(new String[0]))
@@ -48,10 +50,12 @@ public class SecurityConfig {
                                 .anyRequest()
                                 .authenticated()
                 )
-                .exceptionHandling(e -> e.defaultAuthenticationEntryPointFor(
-                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), 
-                    new AntPathRequestMatcher("/api/**")
-                ))
+                .exceptionHandling(
+                        e -> e.defaultAuthenticationEntryPointFor(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                                new AntPathRequestMatcher("/api/**")
+                        )
+                )
                 .formLogin(
                         form -> form.loginPage("/login")
                                 .loginProcessingUrl("/login")
@@ -71,5 +75,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }

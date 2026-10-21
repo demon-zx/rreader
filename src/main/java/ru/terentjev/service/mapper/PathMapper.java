@@ -18,12 +18,10 @@ public abstract class PathMapper {
         return Path.of(source);
     }
 
-
     public String to(Path source) {
         if (source == null) {
             return null;
         }
         return source.toString();
     }
-
 }

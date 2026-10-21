@@ -30,12 +30,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BookWatcherServiceTest {
-
     private static final Duration DEBOUNCE = Duration.ofMillis(200);
-
     @TempDir
     Path tempDir;
-
     private BookWatcherService service;
     private BookUploadService uploadService;
     private BookService bookService;
@@ -49,7 +46,6 @@ class BookWatcherServiceTest {
         bookService = mock(BookService.class);
         bookmarkService = mock(BookmarkService.class);
         renderService = mock(RenderService.class);
-
         DirectoryParameters directories = new DirectoryParameters(
                 tempDir.resolve("config"),
                 tempDir.resolve("books"),
@@ -66,7 +62,8 @@ class BookWatcherServiceTest {
         );
         service.firstRun();
         Thread poller = new Thread(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
+            while (!Thread.currentThread()
+                    .isInterrupted()) {
                 service.watch();
                 try {
                     Thread.sleep(50);
@@ -82,10 +79,13 @@ class BookWatcherServiceTest {
     @Test
     void createFileTriggersProcessing() throws Exception {
         Path file = Files.writeString(books.resolve("test.fb2"), "content");
-
-        await(() -> verify(uploadService, atLeastOnce()).process(argThat(
-                p -> p != null && p.endsWith("test.fb2")
-        )));
+        await(
+                () -> verify(uploadService, atLeastOnce()).process(
+                        argThat(
+                                p -> p != null && p.endsWith("test.fb2")
+                        )
+                )
+        );
         Files.delete(file);
     }
 
@@ -93,10 +93,8 @@ class BookWatcherServiceTest {
     void modifyFileTriggersReprocessing() throws Exception {
         Path file = Files.writeString(books.resolve("test.fb2"), "content v1");
         await(() -> verify(uploadService, atLeastOnce()).process(any(Path.class)));
-
         Thread.sleep(DEBOUNCE.toMillis() * 2);
         Files.writeString(file, "content v2");
-
         await(() -> verify(uploadService, org.mockito.Mockito.times(2)).process(any(Path.class)));
     }
 
@@ -104,11 +102,14 @@ class BookWatcherServiceTest {
     void deleteFileTriggersBookDeletion() throws Exception {
         Path file = Files.writeString(books.resolve("test.fb2"), "content");
         Book book = book(file.toUri());
-        when(bookService.findByUriContaining(file.toUri().toString())).thenReturn(List.of(book));
-
+        when(
+                bookService.findByUriContaining(
+                        file.toUri()
+                                .toString()
+                )
+        ).thenReturn(List.of(book));
         await(() -> verify(uploadService, atLeastOnce()).process(any(Path.class)));
         Files.delete(file);
-
         await(() -> {
             verify(bookmarkService).deleteByBook(book.getId());
             verify(renderService).deleteCache(book.getId());
@@ -119,15 +120,21 @@ class BookWatcherServiceTest {
     @Test
     void deleteDirectoryTriggersAllInnerBooksDeletion() throws Exception {
         Path directory = Files.createDirectories(books.resolve("series"));
-        Book plain = book(books.resolve("series/1.fb2").toUri());
-        Book zipped = book(URI.create("zip:" + books.resolve("series/1.zip").toUri() + "!/1.fb2"));
+        Book plain = book(
+                books.resolve("series/1.fb2")
+                        .toUri()
+        );
+        Book zipped = book(
+                URI.create(
+                        "zip:" + books.resolve("series/1.zip")
+                                .toUri() + "!/1.fb2"
+                )
+        );
         when(bookService.findByUriContaining(anyString())).thenAnswer(invocation -> {
             String search = invocation.getArgument(0);
             return search.contains("series") ? List.of(plain, zipped) : List.of();
         });
-
         Files.delete(directory);
-
         await(() -> {
             verify(bookService).delete(plain.getId());
             verify(bookService).delete(zipped.getId());

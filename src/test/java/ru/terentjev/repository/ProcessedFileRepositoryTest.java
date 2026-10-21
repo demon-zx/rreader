@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ImportAutoConfiguration(LiquibaseAutoConfiguration.class)
 @Import(ProcessedFileRepositoryTest.TestConfig.class)
 class ProcessedFileRepositoryTest {
-
     static final String DB_URL = "jdbc:h2:mem:processedfiletest;" + TestH2.OPTIONS;
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -42,7 +41,6 @@ class ProcessedFileRepositoryTest {
     }
 
     private static final Instant NOW = Instant.parse("2024-01-15T10:00:00Z");
-
     @Autowired
     private ProcessedFileRepository repository;
 
@@ -55,34 +53,57 @@ class ProcessedFileRepositoryTest {
     void findByPathReturnsSavedFile() {
         String path = "D:\\books\\book.fb2";
         repository.save(file(path, 1024L, NOW));
-
         Optional<ProcessedFileEntity> found = repository.findByPath(path);
-
         assertTrue(found.isPresent());
-        assertTrue(found.get().processed());
-        assertEquals("SUCCESS", found.get().result());
-        assertEquals(1024L, found.get().size());
-        assertEquals(NOW, found.get().modifiedAt());
+        assertTrue(
+                found.get()
+                        .processed()
+        );
+        assertEquals(
+                "SUCCESS",
+                found.get()
+                        .result()
+        );
+        assertEquals(
+                1024L,
+                found.get()
+                        .size()
+        );
+        assertEquals(
+                NOW,
+                found.get()
+                        .modifiedAt()
+        );
     }
 
     @Test
     void findByPathReturnsEmptyForUnknownPath() {
         repository.save(file("D:\\books\\book.fb2", 1024L, NOW));
-
-        assertTrue(repository.findByPath("D:\\books\\missing.fb2").isEmpty());
+        assertTrue(
+                repository.findByPath("D:\\books\\missing.fb2")
+                        .isEmpty()
+        );
     }
 
     @Test
     void sizeAndModifiedAtMayBeNull() {
         String path = "D:\\books\\failed.fb2";
         repository.save(file(path, null, null));
-
         Optional<ProcessedFileEntity> found = repository.findByPath(path);
-
         assertTrue(found.isPresent());
-        assertNull(found.get().size());
-        assertNull(found.get().modifiedAt());
-        assertEquals("boom", found.get().error());
+        assertNull(
+                found.get()
+                        .size()
+        );
+        assertNull(
+                found.get()
+                        .modifiedAt()
+        );
+        assertEquals(
+                "boom",
+                found.get()
+                        .error()
+        );
     }
 
     @Test
@@ -103,14 +124,28 @@ class ProcessedFileRepositoryTest {
                 null
         );
         repository.save(changed);
-
         Optional<ProcessedFileEntity> found = repository.findByPath(path);
-
         assertTrue(found.isPresent());
-        assertEquals(saved.getId(), found.get().getId());
-        assertEquals("ERROR", found.get().result());
-        assertEquals(2048L, found.get().size());
-        assertEquals(NOW.plusSeconds(60), found.get().modifiedAt());
+        assertEquals(
+                saved.getId(),
+                found.get()
+                        .getId()
+        );
+        assertEquals(
+                "ERROR",
+                found.get()
+                        .result()
+        );
+        assertEquals(
+                2048L,
+                found.get()
+                        .size()
+        );
+        assertEquals(
+                NOW.plusSeconds(60),
+                found.get()
+                        .modifiedAt()
+        );
     }
 
     private static ProcessedFileEntity file(String path, Long size, Instant modifiedAt) {

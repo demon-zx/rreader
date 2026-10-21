@@ -10,9 +10,8 @@ import java.util.UUID;
 
 @Repository
 public interface ProcessedFileRepository
-        extends ListCrudRepository<ProcessedFileEntity, UUID>,
+        extends
+        ListCrudRepository<ProcessedFileEntity, UUID>,
         ListPagingAndSortingRepository<ProcessedFileEntity, UUID> {
-
     Optional<ProcessedFileEntity> findByPath(String path);
-
 }

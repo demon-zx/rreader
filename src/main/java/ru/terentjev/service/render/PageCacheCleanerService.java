@@ -19,9 +19,7 @@ import java.util.stream.Stream;
 
 @Component
 public class PageCacheCleanerService {
-
     private static final Logger log = LoggerFactory.getLogger(PageCacheCleanerService.class);
-
     private final CacheCleanupParameters parameters;
     private final DirectoryParameters directories;
     private final Clock clock;
@@ -59,7 +57,9 @@ public class PageCacheCleanerService {
         int directories = pruneEmptyDirectories(root);
         log.info(
                 "Page cache cleanup complete: removed {} files older than {} and {} empty directories",
-                files, threshold, directories
+                files,
+                threshold,
+                directories
         );
     }
 
@@ -107,5 +107,4 @@ public class PageCacheCleanerService {
         }
         return count[0];
     }
-
 }

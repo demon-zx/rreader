@@ -38,23 +38,17 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SettingsServiceTest {
-
     private static final UUID DEVICE = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final UUID SETTING_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
     private static final Instant NOW = Instant.parse("2024-01-15T10:00:00Z");
-
     @Mock
     private SettingsRepository repository;
-
     @Mock
     private RenderFactory renderFactory;
-
     @Mock
     private ApplicationEventPublisher publisher;
-
     @InjectMocks
     private SettingsService service;
-
     private Clock clock;
 
     @BeforeEach
@@ -62,21 +56,28 @@ class SettingsServiceTest {
         clock = Clock.fixed(NOW, ZoneId.of("UTC"));
         service = new SettingsService(repository, clock, renderFactory, publisher);
     }
-
     // region read
 
     @Test
     void readReturnsDefaultsWhenNothingSaved() {
         when(repository.findByDeviceUuidAndScopeIn(DEVICE, List.of("GLOBAL", "FB2")))
                 .thenReturn(List.of());
-
         Settings result = service.read(DEVICE, SettingsScope.FB2);
-
         assertEquals("FB2", result.getScope());
-        assertContainsInAnyOrder(List.of(
-                "font", "size", "color", "background",
-                "paddingLeft", "paddingTop", "paddingRight", "paddingBottom", "indent"
-        ), keys(result));
+        assertContainsInAnyOrder(
+                List.of(
+                        "font",
+                        "size",
+                        "color",
+                        "background",
+                        "paddingLeft",
+                        "paddingTop",
+                        "paddingRight",
+                        "paddingBottom",
+                        "indent"
+                ),
+                keys(result)
+        );
         assertEquals("Arial", valueOf(result, "font"));
         assertEquals("28", valueOf(result, "size"));
         assertEquals("#000000", valueOf(result, "color"));
@@ -91,39 +92,61 @@ class SettingsServiceTest {
     @Test
     void definitionsPerScope() {
         List<String> fb2 = List.of(
-                "font", "size", "color", "background",
-                "paddingLeft", "paddingTop", "paddingRight", "paddingBottom", "indent"
+                "font",
+                "size",
+                "color",
+                "background",
+                "paddingLeft",
+                "paddingTop",
+                "paddingRight",
+                "paddingBottom",
+                "indent"
         );
         when(renderFactory.settingsDefinitions("FB2")).thenReturn(fb2);
-
         assertSame(fb2, service.definitions(SettingsScope.FB2));
-        assertIterableEquals(List.of(
-                "font", "size", "color", "background",
-                "paddingLeft", "paddingTop", "paddingRight", "paddingBottom", "indent"
-        ), service.definitions(SettingsScope.GLOBAL));
+        assertIterableEquals(
+                List.of(
+                        "font",
+                        "size",
+                        "color",
+                        "background",
+                        "paddingLeft",
+                        "paddingTop",
+                        "paddingRight",
+                        "paddingBottom",
+                        "indent"
+                ),
+                service.definitions(SettingsScope.GLOBAL)
+        );
     }
 
     @Test
     void definitionsForScopeWithoutRenderAreEmpty() {
-        assertTrue(service.definitions(SettingsScope.PDF).isEmpty());
+        assertTrue(
+                service.definitions(SettingsScope.PDF)
+                        .isEmpty()
+        );
     }
 
     @Test
     void definitionsRejectsNullScope() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> service.definitions(null));
-        assertTrue(e.getMessage().contains("scope"));
+        assertTrue(
+                e.getMessage()
+                        .contains("scope")
+        );
     }
 
     @Test
     void readFallsBackToGlobalWhenScopeKeyMissing() {
         when(repository.findByDeviceUuidAndScopeIn(DEVICE, List.of("GLOBAL", "FB2")))
-                .thenReturn(List.of(
-                        entity("GLOBAL", "font", "Times New Roman"),
-                        entity("GLOBAL", "size", "20")
-                ));
-
+                .thenReturn(
+                        List.of(
+                                entity("GLOBAL", "font", "Times New Roman"),
+                                entity("GLOBAL", "size", "20")
+                        )
+                );
         Settings result = service.read(DEVICE, SettingsScope.FB2);
-
         assertEquals("Times New Roman", valueOf(result, "font"));
         assertEquals("20", valueOf(result, "size"));
         assertEquals("#000000", valueOf(result, "color"));
@@ -132,14 +155,14 @@ class SettingsServiceTest {
     @Test
     void readScopeOverridesGlobal() {
         when(repository.findByDeviceUuidAndScopeIn(DEVICE, List.of("GLOBAL", "FB2")))
-                .thenReturn(List.of(
-                        entity("GLOBAL", "font", "Arial"),
-                        entity("GLOBAL", "size", "28"),
-                        entity("FB2", "font", "Georgia")
-                ));
-
+                .thenReturn(
+                        List.of(
+                                entity("GLOBAL", "font", "Arial"),
+                                entity("GLOBAL", "size", "28"),
+                                entity("FB2", "font", "Georgia")
+                        )
+                );
         Settings result = service.read(DEVICE, SettingsScope.FB2);
-
         assertEquals("Georgia", valueOf(result, "font"));
         assertEquals("28", valueOf(result, "size"));
     }
@@ -148,31 +171,29 @@ class SettingsServiceTest {
     void readGlobalScopeQueriesOnlyGlobal() {
         when(repository.findByDeviceUuidAndScopeIn(DEVICE, List.of("GLOBAL")))
                 .thenReturn(List.of(entity("GLOBAL", "font", "Courier")));
-
         Settings result = service.read(DEVICE, SettingsScope.GLOBAL);
-
         assertEquals("Courier", valueOf(result, "font"));
     }
 
     @Test
     void readRejectsNullScope() {
         IllegalArgumentException e = assertThrows(
-                IllegalArgumentException.class, () -> service.read(DEVICE, null)
+                IllegalArgumentException.class,
+                () -> service.read(DEVICE, null)
         );
-        assertTrue(e.getMessage().contains("scope"));
+        assertTrue(
+                e.getMessage()
+                        .contains("scope")
+        );
     }
-
     // endregion
-
     // region save — diff logic
 
     @Test
     void saveInsertsNewKeys() {
         when(repository.findByDeviceUuidAndScopeIn(DEVICE, List.of("FB2")))
                 .thenReturn(List.of());
-
         service.save(DEVICE, SettingsScope.FB2, List.of(new KeyValue("font", "Verdana")), "alice");
-
         ArgumentCaptor<SettingsEntity> captor = ArgumentCaptor.forClass(SettingsEntity.class);
         verify(repository, times(1)).save(captor.capture());
         SettingsEntity saved = captor.getValue();
@@ -190,13 +211,17 @@ class SettingsServiceTest {
     @Test
     void saveUpdatesChangedKeysPreservingId() {
         SettingsEntity existing = new SettingsEntity(
-                SETTING_ID, DEVICE, "FB2", "font", "Arial", Instant.parse("2024-01-01T00:00:00Z"), "old"
+                SETTING_ID,
+                DEVICE,
+                "FB2",
+                "font",
+                "Arial",
+                Instant.parse("2024-01-01T00:00:00Z"),
+                "old"
         );
         when(repository.findByDeviceUuidAndScopeIn(DEVICE, List.of("FB2")))
                 .thenReturn(List.of(existing));
-
         service.save(DEVICE, SettingsScope.FB2, List.of(new KeyValue("font", "Georgia")), "alice");
-
         ArgumentCaptor<SettingsEntity> captor = ArgumentCaptor.forClass(SettingsEntity.class);
         verify(repository, times(1)).save(captor.capture());
         SettingsEntity updated = captor.getValue();
@@ -210,13 +235,17 @@ class SettingsServiceTest {
     @Test
     void saveSkipsUnchangedKeys() {
         SettingsEntity existing = new SettingsEntity(
-                SETTING_ID, DEVICE, "GLOBAL", "size", "28", Instant.parse("2024-01-01T00:00:00Z"), "old"
+                SETTING_ID,
+                DEVICE,
+                "GLOBAL",
+                "size",
+                "28",
+                Instant.parse("2024-01-01T00:00:00Z"),
+                "old"
         );
         when(repository.findByDeviceUuidAndScopeIn(DEVICE, List.of("GLOBAL")))
                 .thenReturn(List.of(existing));
-
         service.save(DEVICE, SettingsScope.GLOBAL, List.of(new KeyValue("size", "28")), "alice");
-
         verify(repository, never()).save(any(SettingsEntity.class));
         verify(repository, never()).delete(any(SettingsEntity.class));
     }
@@ -224,42 +253,70 @@ class SettingsServiceTest {
     @Test
     void saveDeletesKeysNotInIncoming() {
         SettingsEntity existing = new SettingsEntity(
-                SETTING_ID, DEVICE, "PDF", "font", "Arial", Instant.parse("2024-01-01T00:00:00Z"), "old"
+                SETTING_ID,
+                DEVICE,
+                "PDF",
+                "font",
+                "Arial",
+                Instant.parse("2024-01-01T00:00:00Z"),
+                "old"
         );
         when(repository.findByDeviceUuidAndScopeIn(DEVICE, List.of("PDF")))
                 .thenReturn(List.of(existing));
-
         service.save(DEVICE, SettingsScope.PDF, List.of(new KeyValue("size", "20")), "bob");
-
         verify(repository, times(1)).delete(existing);
         ArgumentCaptor<SettingsEntity> captor = ArgumentCaptor.forClass(SettingsEntity.class);
         verify(repository, times(1)).save(captor.capture());
-        assertEquals("size", captor.getValue().key());
+        assertEquals(
+                "size",
+                captor.getValue()
+                        .key()
+        );
     }
 
     @Test
     void savePerformsMixedDiff() {
         SettingsEntity oldFont = new SettingsEntity(
-                UUID.randomUUID(), DEVICE, "FB2", "font", "Arial", Instant.parse("2024-01-01T00:00:00Z"), "old"
+                UUID.randomUUID(),
+                DEVICE,
+                "FB2",
+                "font",
+                "Arial",
+                Instant.parse("2024-01-01T00:00:00Z"),
+                "old"
         );
         SettingsEntity oldSize = new SettingsEntity(
-                UUID.randomUUID(), DEVICE, "FB2", "size", "28", Instant.parse("2024-01-01T00:00:00Z"), "old"
+                UUID.randomUUID(),
+                DEVICE,
+                "FB2",
+                "size",
+                "28",
+                Instant.parse("2024-01-01T00:00:00Z"),
+                "old"
         );
         SettingsEntity oldColor = new SettingsEntity(
-                UUID.randomUUID(), DEVICE, "FB2", "color", "#000000", Instant.parse("2024-01-01T00:00:00Z"), "old"
+                UUID.randomUUID(),
+                DEVICE,
+                "FB2",
+                "color",
+                "#000000",
+                Instant.parse("2024-01-01T00:00:00Z"),
+                "old"
         );
         when(repository.findByDeviceUuidAndScopeIn(DEVICE, List.of("FB2")))
                 .thenReturn(List.of(oldFont, oldSize, oldColor));
-
         // font — изменено, size — без изменений, color — удалён, background — новый
-        service.save(DEVICE, SettingsScope.FB2, List.of(
-                new KeyValue("font", "Georgia"),
-                new KeyValue("size", "28"),
-                new KeyValue("background", "#EEEEEE")
-        ), "alice");
-
+        service.save(
+                DEVICE,
+                SettingsScope.FB2,
+                List.of(
+                        new KeyValue("font", "Georgia"),
+                        new KeyValue("size", "28"),
+                        new KeyValue("background", "#EEEEEE")
+                ),
+                "alice"
+        );
         verify(repository, times(1)).delete(oldColor);
-
         ArgumentCaptor<SettingsEntity> captor = ArgumentCaptor.forClass(SettingsEntity.class);
         verify(repository, times(2)).save(captor.capture());
         List<SettingsEntity> saved = captor.getAllValues();
@@ -274,18 +331,26 @@ class SettingsServiceTest {
     @Test
     void saveRejectsNullScope() {
         IllegalArgumentException e = assertThrows(
-                IllegalArgumentException.class, () -> service.save(DEVICE, null, List.of(), "user")
+                IllegalArgumentException.class,
+                () -> service.save(DEVICE, null, List.of(), "user")
         );
-        assertTrue(e.getMessage().contains("scope"));
+        assertTrue(
+                e.getMessage()
+                        .contains("scope")
+        );
         verify(repository, never()).findByDeviceUuidAndScopeIn(any(), any());
     }
 
     @Test
     void saveRejectsNullValues() {
         IllegalArgumentException e = assertThrows(
-                IllegalArgumentException.class, () -> service.save(DEVICE, SettingsScope.GLOBAL, null, "user")
+                IllegalArgumentException.class,
+                () -> service.save(DEVICE, SettingsScope.GLOBAL, null, "user")
         );
-        assertTrue(e.getMessage().contains("values"));
+        assertTrue(
+                e.getMessage()
+                        .contains("values")
+        );
     }
 
     @Test
@@ -293,11 +358,14 @@ class SettingsServiceTest {
         List<KeyValue> values = new ArrayList<>();
         values.add(new KeyValue("", "v"));
         IllegalArgumentException e = assertThrows(
-                IllegalArgumentException.class, () -> service.save(DEVICE, SettingsScope.GLOBAL, values, "user")
+                IllegalArgumentException.class,
+                () -> service.save(DEVICE, SettingsScope.GLOBAL, values, "user")
         );
-        assertTrue(e.getMessage().contains("key"));
+        assertTrue(
+                e.getMessage()
+                        .contains("key")
+        );
     }
-
     // endregion
 
     private static void assertContainsInAnyOrder(List<String> expected, List<String> actual) {
@@ -310,7 +378,10 @@ class SettingsServiceTest {
 
     private static SettingsEntity findByKey(List<SettingsEntity> entities, String key) {
         return entities.stream()
-                .filter(e -> e.key().equals(key))
+                .filter(
+                        e -> e.key()
+                                .equals(key)
+                )
                 .findFirst()
                 .orElseThrow();
     }
@@ -320,12 +391,19 @@ class SettingsServiceTest {
     }
 
     private static List<String> keys(Settings settings) {
-        return settings.getSettings().stream().map(KeyValue::getKey).toList();
+        return settings.getSettings()
+                .stream()
+                .map(KeyValue::getKey)
+                .toList();
     }
 
     private static String valueOf(Settings settings, String key) {
-        return settings.getSettings().stream()
-                .filter(kv -> kv.getKey().equals(key))
+        return settings.getSettings()
+                .stream()
+                .filter(
+                        kv -> kv.getKey()
+                                .equals(key)
+                )
                 .map(KeyValue::getValue)
                 .findFirst()
                 .orElseThrow();

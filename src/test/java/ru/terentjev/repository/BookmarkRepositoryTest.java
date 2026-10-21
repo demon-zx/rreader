@@ -30,9 +30,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 })
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ImportAutoConfiguration(LiquibaseAutoConfiguration.class)
-@Import({BookmarkRepositoryTest.TestConfig.class, BookmarkService.class, BookService.class})
+@Import({
+        BookmarkRepositoryTest.TestConfig.class, BookmarkService.class, BookService.class
+})
 class BookmarkRepositoryTest {
-
     static final String DB_URL = "jdbc:h2:mem:bookmarktest;" + TestH2.OPTIONS;
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -45,60 +46,76 @@ class BookmarkRepositoryTest {
 
     @Autowired
     private BookmarkRepository bookmarkRepository;
-
     @Autowired
     private BookRepository bookRepository;
-
     @Autowired
     private BookmarkService bookmarkService;
-
     @Autowired
     private BookService bookService;
 
     @Test
     void deleteByBookIdRemovesBookmarks() {
-        UUID bookId = bookRepository.save(book()).getId();
+        UUID bookId = bookRepository.save(book())
+                .getId();
         bookmarkService.save(new Bookmark(null, "alice", BookmarkService.CURRENT, bookId, 3L));
         bookmarkService.save(new Bookmark(null, "bob", BookmarkService.CURRENT, bookId, 7L));
-        UUID otherId = bookRepository.save(book()).getId();
+        UUID otherId = bookRepository.save(book())
+                .getId();
         bookmarkService.save(new Bookmark(null, "alice", BookmarkService.CURRENT, otherId, 1L));
-
         bookmarkRepository.deleteByBookId(bookId);
-
         assertEquals(1, bookmarkRepository.count());
-        assertEquals(otherId, bookmarkRepository.findAll().iterator().next().bookId());
+        assertEquals(
+                otherId,
+                bookmarkRepository.findAll()
+                        .iterator()
+                        .next()
+                        .bookId()
+        );
     }
 
     @Test
     void watcherCascadeFlowDeletesBookWithBookmarks() throws Exception {
         URI uri = URI.create("file:///books/deleteme.fb2");
-        UUID bookId = bookRepository.save(book(uri)).getId();
+        UUID bookId = bookRepository.save(book(uri))
+                .getId();
         bookmarkService.save(new Bookmark(null, "alice", BookmarkService.CURRENT, bookId, 3L));
-
         List<Book> removed = bookService.findByUriContaining(uri.toString());
         for (Book book : removed) {
             bookmarkService.deleteByBook(book.getId());
             bookService.delete(book.getId());
         }
-
-        assertTrue(bookRepository.findById(bookId).isEmpty());
+        assertTrue(
+                bookRepository.findById(bookId)
+                        .isEmpty()
+        );
         assertEquals(0, bookmarkRepository.count());
     }
 
     @Test
     void findByUriContainingMatchesBooksInsideZipArchive() {
         String archive = "file:///D:/books/Весь%20Азимов.zip";
-        UUID innerId = bookRepository.save(book(URI.create(
-                "zip:" + archive + "!/Весь%20АЗИМОВ.%20ТОМ%201%20«Я,%20робот».fb2"
-        ))).getId();
-        bookRepository.save(book(URI.create(
-                "zip:file:///D:/books/Весь%20Азимов2.zip!/другая.fb2"
-        )));
-
+        UUID innerId = bookRepository.save(
+                book(
+                        URI.create(
+                                "zip:" + archive + "!/Весь%20АЗИМОВ.%20ТОМ%201%20«Я,%20робот».fb2"
+                        )
+                )
+        )
+                .getId();
+        bookRepository.save(
+                book(
+                        URI.create(
+                                "zip:file:///D:/books/Весь%20Азимов2.zip!/другая.fb2"
+                        )
+                )
+        );
         List<Book> removed = bookService.findByUriContaining(archive);
-
         assertEquals(1, removed.size());
-        assertEquals(innerId, removed.get(0).getId());
+        assertEquals(
+                innerId,
+                removed.get(0)
+                        .getId()
+        );
     }
 
     private static BookEntity book() {
@@ -107,9 +124,21 @@ class BookmarkRepositoryTest {
 
     private static BookEntity book(URI uri) {
         return new BookEntity(
-                null, "Title", "Author", null, null, null, "FB2",
-                uri.toString(), "checksum", null, 1L,
-                null, null, null, null
+                null,
+                "Title",
+                "Author",
+                null,
+                null,
+                null,
+                "FB2",
+                uri.toString(),
+                "checksum",
+                null,
+                1L,
+                null,
+                null,
+                null,
+                null
         );
     }
 }

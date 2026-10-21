@@ -3,7 +3,6 @@ package ru.terentjev.service.model;
 import java.util.UUID;
 
 public final class User {
-
     private final UUID id;
     private final String username;
     private final String password;

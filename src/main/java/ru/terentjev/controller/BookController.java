@@ -55,22 +55,21 @@ public class BookController extends AbstractController {
             @RequestParam int height
     ) {
         return run(
-            () -> {
-                log.debug("info id={} deviceUuid={} viewport={}x{}", id, deviceUuid, width, height);
-                var book = bookService.findById(id);
-                var info = renderService.open(id, deviceUuid, width, height);
-                return ApiInfoMapper.mapper.from(info, book);
-            },
-            b -> b
+                () -> {
+                    log.debug("info id={} deviceUuid={} viewport={}x{}", id, deviceUuid, width, height);
+                    var book = bookService.findById(id);
+                    var info = renderService.open(id, deviceUuid, width, height);
+                    return ApiInfoMapper.mapper.from(info, book);
+                },
+                b -> b
         );
     }
-    
 
     @GetMapping("{id}/cover")
     public void cover(
-        HttpServletResponse response, 
-        @PathVariable UUID id, 
-        @RequestParam UUID deviceUuid
+            HttpServletResponse response,
+            @PathVariable UUID id,
+            @RequestParam UUID deviceUuid
     ) throws IOException {
         run(() -> renderService.renderCover(id, deviceUuid, is -> out(response, is)));
     }
@@ -86,5 +85,4 @@ public class BookController extends AbstractController {
     ) throws IOException {
         run(() -> renderService.renderPage(id, page, deviceUuid, width, height, is -> out(response, is)));
     }
-
 }

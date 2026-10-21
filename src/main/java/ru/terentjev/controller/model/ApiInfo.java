@@ -3,7 +3,6 @@ package ru.terentjev.controller.model;
 import java.util.Map;
 
 public class ApiInfo {
-
     private final int pages;
     private final String author;
     private final String title;
@@ -27,9 +26,8 @@ public class ApiInfo {
     public String getTitle() {
         return title;
     }
-    
+
     public Map<Integer, Integer> getPositionByPage() {
         return positionByPage;
     }
-    
 }

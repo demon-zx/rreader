@@ -13,9 +13,7 @@ import java.util.Collection;
 
 @SpringBootApplication
 public class Application {
-
     private static final Logger log = LoggerFactory.getLogger(Application.class);
-
     private final Collection<FirstRunService> services;
 
     public Application(Collection<FirstRunService> services) {
@@ -32,7 +30,8 @@ public class Application {
         for (FirstRunService service : services) {
             String name = StringUtils.substringBefore(
                     service.getClass()
-                            .getSimpleName(), "$"
+                            .getSimpleName(),
+                    "$"
             ) + "#firstRun()";
             log.info("Service {} run", name);
             service.firstRun();

@@ -35,9 +35,7 @@ import java.util.stream.Stream;
 
 @Service
 public class RenderService {
-
     private static final Logger log = LoggerFactory.getLogger(RenderService.class);
-
     private final BookService service;
     private final RenderFactory renderFactory;
     private final SettingsService settingsService;
@@ -98,7 +96,7 @@ public class RenderService {
             UUID id,
             int page,
             UUID deviceUuid,
-            int width, 
+            int width,
             int height,
             FailableConsumer<InputStream, IOException> mapper
     ) throws IOException, ServiceException {
@@ -122,14 +120,14 @@ public class RenderService {
                 Files.createDirectories(file.getParent());
             }
             file(
-                is -> {
-                    try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(file))) {
-                        renderMethod.accept(is, os);
-                        os.flush();
-                    }
-                    return null;
-                }, 
-                book
+                    is -> {
+                        try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(file))) {
+                            renderMethod.accept(is, os);
+                            os.flush();
+                        }
+                        return null;
+                    },
+                    book
             );
         }
     }
@@ -145,7 +143,8 @@ public class RenderService {
     }
 
     private Path path(UUID id) {
-        return directories.pages().resolve(id.toString());
+        return directories.pages()
+                .resolve(id.toString());
     }
 
     private Path path(UUID id, UUID deviceUuid, int widht, int height) {
@@ -170,7 +169,10 @@ public class RenderService {
         }
         try (Stream<Path> books = Files.list(root)) {
             for (Path book : books.toList()) {
-                Path deviceDirectory = book.resolve(event.deviceUuid().toString());
+                Path deviceDirectory = book.resolve(
+                        event.deviceUuid()
+                                .toString()
+                );
                 if (Files.exists(deviceDirectory)) {
                     deleteRecursively(deviceDirectory);
                 }
@@ -190,5 +192,4 @@ public class RenderService {
                     });
         }
     }
-
 }

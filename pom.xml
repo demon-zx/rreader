@@ -231,7 +231,7 @@
                     <ratchetFrom>origin/master</ratchetFrom>
                     <java>
                         <eclipse>
-                            <file>${project.basedir}/eclipse-formatter.xml</file>
+                            <file>${project.basedir}/eclipse.formatter.xml</file>
                         </eclipse>
                     </java>
                 </configuration>

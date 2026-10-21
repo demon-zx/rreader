@@ -34,16 +34,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Order(2)
 public class BookWatcherService implements FirstRunService {
-
     private static final Logger log = LoggerFactory.getLogger(BookWatcherService.class);
-
     private final DirectoryParameters directories;
     private final WatchParameters parameters;
     private final BookUploadService uploadService;
     private final BookService bookService;
     private final BookmarkService bookmarkService;
     private final RenderService renderService;
-
     private WatchService watchService;
     private ScheduledExecutorService executor;
     private final Map<Path, ScheduledFuture<?>> pending = new ConcurrentHashMap<>();
@@ -71,7 +68,8 @@ public class BookWatcherService implements FirstRunService {
             return;
         }
         try {
-            watchService = FileSystems.getDefault().newWatchService();
+            watchService = FileSystems.getDefault()
+                    .newWatchService();
             executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
                 Thread thread = new Thread(runnable, "book-watcher");
                 thread.setDaemon(true);
@@ -144,7 +142,12 @@ public class BookWatcherService implements FirstRunService {
             if (previous != null) {
                 previous.cancel(false);
             }
-            return executor.schedule(task, parameters.debounce().toMillis(), TimeUnit.MILLISECONDS);
+            return executor.schedule(
+                    task,
+                    parameters.debounce()
+                            .toMillis(),
+                    TimeUnit.MILLISECONDS
+            );
         });
     }
 
@@ -166,7 +169,10 @@ public class BookWatcherService implements FirstRunService {
     }
 
     private void deleteBooks(Path path) throws IOException {
-        List<Book> removed = bookService.findByUriContaining(path.toUri().toString());
+        List<Book> removed = bookService.findByUriContaining(
+                path.toUri()
+                        .toString()
+        );
         for (Book book : removed) {
             bookmarkService.deleteByBook(book.getId());
             renderService.deleteCache(book.getId());
@@ -189,5 +195,4 @@ public class BookWatcherService implements FirstRunService {
             }
         }
     }
-
 }

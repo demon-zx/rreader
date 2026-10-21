@@ -14,8 +14,9 @@ import java.util.UUID;
 
 @Repository
 public interface BookmarkRepository
-        extends ListCrudRepository<BookmarkEntity, UUID>, ListPagingAndSortingRepository<BookmarkEntity, UUID> {
-
+        extends
+        ListCrudRepository<BookmarkEntity, UUID>,
+        ListPagingAndSortingRepository<BookmarkEntity, UUID> {
     Optional<BookmarkEntity> findByUsernameAndTitleAndBookId(String username, String title, UUID bookId);
 
     /**
@@ -26,5 +27,4 @@ public interface BookmarkRepository
     @Modifying
     @Query("delete from bookmark where book_id = :bookId")
     void deleteByBookId(@Param("bookId") UUID bookId);
-
 }

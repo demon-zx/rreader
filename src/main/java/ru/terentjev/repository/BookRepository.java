@@ -13,13 +13,12 @@ import java.util.stream.Stream;
 
 @Repository
 public interface BookRepository
-        extends ListCrudRepository<BookEntity, UUID>,
+        extends
+        ListCrudRepository<BookEntity, UUID>,
         ListPagingAndSortingRepository<BookEntity, UUID>,
         BookRepositorySearch {
-
     Optional<BookEntity> findByUri(String uri);
 
-    @Query ("select * from book")
+    @Query("select * from book")
     Stream<BookEntity> findAllAsStream();
-
 }

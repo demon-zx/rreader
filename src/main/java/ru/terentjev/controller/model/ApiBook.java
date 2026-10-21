@@ -5,7 +5,6 @@ import org.jspecify.annotations.NonNull;
 import java.util.UUID;
 
 public class ApiBook {
-
     private final UUID id;
     @NonNull
     private final String title;

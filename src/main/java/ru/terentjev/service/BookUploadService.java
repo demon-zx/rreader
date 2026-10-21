@@ -31,7 +31,6 @@ import java.util.UUID;
 @Service
 @Order(1)
 public class BookUploadService implements FirstRunService {
-
     private static final Logger log = LoggerFactory.getLogger(BookUploadService.class);
     private final Path pathBooks;
     private final BookService bookService;
@@ -166,7 +165,8 @@ public class BookUploadService implements FirstRunService {
     }
 
     private static Instant modifiedAt(Path file) throws IOException {
-        return Files.getLastModifiedTime(file).toInstant();
+        return Files.getLastModifiedTime(file)
+                .toInstant();
     }
 
     @Override
@@ -175,5 +175,4 @@ public class BookUploadService implements FirstRunService {
         walk(pathBooks, file -> process(file));
         log.info("Stop all scan books.");
     }
-
 }

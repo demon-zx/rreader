@@ -25,7 +25,6 @@ import java.util.UUID;
 @RequestMapping("settings")
 public class SettingsController extends AbstractController {
     private static final Logger log = LoggerFactory.getLogger(SettingsController.class);
-
     private final SettingsService settingsService;
 
     public SettingsController(SettingsService settingsService) {
@@ -36,22 +35,22 @@ public class SettingsController extends AbstractController {
     @GetMapping("fonts")
     public List<String> fonts() {
         return run(
-            () -> {
-                log.debug("fonts");
-                return settingsService.fonts();
-            },
-            b -> b
+                () -> {
+                    log.debug("fonts");
+                    return settingsService.fonts();
+                },
+                b -> b
         );
     }
 
     @GetMapping("definitions")
     public List<String> definitions(@RequestParam SettingsScope scope) {
         return run(
-            () -> {
-                log.debug("definitions scope={}", scope);
-                return settingsService.definitions(scope);
-            },
-            b -> b
+                () -> {
+                    log.debug("definitions scope={}", scope);
+                    return settingsService.definitions(scope);
+                },
+                b -> b
         );
     }
 
@@ -61,11 +60,11 @@ public class SettingsController extends AbstractController {
             @RequestParam SettingsScope scope
     ) {
         return run(
-            () -> {
-                log.debug("read settings deviceUuid={} scope={}", deviceUuid, scope);
-                return settingsService.read(deviceUuid, scope);
-            },
-            b -> b
+                () -> {
+                    log.debug("read settings deviceUuid={} scope={}", deviceUuid, scope);
+                    return settingsService.read(deviceUuid, scope);
+                },
+                b -> b
         );
     }
 
@@ -85,5 +84,4 @@ public class SettingsController extends AbstractController {
             );
         });
     }
-
 }

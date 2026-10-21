@@ -47,8 +47,10 @@ public class ProcessedFileService {
         long size = Files.size(file);
         Instant modified = modifiedAt(file);
         return !processedFile.isProcessed() ||
-                processedFile.getSize() == null || processedFile.getSize() != size ||
-                processedFile.getModifiedAt() == null || !Objects.equals(processedFile.getModifiedAt(), modified);
+                processedFile.getSize() == null ||
+                processedFile.getSize() != size ||
+                processedFile.getModifiedAt() == null ||
+                !Objects.equals(processedFile.getModifiedAt(), modified);
     }
 
     /**
@@ -103,6 +105,7 @@ public class ProcessedFileService {
     }
 
     private static Instant modifiedAt(Path file) throws IOException {
-        return Files.getLastModifiedTime(file).toInstant();
+        return Files.getLastModifiedTime(file)
+                .toInstant();
     }
 }

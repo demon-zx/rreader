@@ -7,7 +7,6 @@ import java.time.Instant;
 import java.util.UUID;
 
 public final class ProcessedFile {
-
     private final UUID id;
     @NonNull
     private final Path path;

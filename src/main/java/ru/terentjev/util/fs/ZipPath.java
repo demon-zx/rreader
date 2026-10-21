@@ -1,15 +1,15 @@
 package ru.terentjev.util.fs;
 
-import org.unbescape.uri.UriEscape;
-
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.LinkOption;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Objects;
@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ZipPath implements Path {
-
     private final ZipFileSystem fileSystem;
     private final String path;
     private final boolean absolute;
@@ -176,7 +175,7 @@ public class ZipPath implements Path {
 
     public <A extends BasicFileAttributes> A readAttributes(Class<A> type) throws IOException {
         if (type == BasicFileAttributes.class) {
-            //noinspection unchecked
+            // noinspection unchecked
             return (A) fileSystem.readAttributes(this);
         }
         throw new UnsupportedOperationException("Not supported attributes of type: " + type);

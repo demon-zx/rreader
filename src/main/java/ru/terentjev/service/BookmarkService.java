@@ -19,9 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class BookmarkService {
-
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(BookmarkService.class);
-
     public static final String TYPE_NAME = Bookmark.class.getSimpleName();
     public static final String CURRENT = "$current$";
     private final BookmarkRepository repository;
@@ -33,7 +31,6 @@ public class BookmarkService {
         this.repository = repository;
     }
 
-
     @Transactional
     public Bookmark save(Bookmark item) {
         return BookmarkMapper.mapper.from(repository.save(BookmarkMapper.mapper.to(item)));
@@ -42,9 +39,11 @@ public class BookmarkService {
     public Bookmark findById(UUID id) throws InvalidArgumentException {
         return repository.findById(id)
                 .map(BookmarkMapper.mapper::from)
-                .orElseThrow(() -> new InvalidArgumentException(
-                        MessageFormat.format("Not found {1} with id: {0}", id, TYPE_NAME)
-                ));
+                .orElseThrow(
+                        () -> new InvalidArgumentException(
+                                MessageFormat.format("Not found {1} with id: {0}", id, TYPE_NAME)
+                        )
+                );
     }
 
     public long findCurrentPosition(String username, UUID bookId) throws InvalidArgumentException {
@@ -69,7 +68,7 @@ public class BookmarkService {
                         if (exist.isEmpty()) {
                             repository.save(new BookmarkEntity(null, username, CURRENT, bookId, position, null, null));
                         }
-                    }  finally {
+                    } finally {
                         insertLock.unlock();
                     }
                 }
@@ -80,7 +79,6 @@ public class BookmarkService {
         exist.map(b -> update(b, position))
                 .ifPresent(repository::save);
     }
-
 
     private static BookmarkEntity update(BookmarkEntity source, long position) {
         return new BookmarkEntity(

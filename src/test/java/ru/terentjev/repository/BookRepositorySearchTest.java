@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ImportAutoConfiguration(LiquibaseAutoConfiguration.class)
 @Import(BookRepositorySearchTest.TestConfig.class)
 class BookRepositorySearchTest {
-
     static final String DB_URL = "jdbc:h2:mem:searchtest;" + TestH2.OPTIONS;
 
     /**
@@ -62,52 +61,96 @@ class BookRepositorySearchTest {
     @Test
     void matchesAuthorIgnoringCase() {
         Page<BookEntity> result = repository.search("asimov", PageRequest.of(0, 10));
-
-        assertEquals(1, result.getContent().size());
-        assertEquals("Isaac Asimov", result.getContent().get(0).author());
+        assertEquals(
+                1,
+                result.getContent()
+                        .size()
+        );
+        assertEquals(
+                "Isaac Asimov",
+                result.getContent()
+                        .get(0)
+                        .author()
+        );
     }
 
     @Test
     void matchesTitleIgnoringCase() {
         Page<BookEntity> result = repository.search("RENDEZVOUS", PageRequest.of(0, 10));
-
-        assertEquals(1, result.getContent().size());
-        assertEquals("Arthur Clarke", result.getContent().get(0).author());
+        assertEquals(
+                1,
+                result.getContent()
+                        .size()
+        );
+        assertEquals(
+                "Arthur Clarke",
+                result.getContent()
+                        .get(0)
+                        .author()
+        );
     }
 
     @Test
     void matchesSequenceName() {
         Page<BookEntity> result = repository.search("ring", PageRequest.of(0, 10));
-
-        assertEquals(1, result.getContent().size());
-        assertEquals("Andromeda", result.getContent().get(0).title());
+        assertEquals(
+                1,
+                result.getContent()
+                        .size()
+        );
+        assertEquals(
+                "Andromeda",
+                result.getContent()
+                        .get(0)
+                        .title()
+        );
     }
 
     @Test
     void paginatesAndCountsAcrossAllColumns() {
-        Pageable firstPage = PageRequest.of(0, 2, Sort.by("author").ascending());
-
+        Pageable firstPage = PageRequest.of(
+                0,
+                2,
+                Sort.by("author")
+                        .ascending()
+        );
         Page<BookEntity> result = repository.search("a", firstPage);
-
         assertEquals(3, result.getTotalElements());
         assertEquals(2, result.getTotalPages());
-        List<String> authors = result.getContent().stream().map(BookEntity::author).toList();
+        List<String> authors = result.getContent()
+                .stream()
+                .map(BookEntity::author)
+                .toList();
         assertIterableEquals(List.of("Arthur Clarke", "Isaac Asimov"), authors);
     }
 
     @Test
     void returnsEmptyWhenNothingMatches() {
         Page<BookEntity> result = repository.search("zzz", PageRequest.of(0, 10));
-
-        assertTrue(result.getContent().isEmpty());
+        assertTrue(
+                result.getContent()
+                        .isEmpty()
+        );
         assertEquals(0, result.getTotalElements());
     }
 
     private static BookEntity book(String author, String title, String sequenceName) {
         return new BookEntity(
-                null, title, author, "en", sequenceName, null,
-                "FB2", "/books/" + title + ".fb2", title + "-checksum",
-                null, 100L, null, null, null, null
+                null,
+                title,
+                author,
+                "en",
+                sequenceName,
+                null,
+                "FB2",
+                "/books/" + title + ".fb2",
+                title + "-checksum",
+                null,
+                100L,
+                null,
+                null,
+                null,
+                null
         );
     }
 }

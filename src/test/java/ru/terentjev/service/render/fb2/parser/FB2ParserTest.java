@@ -30,14 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FB2ParserTest {
-
-    private static final String NS =
-            "xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\""
-                    + " xmlns:l=\"http://www.w3.org/1999/xlink\"";
-
+    private static final String NS = "xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\"" + " xmlns:l=\"http://www.w3.org/1999/xlink\"";
     @TempDir
     Path workDirectory;
-
     // ---------------------------------------------------------------------
     // metadata
     // ---------------------------------------------------------------------
@@ -55,7 +50,6 @@ class FB2ParserTest {
                 </title-info></description>
                 <body><section><p>Text</p></section></body>
                 """);
-
         assertEquals("David Starr", fb2.title());
         assertEquals(List.of("Isaac Asimov"), fb2.authors());
         assertEquals(List.of("sf"), fb2.genres());
@@ -75,7 +69,6 @@ class FB2ParserTest {
                 </title-info></description>
                 <body><p>x</p></body>
                 """);
-
         assertEquals(List.of("Isaac Asimov", "Second Writer"), fb2.authors());
     }
 
@@ -88,7 +81,6 @@ class FB2ParserTest {
                 </title-info></description>
                 <body><p>x</p></body>
                 """);
-
         assertEquals(List.of("Asimov"), fb2.authors());
     }
 
@@ -100,11 +92,19 @@ class FB2ParserTest {
                 </title-info></description>
                 <body><p>x</p></body>
                 """);
-
         assertEquals("Only title", fb2.title());
-        assertTrue(fb2.authors().isEmpty());
-        assertTrue(fb2.genres().isEmpty());
-        assertTrue(fb2.sequences().isEmpty());
+        assertTrue(
+                fb2.authors()
+                        .isEmpty()
+        );
+        assertTrue(
+                fb2.genres()
+                        .isEmpty()
+        );
+        assertTrue(
+                fb2.sequences()
+                        .isEmpty()
+        );
         assertNull(fb2.lang());
         assertNull(fb2.date());
         assertNull(fb2.cover());
@@ -119,10 +119,8 @@ class FB2ParserTest {
                 </title-info></description>
                 <body><p>x</p></body>
                 """);
-
         assertNull(fb2.date());
     }
-
     // ---------------------------------------------------------------------
     // sequences
     // ---------------------------------------------------------------------
@@ -136,7 +134,6 @@ class FB2ParserTest {
                 </title-info></description>
                 <body><section><p>Text</p></section></body>
                 """);
-
         assertEquals(List.of(new Sequence("Lucky Starr", 1)), fb2.sequences());
     }
 
@@ -149,8 +146,10 @@ class FB2ParserTest {
                 </title-info></description>
                 <body><p>x</p></body>
                 """);
-
-        assertTrue(fb2.sequences().isEmpty());
+        assertTrue(
+                fb2.sequences()
+                        .isEmpty()
+        );
     }
 
     @Test
@@ -162,10 +161,12 @@ class FB2ParserTest {
                 </title-info></description>
                 <body><p>x</p></body>
                 """);
-
-        assertEquals(0, fb2.sequences().size());
+        assertEquals(
+                0,
+                fb2.sequences()
+                        .size()
+        );
     }
-
     // ---------------------------------------------------------------------
     // body blocks
     // ---------------------------------------------------------------------
@@ -188,27 +189,19 @@ class FB2ParserTest {
                   </section>
                 </body>
                 """);
-
         List<Block> blocks = fb2.body();
         assertEquals(7, blocks.size());
-
         assertInstanceOf(TitleBlock.class, blocks.get(0));
         assertEquals("Chapter One", text(blocks.get(0)));
-
         assertInstanceOf(SubTitleBlock.class, blocks.get(1));
         assertEquals("A subtitle", text(blocks.get(1)));
-
         assertInstanceOf(ParagraphBlock.class, blocks.get(2));
         assertEquals("Body", text(blocks.get(2)));
-
         assertInstanceOf(EmptyLineBlock.class, blocks.get(3));
-
         assertInstanceOf(ImageBlock.class, blocks.get(4));
         assertEquals("img1", ((ImageBlock) blocks.get(4)).href());
-
         assertInstanceOf(SubTitleBlock.class, blocks.get(5));
         assertEquals("Deep", text(blocks.get(5)));
-
         assertInstanceOf(ParagraphBlock.class, blocks.get(6));
         assertEquals("Inner", text(blocks.get(6)));
     }
@@ -222,7 +215,6 @@ class FB2ParserTest {
                   <section><p>Body</p></section>
                 </body>
                 """);
-
         List<Block> blocks = fb2.body();
         assertInstanceOf(TitleBlock.class, blocks.get(0));
         assertEquals("Book title", text(blocks.get(0)));
@@ -234,9 +226,18 @@ class FB2ParserTest {
                 <description><title-info><book-title>T</book-title></title-info></description>
                 <body><section><p>Main</p></section></body>
                 """);
-
-        assertEquals(1, fb2.body().size());
-        assertEquals("Main", text(fb2.body().get(0)));
+        assertEquals(
+                1,
+                fb2.body()
+                        .size()
+        );
+        assertEquals(
+                "Main",
+                text(
+                        fb2.body()
+                                .get(0)
+                )
+        );
     }
 
     @Test
@@ -247,23 +248,48 @@ class FB2ParserTest {
                   <p>Hello <emphasis>world</emphasis><strong>!</strong></p>
                 </section></body>
                 """);
-
         ParagraphBlock paragraph = assertInstanceOf(ParagraphBlock.class, onlyBlock(fb2));
-
         List<Piece> pieces = paragraph.pieces();
         assertEquals(3, pieces.size());
-
-        assertEquals("Hello", pieces.get(0).text());
-        assertFalse(pieces.get(0).bold());
-        assertFalse(pieces.get(0).italic());
-
-        assertEquals("world", pieces.get(1).text());
-        assertTrue(pieces.get(1).italic());
-        assertFalse(pieces.get(1).bold());
-
-        assertEquals("!", pieces.get(2).text());
-        assertTrue(pieces.get(2).bold());
-        assertFalse(pieces.get(2).italic());
+        assertEquals(
+                "Hello",
+                pieces.get(0)
+                        .text()
+        );
+        assertFalse(
+                pieces.get(0)
+                        .bold()
+        );
+        assertFalse(
+                pieces.get(0)
+                        .italic()
+        );
+        assertEquals(
+                "world",
+                pieces.get(1)
+                        .text()
+        );
+        assertTrue(
+                pieces.get(1)
+                        .italic()
+        );
+        assertFalse(
+                pieces.get(1)
+                        .bold()
+        );
+        assertEquals(
+                "!",
+                pieces.get(2)
+                        .text()
+        );
+        assertTrue(
+                pieces.get(2)
+                        .bold()
+        );
+        assertFalse(
+                pieces.get(2)
+                        .italic()
+        );
     }
 
     @Test
@@ -274,21 +300,38 @@ class FB2ParserTest {
                   <p>See <a l:href="#n1" type="note">1</a> here</p>
                 </section></body>
                 """);
-
         ParagraphBlock paragraph = assertInstanceOf(ParagraphBlock.class, onlyBlock(fb2));
         List<Piece> pieces = paragraph.pieces();
         assertEquals(3, pieces.size());
-
-        assertEquals("See", pieces.get(0).text());
-        assertNull(pieces.get(0).linkId());
-
-        assertEquals("1", pieces.get(1).text());
-        assertEquals("#n1", pieces.get(1).linkId());
-
-        assertEquals("here", pieces.get(2).text());
-        assertNull(pieces.get(2).linkId());
+        assertEquals(
+                "See",
+                pieces.get(0)
+                        .text()
+        );
+        assertNull(
+                pieces.get(0)
+                        .linkId()
+        );
+        assertEquals(
+                "1",
+                pieces.get(1)
+                        .text()
+        );
+        assertEquals(
+                "#n1",
+                pieces.get(1)
+                        .linkId()
+        );
+        assertEquals(
+                "here",
+                pieces.get(2)
+                        .text()
+        );
+        assertNull(
+                pieces.get(2)
+                        .linkId()
+        );
     }
-
     // ---------------------------------------------------------------------
     // notes body
     // ---------------------------------------------------------------------
@@ -303,12 +346,31 @@ class FB2ParserTest {
                   <section id="n2"><p>Second note</p></section>
                 </body>
                 """);
-
-        assertEquals(List.of("n1", "n2"), fb2.notes().keySet().stream().sorted().toList());
-        assertEquals("First note", text(fb2.notes().get("n1").get(0)));
-        assertEquals("Second note", text(fb2.notes().get("n2").get(0)));
+        assertEquals(
+                List.of("n1", "n2"),
+                fb2.notes()
+                        .keySet()
+                        .stream()
+                        .sorted()
+                        .toList()
+        );
+        assertEquals(
+                "First note",
+                text(
+                        fb2.notes()
+                                .get("n1")
+                                .get(0)
+                )
+        );
+        assertEquals(
+                "Second note",
+                text(
+                        fb2.notes()
+                                .get("n2")
+                                .get(0)
+                )
+        );
     }
-
     // ---------------------------------------------------------------------
     // binaries
     // ---------------------------------------------------------------------
@@ -324,14 +386,13 @@ class FB2ParserTest {
                 <binary id="cover.jpg" content-type="image/jpeg">aGVs
                 bG8=</binary>
                 """);
-
-        String binaryPath = fb2.binaries().get("cover.jpg");
+        String binaryPath = fb2.binaries()
+                .get("cover.jpg");
         Path file = Path.of(binaryPath);
         assertTrue(Files.exists(file), "binary should be written to disk");
         assertTrue(file.startsWith(workDirectory.resolve("binaries")));
         assertArrayEquals("hello".getBytes(StandardCharsets.US_ASCII), Files.readAllBytes(file));
     }
-
     // ---------------------------------------------------------------------
     // encoding
     // ---------------------------------------------------------------------
@@ -342,14 +403,11 @@ class FB2ParserTest {
                 <description><title-info><book-title>Привет</book-title></title-info></description>
                 <body><section><p>текст</p></section></body>
                 """, "windows-1251");
-
         FB2 fb2 = new FB2Parser(workDirectory)
                 .parse(new ByteArrayInputStream(xml.getBytes(Charset.forName("windows-1251"))));
-
         assertEquals("Привет", fb2.title());
         assertEquals("текст", text(onlyBlock(fb2)));
     }
-
     // ---------------------------------------------------------------------
     // helpers
     // ---------------------------------------------------------------------
@@ -361,8 +419,7 @@ class FB2ParserTest {
     }
 
     private static String wrap(String body, String encoding) {
-        return "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>\n"
-                + "<FictionBook " + NS + ">" + body + "</FictionBook>";
+        return "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>\n" + "<FictionBook " + NS + ">" + body + "</FictionBook>";
     }
 
     private static Block onlyBlock(FB2 fb2) {

@@ -42,9 +42,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 public class FB2Parser {
-
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(FB2Parser.class);
-    
     private static final String SECTION = "section";
     private static final String BINARY = "binary";
     private static final String TEXT_AUTHOR = "text-author";
@@ -60,14 +58,12 @@ public class FB2Parser {
     private static final String AUTHOR = "author";
     private static final String EMPHASIS = "emphasis";
     private static final String STRONG = "strong";
-
     private final Path binaryDirectory;
     private final XMLInputFactory factory;
     private final Stack<String> path = new Stack<>();
     private final Set<String> tags = new HashSet<>();
     private Consumer<String> imageHandler = href -> cover = href;
     private Consumer<Block> blockHandler = href -> {
-
     };
     private StringBuilder textAccumulator = new StringBuilder();
     private int position = 0;
@@ -80,7 +76,6 @@ public class FB2Parser {
     private String binaryId;
     private String binaryType;
     private String linkHref;
-
     // > book info
     private LocalDate date;
     private String cover;
@@ -92,7 +87,6 @@ public class FB2Parser {
     private List<Block> body = new ArrayList<>();
     private Map<String, List<Block>> notes = new HashMap<>();
     private Map<String, String> binaries = new HashMap<>();
-
 
     public FB2Parser(Path bookDirectory) {
         this.binaryDirectory = bookDirectory.resolve("binaries");
@@ -184,7 +178,7 @@ public class FB2Parser {
             }
         }
     }
-    
+
     private void end(XMLStreamReader reader) throws IOException {
         String name = reader.getLocalName();
         switch (name) {
@@ -235,7 +229,8 @@ public class FB2Parser {
                     note.add(block);
                 }
             };
-            imageHandler = href -> {};
+            imageHandler = href -> {
+            };
         }
     }
 
@@ -366,9 +361,9 @@ public class FB2Parser {
     private void author() {
         if (in(TITLE_INFO)) {
             String name = Stream.of(nameFirst, nameLast)
-                .map(StringUtils::trimToNull)
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining(" "));
+                    .map(StringUtils::trimToNull)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining(" "));
             if (!name.isBlank()) {
                 nameFirst = null;
                 nameLast = null;
@@ -406,5 +401,4 @@ public class FB2Parser {
             }
         }
     }
-
 }

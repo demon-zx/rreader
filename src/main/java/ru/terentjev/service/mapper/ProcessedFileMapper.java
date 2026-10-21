@@ -18,5 +18,4 @@ public abstract class ProcessedFileMapper {
     @Mapping(target = "updatedBy", ignore = true)
     @InheritInverseConfiguration
     public abstract ProcessedFileEntity to(ProcessedFile source);
-
 }

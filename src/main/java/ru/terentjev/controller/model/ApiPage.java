@@ -3,7 +3,6 @@ package ru.terentjev.controller.model;
 import java.util.List;
 
 public class ApiPage<T> {
-
     private final List<T> items;
     private final int all;
     private final int allPages;

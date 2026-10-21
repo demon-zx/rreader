@@ -5,14 +5,12 @@ import org.apache.commons.lang3.function.FailableSupplier;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import ru.terentjev.exception.ServiceException;
+
 import ru.terentjev.exception.InvalidArgumentException;
 
-import java.util.List;
 import java.util.function.Function;
 
 public abstract class AbstractController {
-
     protected final Logger log;
 
     protected AbstractController(Logger log) {
@@ -45,5 +43,4 @@ public abstract class AbstractController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка на сервере", e);
         }
     }
-
 }

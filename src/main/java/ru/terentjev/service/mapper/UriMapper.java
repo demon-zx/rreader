@@ -16,12 +16,10 @@ public abstract class UriMapper {
         return URI.create(source);
     }
 
-
     public String to(URI source) {
         if (source == null) {
             return null;
         }
         return source.toString();
     }
-
 }

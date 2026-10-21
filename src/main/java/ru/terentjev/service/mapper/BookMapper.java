@@ -31,5 +31,4 @@ public abstract class BookMapper extends AbstractPageMapper<Book, BookEntity> {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
     public abstract BookEntity copy(BookEntity source, Instant createdAt, String createdBy);
-
 }

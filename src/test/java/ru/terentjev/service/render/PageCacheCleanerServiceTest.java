@@ -20,14 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PageCacheCleanerServiceTest {
-
     private static final Instant NOW = Instant.parse("2024-01-15T10:00:00Z");
     private static final Instant OLD = NOW.minus(Duration.ofDays(40));
     private static final Instant FRESH = NOW.minus(Duration.ofDays(1));
-
     @TempDir
     Path tempDir;
-
     private PageCacheCleanerService cleaner;
 
     @BeforeEach
@@ -47,13 +44,13 @@ class PageCacheCleanerServiceTest {
     @Test
     void cleanupDeletesOldFilesKeepsFreshOnes() throws IOException {
         Path deviceDirectory = Files.createDirectories(
-                tempDir.resolve("book1").resolve("device1").resolve("100x200")
+                tempDir.resolve("book1")
+                        .resolve("device1")
+                        .resolve("100x200")
         );
         Path oldPage = write(deviceDirectory.resolve("1.png"), OLD);
         Path freshPage = write(deviceDirectory.resolve("2.png"), FRESH);
-
         cleaner.cleanup(tempDir);
-
         assertFalse(Files.exists(oldPage));
         assertTrue(Files.exists(freshPage));
         assertTrue(Files.exists(deviceDirectory));
@@ -61,12 +58,13 @@ class PageCacheCleanerServiceTest {
 
     @Test
     void cleanupPrunesEmptyDirectoriesButKeepsRoot() throws IOException {
-        Path oldBook = Files.createDirectories(tempDir.resolve("book2").resolve("device2"));
+        Path oldBook = Files.createDirectories(
+                tempDir.resolve("book2")
+                        .resolve("device2")
+        );
         write(oldBook.resolve("cover.png"), OLD);
         Path emptyBook = Files.createDirectories(tempDir.resolve("book3"));
-
         cleaner.cleanup(tempDir);
-
         assertFalse(Files.exists(oldBook));
         assertFalse(Files.exists(emptyBook));
         assertTrue(Files.exists(tempDir));
@@ -75,21 +73,19 @@ class PageCacheCleanerServiceTest {
     @Test
     void cleanupOnMissingRootDoesNotThrow() throws IOException {
         Path missing = tempDir.resolve("missing");
-
         cleaner.cleanup(missing);
-
         assertFalse(Files.exists(missing));
     }
 
     @Test
     void cleanupPrunesNestedEmptyDirectoriesBottomUp() throws IOException {
         Path nested = Files.createDirectories(
-                tempDir.resolve("book4").resolve("device3").resolve("100x200")
+                tempDir.resolve("book4")
+                        .resolve("device3")
+                        .resolve("100x200")
         );
         write(nested.resolve("1.png"), OLD);
-
         cleaner.cleanup(tempDir);
-
         assertFalse(Files.exists(tempDir.resolve("book4")));
         assertTrue(Files.exists(tempDir));
     }

@@ -40,5 +40,4 @@ public class BookmarkController extends AbstractController {
     public void savePosition(@RequestParam UUID bookId, @RequestParam long position) throws IOException {
         run(() -> bookmarkService.saveCurrentPosition(SecurityUtil.userRequired(), bookId, position));
     }
-
 }

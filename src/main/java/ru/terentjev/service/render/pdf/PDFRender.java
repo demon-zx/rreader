@@ -26,7 +26,6 @@ import javax.imageio.ImageIO;
 
 @Component
 public class PDFRender implements Render {
-
     private static final Logger log = LoggerFactory.getLogger(PDFRender.class);
 
     @Override
@@ -48,13 +47,12 @@ public class PDFRender implements Render {
         return new Info(author, title, null, null);
     }
 
-
     @Override
     public OpenInfo open(
-        RenderSettings settings, 
-        InputStream is, 
-        Path bookDirectory, 
-        Path deviceDirectory
+            RenderSettings settings,
+            InputStream is,
+            Path bookDirectory,
+            Path deviceDirectory
     ) throws IOException {
         PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(is));
         int pages = document.getNumberOfPages();
@@ -89,5 +87,4 @@ public class PDFRender implements Render {
         ImageIO.write(image, "PNG", os);
         os.flush();
     }
-
 }

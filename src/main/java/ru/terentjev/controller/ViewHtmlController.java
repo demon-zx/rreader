@@ -15,7 +15,6 @@ import java.util.UUID;
 @RequestMapping("view")
 public class ViewHtmlController extends AbstractController {
     private static final Logger log = LoggerFactory.getLogger(ViewHtmlController.class);
-
     private final BookService bookService;
 
     public ViewHtmlController(BookService bookService) {

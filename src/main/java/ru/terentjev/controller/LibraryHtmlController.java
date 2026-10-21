@@ -10,7 +10,6 @@ import ru.terentjev.service.BookService;
 @Controller
 public class LibraryHtmlController extends AbstractController {
     private static final Logger log = LoggerFactory.getLogger(LibraryHtmlController.class);
-
     private final BookService bookService;
 
     public LibraryHtmlController(BookService bookService) {

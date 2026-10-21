@@ -14,5 +14,4 @@ public abstract class ApiInfoMapper {
     @Mapping(target = "author", source = "sourceBook.author")
     @Mapping(target = "title", source = "sourceBook.title")
     public abstract ApiInfo from(OpenInfo source, Book sourceBook);
-
 }

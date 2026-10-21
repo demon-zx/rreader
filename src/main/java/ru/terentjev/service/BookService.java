@@ -31,15 +31,19 @@ public class BookService {
         this.repository = repository;
     }
 
-
     @Transactional
     public Book save(Book item) {
         BookEntity mapped = BookMapper.mapper.to(item);
         BookEntity entity = mapped;
         if (mapped.id() != null) {
             entity = repository.findById(mapped.id())
-                    .map(existing -> BookMapper.mapper.copy(
-                            mapped, existing.createdAt(), existing.createdBy()))
+                    .map(
+                            existing -> BookMapper.mapper.copy(
+                                    mapped,
+                                    existing.createdAt(),
+                                    existing.createdBy()
+                            )
+                    )
                     .orElse(mapped);
         }
         return BookMapper.mapper.from(repository.save(entity));
@@ -48,9 +52,11 @@ public class BookService {
     public Book findById(UUID id) throws InvalidArgumentException {
         return repository.findById(id)
                 .map(BookMapper.mapper::from)
-                .orElseThrow(() -> new InvalidArgumentException(
-                        MessageFormat.format("Not found {1} with id: {0}", id, TYPE_NAME)
-                ));
+                .orElseThrow(
+                        () -> new InvalidArgumentException(
+                                MessageFormat.format("Not found {1} with id: {0}", id, TYPE_NAME)
+                        )
+                );
     }
 
     public Optional<Book> findByUri(URI uri) {
@@ -74,7 +80,13 @@ public class BookService {
         try (Stream<BookEntity> stream = repository.findAllAsStream()) {
             return stream
                     .map(BookMapper.mapper::from)
-                    .filter(book -> containsPath(book.getUri().toString(), path))
+                    .filter(
+                            book -> containsPath(
+                                    book.getUri()
+                                            .toString(),
+                                    path
+                            )
+                    )
                     .toList();
         }
     }
@@ -101,13 +113,16 @@ public class BookService {
     }
 
     public Page<Book> findAll(String q, int page, int pageSize) {
-        Pageable p = PageRequest.of(page, pageSize, Sort.by("author", "title").ascending());
+        Pageable p = PageRequest.of(
+                page,
+                pageSize,
+                Sort.by("author", "title")
+                        .ascending()
+        );
         if (StringUtils.isBlank(q)) {
             return BookMapper.mapper.from(repository.findAll(p));
-
         } else {
             return BookMapper.mapper.from(repository.search(q, p));
         }
     }
-
 }

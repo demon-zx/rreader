@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.util.List;
 
 public interface Render {
-
     String type();
 
     /**
@@ -30,5 +29,4 @@ public interface Render {
             Path deviceDirectory,
             OutputStream os
     ) throws IOException;
-
 }

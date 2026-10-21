@@ -8,10 +8,9 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 public abstract class AbstractGraphicsHolder {
-
     protected <T> T withGraphics(
-        BufferedImage image, 
-        FailableFunction<Graphics2D, T, IOException> graphics
+            BufferedImage image,
+            FailableFunction<Graphics2D, T, IOException> graphics
     ) throws IOException {
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -24,5 +23,4 @@ public abstract class AbstractGraphicsHolder {
             g.dispose();
         }
     }
-
 }

@@ -22,14 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DrawerTest {
-
     private static final int WIDTH = 200;
     private static final int HEIGHT = 100;
 
     @Test
     void defaultPageIsBlackOnWhite() throws IOException {
         BufferedImage rendered = draw(page("Hello world"), settings(Color.BLACK, Color.WHITE));
-
         assertEquals(Color.WHITE.getRGB(), rendered.getRGB(1, 1));
         assertTrue(containsColor(rendered, Color.BLACK.getRGB()));
     }
@@ -39,10 +37,8 @@ class DrawerTest {
         Page page = page("Hello world");
         Color color = new Color(178, 34, 34);
         Color background = new Color(245, 245, 220);
-
         BufferedImage defaultPage = draw(page, settings(Color.BLACK, Color.WHITE));
         BufferedImage customPage = draw(page, settings(color, background));
-
         assertNotEquals(defaultPage.getRGB(1, 1), customPage.getRGB(1, 1));
         assertEquals(background.getRGB(), customPage.getRGB(1, 1));
         assertTrue(containsColor(customPage, color.getRGB()));

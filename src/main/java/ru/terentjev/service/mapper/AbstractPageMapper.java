@@ -5,7 +5,6 @@ import ru.terentjev.service.model.Page;
 import java.util.List;
 
 public abstract class AbstractPageMapper<T, E> {
-
     public Page<T> from(org.springframework.data.domain.Page<E> source) {
         List<T> converted = source.stream()
                 .map(this::from)
@@ -14,5 +13,4 @@ public abstract class AbstractPageMapper<T, E> {
     }
 
     public abstract T from(E source);
-
 }

@@ -8,7 +8,6 @@ import java.util.TreeMap;
 
 @Service
 public class RenderFactory {
-
     private final Map<String, Render> renders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     public RenderFactory(List<Render> renders) {
@@ -32,5 +31,4 @@ public class RenderFactory {
         }
         return render.settingsDefinitions();
     }
-
 }

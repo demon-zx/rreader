@@ -13,12 +13,9 @@ public final class Bookmark {
 
     public Bookmark(
             UUID id,
-            @NonNull
-            String username,
-            @NonNull
-            String title,
-            @NonNull
-            UUID bookId,
+            @NonNull String username,
+            @NonNull String title,
+            @NonNull UUID bookId,
             long position
     ) {
         this.id = id;

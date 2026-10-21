@@ -1,7 +1,6 @@
 package ru.terentjev.service.model;
 
 public final class SettingKeys {
-
     public static final String FONT = "font";
     public static final String SIZE = "size";
     public static final String COLOR = "color";
@@ -14,5 +13,4 @@ public final class SettingKeys {
 
     private SettingKeys() {
     }
-
 }

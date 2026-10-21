@@ -29,9 +29,7 @@ import java.util.Optional;
 
 @Component
 public class FB2Render implements Render {
-
     private static final int M = 2;
-
     private static final List<String> DEFINITIONS = List.of(
             SettingKeys.FONT,
             SettingKeys.SIZE,
@@ -88,12 +86,12 @@ public class FB2Render implements Render {
         FB2Parser parser = new FB2Parser(Files.createTempDirectory("fb2-parser"));
         FB2 document = parser.parse(is);
         String author = document.authors()
-            .stream()
-            .findFirst()
-            .orElse(null);
+                .stream()
+                .findFirst()
+                .orElse(null);
         Optional<Sequence> sequence = document.sequences()
-            .stream()
-            .findFirst();
+                .stream()
+                .findFirst();
         return new Info(
                 author,
                 document.title(),
@@ -106,22 +104,22 @@ public class FB2Render implements Render {
 
     @Override
     public OpenInfo open(
-        RenderSettings settings, 
-        InputStream is, 
-        Path bookDirectory, 
-        Path deviceDirectory
+            RenderSettings settings,
+            InputStream is,
+            Path bookDirectory,
+            Path deviceDirectory
     ) throws IOException {
         FB2Parser parser = new FB2Parser(bookDirectory);
         FB2 document = parser.parse(is);
         LayoutManager manager = new LayoutManager(settings(settings));
         List<Page> pages = manager.layout(document);
         String author = document.authors()
-            .stream()
-            .findFirst()
-            .orElse(null);
+                .stream()
+                .findFirst()
+                .orElse(null);
         Optional<Sequence> sequence = document.sequences()
-            .stream()
-            .findFirst();
+                .stream()
+                .findFirst();
         Map<Integer, Integer> positionByPage = new HashMap<>();
         int i = 0;
         for (var page : pages) {
@@ -144,15 +142,15 @@ public class FB2Render implements Render {
         FB2Parser parser = new FB2Parser(bookDirectory);
         FB2 document = parser.parse(is);
         Path file = Optional.of(document.binaries())
-            .map(s -> s.get(document.cover()))
-            .filter(Objects::nonNull)
-            .map(s -> Path.of(s))
-            .filter(s -> Files.exists(s))
-            .orElse(null);
+                .map(s -> s.get(document.cover()))
+                .filter(Objects::nonNull)
+                .map(s -> Path.of(s))
+                .filter(s -> Files.exists(s))
+                .orElse(null);
         if (file != null) {
             Files.copy(file, os);
         } else {
-            //TODO вставить NO IMAGE какой-нить
+            // TODO вставить NO IMAGE какой-нить
         }
         os.flush();
     }
@@ -176,5 +174,4 @@ public class FB2Render implements Render {
         drawer.draw(pages.get(index), os);
         os.flush();
     }
-
 }

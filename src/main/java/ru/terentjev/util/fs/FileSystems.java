@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 public final class FileSystems {
-
     private static final Set<String> ignored = Set.of("jar", "jrt");
     private static final List<FileSystemProvider> providers = ServiceLoader.load(FileSystemProvider.class)
             .stream()
@@ -24,7 +23,7 @@ public final class FileSystems {
             try {
                 return provider.newFileSystem(file, Map.of());
             } catch (UnsupportedOperationException ignored) {
-                //ignored
+                // ignored
             }
         }
         return null;
@@ -35,7 +34,7 @@ public final class FileSystems {
             try {
                 return provider.newFileSystem(file, Map.of());
             } catch (UnsupportedOperationException | IllegalArgumentException ignored) {
-                //ignored
+                // ignored
             }
         }
         throw new UnsupportedOperationException("Not support filesystem for: " + file);

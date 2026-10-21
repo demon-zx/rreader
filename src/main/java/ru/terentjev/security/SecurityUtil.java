@@ -8,7 +8,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Optional;
 
 public final class SecurityUtil {
-
     private SecurityUtil() {
     }
 
@@ -17,13 +16,12 @@ public final class SecurityUtil {
      */
     public static Optional<String> user() {
         return Optional.ofNullable(SecurityContextHolder.getContext())
-            .map(SecurityContext::getAuthentication)
-            .filter(Authentication::isAuthenticated)
-            .map(Authentication::getName);
+                .map(SecurityContext::getAuthentication)
+                .filter(Authentication::isAuthenticated)
+                .map(Authentication::getName);
     }
 
     public static String userRequired() {
         return user().orElseThrow(() -> new BadCredentialsException("User not found"));
     }
-
 }

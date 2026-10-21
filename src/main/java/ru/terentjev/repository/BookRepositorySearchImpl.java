@@ -17,7 +17,6 @@ import java.util.List;
  * Name = Interface + Impl
  */
 public class BookRepositorySearchImpl implements BookRepositorySearch {
-
     private final JdbcAggregateTemplate template;
 
     public BookRepositorySearchImpl(JdbcAggregateTemplate template) {
@@ -27,9 +26,15 @@ public class BookRepositorySearchImpl implements BookRepositorySearch {
     @Override
     public Page<BookEntity> search(String q, Pageable pageable) {
         String like = "%" + q + "%";
-        Criteria criteria = Criteria.where("author").like(like).ignoreCase(true)
-                .or("title").like(like).ignoreCase(true)
-                .or("sequenceName").like(like).ignoreCase(true);
+        Criteria criteria = Criteria.where("author")
+                .like(like)
+                .ignoreCase(true)
+                .or("title")
+                .like(like)
+                .ignoreCase(true)
+                .or("sequenceName")
+                .like(like)
+                .ignoreCase(true);
         Query query = Query.query(criteria);
         long total = template.count(query, BookEntity.class);
         List<BookEntity> content = template.findAll(query.with(pageable), BookEntity.class);

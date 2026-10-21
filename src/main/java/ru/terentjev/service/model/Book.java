@@ -6,7 +6,6 @@ import java.net.URI;
 import java.util.UUID;
 
 public final class Book {
-
     private final UUID id;
     @NonNull
     private final String title;

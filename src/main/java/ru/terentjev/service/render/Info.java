@@ -1,7 +1,6 @@
 package ru.terentjev.service.render;
 
 public class Info {
-
     private final String author;
     private final String title;
     private final String sequenceName;
@@ -29,5 +28,4 @@ public class Info {
     public Integer getSequenceNumber() {
         return sequenceNumber;
     }
-
 }

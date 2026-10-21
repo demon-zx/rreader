@@ -6,20 +6,20 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration;
-import org.springframework.data.jdbc.core.mapping.JdbcValue;
 import org.springframework.data.jdbc.repository.config.EnableJdbcAuditing;
-import ru.terentjev.config.converter.ToEnumConverter;
-import ru.terentjev.config.converter.TimestampToOffsetDateTimeConverter;
 
-import javax.sql.DataSource;
+import ru.terentjev.config.converter.TimestampToOffsetDateTimeConverter;
+import ru.terentjev.config.converter.ToEnumConverter;
+
 import java.sql.JDBCType;
 import java.time.Clock;
 import java.util.List;
 
+import javax.sql.DataSource;
+
 @Configuration
 @EnableJdbcAuditing
 public class JdbcConfiguration extends AbstractJdbcConfiguration {
-
     private final Clock clock;
 
     @Bean
@@ -36,9 +36,6 @@ public class JdbcConfiguration extends AbstractJdbcConfiguration {
     @NonNull
     @Override
     protected List<?> userConverters() {
-        return List.of(
-                new ToEnumConverter(JDBCType.OTHER),
-                new TimestampToOffsetDateTimeConverter(clock)
-        );
+        return List.of(new ToEnumConverter(JDBCType.OTHER), new TimestampToOffsetDateTimeConverter(clock));
     }
 }

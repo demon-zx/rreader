@@ -6,7 +6,6 @@ import ru.terentjev.service.model.Page;
 import java.util.List;
 
 public abstract class ApiPageMapper<T, E> {
-
     public ApiPage<T> from(Page<E> source) {
         List<T> converted = source.getItems()
                 .stream()
@@ -16,5 +15,4 @@ public abstract class ApiPageMapper<T, E> {
     }
 
     public abstract T from(E source);
-
 }

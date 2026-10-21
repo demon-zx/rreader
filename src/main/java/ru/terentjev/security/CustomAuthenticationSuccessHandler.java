@@ -12,7 +12,6 @@ import java.io.IOException;
 
 @Component
 public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
-
     private final UserService userService;
 
     public CustomAuthenticationSuccessHandler(UserService userService) {
@@ -26,12 +25,10 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             Authentication authentication
     ) throws ServletException, IOException {
         String username = authentication.getName();
-
         if (userService.isCompromised(username)) {
             getRedirectStrategy().sendRedirect(request, response, "/change-password");
             return;
         }
-
         super.onAuthenticationSuccess(request, response, authentication);
     }
 }

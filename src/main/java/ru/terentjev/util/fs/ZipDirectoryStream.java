@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class ZipDirectoryStream implements DirectoryStream<Path> {
-
     private Iterator<ZipPath> files;
 
     public ZipDirectoryStream(ZipPath path, DirectoryStream.Filter<? super java.nio.file.Path> filter) {

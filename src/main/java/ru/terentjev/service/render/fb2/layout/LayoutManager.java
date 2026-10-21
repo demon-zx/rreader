@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.function.Function;
 
 public class LayoutManager extends AbstractGraphicsHolder {
-
     private final FB2RenderSettings settings;
 
     public LayoutManager(FB2RenderSettings settings) {
@@ -39,16 +38,15 @@ public class LayoutManager extends AbstractGraphicsHolder {
 
     public List<Page> layout(FB2 document) throws IOException {
         return withGraphics(
-            new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB), 
-            g -> new Layout(settings, g).layout(document)
+                new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB),
+                g -> new Layout(settings, g).layout(document)
         );
     }
 
     private static class Layout {
-
         private int position;
         private final List<Page> pages = new ArrayList<>();
-        //TODO содержание
+        // TODO содержание
         private final FB2RenderSettings settings;
         private final Fonts fonts;
         private final int contentTop;
@@ -67,10 +65,10 @@ public class LayoutManager extends AbstractGraphicsHolder {
 
         public List<Page> layout(FB2 document) {
             position = document.body()
-                .stream()
-                .findFirst()
-                .map(Block::position)
-                .orElse(0);
+                    .stream()
+                    .findFirst()
+                    .map(Block::position)
+                    .orElse(0);
             for (Block block : document.body()) {
                 block(document, block);
             }
@@ -101,22 +99,22 @@ public class LayoutManager extends AbstractGraphicsHolder {
 
         private void paragraph(ParagraphBlock block) {
             paging(
-                block, 
-                fonts.body(), 
-                p -> {
-                    if (p.bold() && p.italic()) {
-                        return fonts.bodyBoldItalic();
-                    }
-                    if (p.bold()) {
-                        return fonts.bodyBold();
-                    }
-                    if (p.italic()) {
-                        return fonts.bodyItalic();
-                    }
-                    return fonts.body();
-                }, 
-                false, 
-                settings.indent()
+                    block,
+                    fonts.body(),
+                    p -> {
+                        if (p.bold() && p.italic()) {
+                            return fonts.bodyBoldItalic();
+                        }
+                        if (p.bold()) {
+                            return fonts.bodyBold();
+                        }
+                        if (p.italic()) {
+                            return fonts.bodyItalic();
+                        }
+                        return fonts.body();
+                    },
+                    false,
+                    settings.indent()
             );
         }
 
@@ -174,7 +172,8 @@ public class LayoutManager extends AbstractGraphicsHolder {
                     lineWidth = 0;
                     indent = 0;
                 }
-                position += token.text().length() + 1;
+                position += token.text()
+                        .length() + 1;
                 lineWidth += lineWidth == 0 ? tokenWidth : space + tokenWidth;
                 line.add(token);
             }
@@ -256,7 +255,6 @@ public class LayoutManager extends AbstractGraphicsHolder {
 
         private record Token(String text, Font font) {
         }
-
     }
 
     public static void main(String[] args) throws Exception {
@@ -269,7 +267,18 @@ public class LayoutManager extends AbstractGraphicsHolder {
             document = parser.parse(is);
         }
         FB2RenderSettings settings = new FB2RenderSettings(
-                1080, 1527, 50, 50, 50, 50, 50, "Arial", 28, 1.2f, Color.BLACK, Color.WHITE
+                1080,
+                1527,
+                50,
+                50,
+                50,
+                50,
+                50,
+                "Arial",
+                28,
+                1.2f,
+                Color.BLACK,
+                Color.WHITE
         );
         LayoutManager layout = new LayoutManager(settings);
         var pages = layout.layout(document);
@@ -289,7 +298,5 @@ public class LayoutManager extends AbstractGraphicsHolder {
                 }
             }
         }
-
     }
-
 }

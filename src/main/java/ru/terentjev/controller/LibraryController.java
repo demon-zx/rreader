@@ -17,7 +17,6 @@ import ru.terentjev.service.BookService;
 @RequestMapping("library")
 public class LibraryController extends AbstractController {
     private static final Logger log = LoggerFactory.getLogger(LibraryController.class);
-
     private final BookService bookService;
 
     protected LibraryController(BookService bookService) {
@@ -33,5 +32,4 @@ public class LibraryController extends AbstractController {
     ) {
         return ApiBookMapper.mapper.from(bookService.findAll(q, page, pageSize));
     }
-
 }

@@ -17,5 +17,4 @@ public abstract class BookmarkMapper extends AbstractPageMapper<Bookmark, Bookma
     @Mapping(target = "updatedAt", ignore = true)
     @InheritInverseConfiguration
     public abstract BookmarkEntity to(Bookmark source);
-
 }

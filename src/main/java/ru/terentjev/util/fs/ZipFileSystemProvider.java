@@ -30,7 +30,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ZipFileSystemProvider extends FileSystemProvider {
-
     private final Map<Path, ZipFileSystem> filesystems = new ConcurrentHashMap<>();
     private final Map<Path, Lock> locks = new ConcurrentHashMap<>();
 
@@ -127,8 +126,11 @@ public class ZipFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
-            throws IOException {
+    public SeekableByteChannel newByteChannel(
+            Path path,
+            Set<? extends OpenOption> options,
+            FileAttribute<?>... attrs
+    ) throws IOException {
         return castPath(path).newByteChannel(options, attrs);
     }
 

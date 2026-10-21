@@ -11,7 +11,6 @@ import java.nio.file.Path;
 
 @ConfigurationProperties(prefix = "application.path")
 public record DirectoryParameters(Path config, Path books, Path pages) {
-
     private static final Logger log = LoggerFactory.getLogger(DirectoryParameters.class);
 
     public DirectoryParameters {

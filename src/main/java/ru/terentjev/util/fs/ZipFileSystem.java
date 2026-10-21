@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ZipFileSystem extends java.nio.file.FileSystem {
-
     private final ZipFileSystemProvider provider;
     private final Path archive;
     private final ZipFile zip;
@@ -86,7 +85,6 @@ public class ZipFileSystem extends java.nio.file.FileSystem {
             return new ZipPath(this, first);
         }
         return new ZipPath(this, String.join("/", more));
-
     }
 
     @Override
@@ -108,7 +106,7 @@ public class ZipFileSystem extends java.nio.file.FileSystem {
     }
 
     public ZipEntryAttributes readAttributes(ZipPath path) throws IOException {
-        //TODO add unix attributes
+        // TODO add unix attributes
         ZipArchiveEntry entry = zip.getEntry(path.getPath());
         if (entry == null && "/".equals(path.getPath())) {
             BasicFileAttributes rootAttrs = Files.readAttributes(
@@ -117,11 +115,11 @@ public class ZipFileSystem extends java.nio.file.FileSystem {
                     LinkOption.NOFOLLOW_LINKS
             );
             return new ZipEntryAttributes(
-                rootAttrs.lastModifiedTime(),
-                rootAttrs.lastAccessTime(),
-                rootAttrs.creationTime(),
-                false,
-                0
+                    rootAttrs.lastModifiedTime(),
+                    rootAttrs.lastAccessTime(),
+                    rootAttrs.creationTime(),
+                    false,
+                    0
             );
         }
         return new ZipEntryAttributes(
@@ -164,8 +162,11 @@ public class ZipFileSystem extends java.nio.file.FileSystem {
         } else {
             ZipArchiveEntry entry = zip.getEntry(path.getPath());
             if (entry != null) {
-                //TODO попробовать написать свою реализацию без чтения всего архива в память
-                return new SeekableInMemoryByteChannel(zip.getInputStream(entry).readAllBytes());
+                // TODO попробовать написать свою реализацию без чтения всего архива в память
+                return new SeekableInMemoryByteChannel(
+                        zip.getInputStream(entry)
+                                .readAllBytes()
+                );
             } else {
                 throw new IllegalArgumentException("Unknown archive entry: " + path.getPath());
             }

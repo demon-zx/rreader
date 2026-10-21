@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class SettingsService {
-
     private static final List<String> GLOBAL_DEFINITIONS = List.of(
             SettingKeys.FONT,
             SettingKeys.SIZE,
@@ -39,7 +38,6 @@ public class SettingsService {
             SettingKeys.PADDING_BOTTOM,
             SettingKeys.INDENT
     );
-
     private static final Map<String, String> DEFAULTS = Map.ofEntries(
             Map.entry(SettingKeys.FONT, "Arial"),
             Map.entry(SettingKeys.SIZE, "28"),
@@ -51,7 +49,6 @@ public class SettingsService {
             Map.entry(SettingKeys.PADDING_BOTTOM, "50"),
             Map.entry(SettingKeys.INDENT, "50")
     );
-
     private final SettingsRepository repository;
     private final Clock clock;
     private final RenderFactory renderFactory;
@@ -129,7 +126,8 @@ public class SettingsService {
         Instant now = clock.instant();
         String scopeName = scope.name();
         List<SettingsEntity> existing = repository.findByDeviceUuidAndScopeIn(
-                deviceUuid, List.of(scopeName)
+                deviceUuid,
+                List.of(scopeName)
         );
         Map<String, SettingsEntity> byKey = existing.stream()
                 .collect(Collectors.toMap(SettingsEntity::key, e -> e));
@@ -160,5 +158,4 @@ public class SettingsService {
         }
         publisher.publishEvent(new SettingsChangedEvent(deviceUuid));
     }
-
 }

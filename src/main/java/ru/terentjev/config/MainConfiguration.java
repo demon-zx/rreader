@@ -1,6 +1,5 @@
 package ru.terentjev.config;
 
-
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -26,13 +25,11 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
-
 @Configuration
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @EnableScheduling
 @ConfigurationPropertiesScan(basePackageClasses = MainConfiguration.class)
 public class MainConfiguration implements WebMvcConfigurer {
-
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
         configurer.addPathPrefix("api/v1", HandlerTypePredicate.forAnnotation(RestController.class));
@@ -80,7 +77,4 @@ public class MainConfiguration implements WebMvcConfigurer {
     public TimedAspect timedAspect(MeterRegistry registry) {
         return new TimedAspect(registry);
     }
-
 }
-
-

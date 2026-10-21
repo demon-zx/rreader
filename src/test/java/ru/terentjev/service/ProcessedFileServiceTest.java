@@ -30,15 +30,11 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProcessedFileServiceTest {
-
     private static final Instant NOW = Instant.parse("2024-01-15T10:00:00Z");
-
     @TempDir
     Path tempDir;
-
     @Mock
     private ProcessedFileRepository repository;
-
     private ProcessedFileService service;
     private Path file;
 
@@ -51,40 +47,60 @@ class ProcessedFileServiceTest {
 
     @Test
     void isChangedWhenNoRecord() throws IOException {
-        when(repository.findByPath(file.toAbsolutePath().toString())).thenReturn(Optional.empty());
-
+        when(
+                repository.findByPath(
+                        file.toAbsolutePath()
+                                .toString()
+                )
+        ).thenReturn(Optional.empty());
         assertTrue(service.isChanged(file));
     }
 
     @Test
     void isNotChangedWhenSizeAndModifiedAtTheSame() throws IOException {
         ProcessedFileEntity entity = entity(true, Files.size(file), modifiedAt());
-        when(repository.findByPath(file.toAbsolutePath().toString())).thenReturn(Optional.of(entity));
-
+        when(
+                repository.findByPath(
+                        file.toAbsolutePath()
+                                .toString()
+                )
+        ).thenReturn(Optional.of(entity));
         assertFalse(service.isChanged(file));
     }
 
     @Test
     void isChangedWhenSizeDiffers() throws IOException {
         ProcessedFileEntity entity = entity(true, Files.size(file) + 1, modifiedAt());
-        when(repository.findByPath(file.toAbsolutePath().toString())).thenReturn(Optional.of(entity));
-
+        when(
+                repository.findByPath(
+                        file.toAbsolutePath()
+                                .toString()
+                )
+        ).thenReturn(Optional.of(entity));
         assertTrue(service.isChanged(file));
     }
 
     @Test
     void isChangedWhenModifiedAtDiffers() throws IOException {
         ProcessedFileEntity entity = entity(true, Files.size(file), modifiedAt().plusSeconds(1));
-        when(repository.findByPath(file.toAbsolutePath().toString())).thenReturn(Optional.of(entity));
-
+        when(
+                repository.findByPath(
+                        file.toAbsolutePath()
+                                .toString()
+                )
+        ).thenReturn(Optional.of(entity));
         assertTrue(service.isChanged(file));
     }
 
     @Test
     void isChangedWhenNotProcessed() throws IOException {
         ProcessedFileEntity entity = entity(false, Files.size(file), modifiedAt());
-        when(repository.findByPath(file.toAbsolutePath().toString())).thenReturn(Optional.of(entity));
-
+        when(
+                repository.findByPath(
+                        file.toAbsolutePath()
+                                .toString()
+                )
+        ).thenReturn(Optional.of(entity));
         assertTrue(service.isChanged(file));
     }
 
@@ -94,20 +110,30 @@ class ProcessedFileServiceTest {
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         long size = Files.size(file);
         Instant modifiedAt = modifiedAt();
-
         service.markProcessed(file, ProcessResult.SUCCESS, null, size, modifiedAt);
-
         ArgumentCaptor<ProcessedFileEntity> captor = ArgumentCaptor.forClass(ProcessedFileEntity.class);
         verify(repository).save(captor.capture());
-        assertEquals(size, captor.getValue().size());
-        assertEquals(modifiedAt, captor.getValue().modifiedAt());
-        assertTrue(captor.getValue().processed());
+        assertEquals(
+                size,
+                captor.getValue()
+                        .size()
+        );
+        assertEquals(
+                modifiedAt,
+                captor.getValue()
+                        .modifiedAt()
+        );
+        assertTrue(
+                captor.getValue()
+                        .processed()
+        );
     }
 
     private ProcessedFileEntity entity(boolean processed, Long size, Instant modifiedAt) {
         return new ProcessedFileEntity(
                 null,
-                file.toAbsolutePath().toString(),
+                file.toAbsolutePath()
+                        .toString(),
                 processed,
                 ProcessResult.SUCCESS.name(),
                 null,
@@ -121,6 +147,7 @@ class ProcessedFileServiceTest {
     }
 
     private Instant modifiedAt() throws IOException {
-        return Files.getLastModifiedTime(file).toInstant();
+        return Files.getLastModifiedTime(file)
+                .toInstant();
     }
 }

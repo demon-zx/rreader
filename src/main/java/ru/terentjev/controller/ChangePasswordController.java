@@ -18,7 +18,6 @@ import jakarta.servlet.http.HttpServletRequest;
 @Controller
 public class ChangePasswordController {
     private static final Logger log = LoggerFactory.getLogger(ChangePasswordController.class);
-
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
@@ -30,12 +29,11 @@ public class ChangePasswordController {
         this.passwordEncoder = passwordEncoder;
     }
 
-
     @GetMapping("/change-password")
     public String changePasswordPage() {
         boolean notCompromised = SecurityUtil.user()
-            .filter(userService::isCompromised)
-            .isEmpty();
+                .filter(userService::isCompromised)
+                .isEmpty();
         if (notCompromised) {
             return "redirect:/";
         }

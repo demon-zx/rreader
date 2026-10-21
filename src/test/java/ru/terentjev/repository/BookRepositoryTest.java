@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ImportAutoConfiguration(LiquibaseAutoConfiguration.class)
 @Import(BookRepositoryTest.TestConfig.class)
 class BookRepositoryTest {
-
     static final String DB_URL = "jdbc:h2:mem:bookrepotest;" + TestH2.OPTIONS;
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -55,19 +54,27 @@ class BookRepositoryTest {
     void findByUriReturnsSavedBook() {
         String uri = "file:///books/foundation.fb2";
         BookEntity saved = repository.save(book(uri));
-
         Optional<BookEntity> found = repository.findByUri(uri);
-
         assertTrue(found.isPresent());
-        assertEquals(saved.getId(), found.get().getId());
-        assertEquals(uri, found.get().uri());
+        assertEquals(
+                saved.getId(),
+                found.get()
+                        .getId()
+        );
+        assertEquals(
+                uri,
+                found.get()
+                        .uri()
+        );
     }
 
     @Test
     void findByUriReturnsEmptyForUnknownUri() {
         repository.save(book("file:///books/foundation.fb2"));
-
-        assertTrue(repository.findByUri("file:///books/missing.fb2").isEmpty());
+        assertTrue(
+                repository.findByUri("file:///books/missing.fb2")
+                        .isEmpty()
+        );
     }
 
     @Test
@@ -75,15 +82,18 @@ class BookRepositoryTest {
         repository.save(book("file:///books/1.fb2"));
         repository.save(book("file:///books/2.fb2"));
         repository.save(book("file:///books/3.fb2"));
-
         List<String> uris;
         try (var stream = repository.findAllAsStream()) {
-            uris = stream.map(BookEntity::uri).toList();
+            uris = stream.map(BookEntity::uri)
+                    .toList();
         }
-
-        List<String> expected = new ArrayList<>(List.of(
-                "file:///books/1.fb2", "file:///books/2.fb2", "file:///books/3.fb2"
-        ));
+        List<String> expected = new ArrayList<>(
+                List.of(
+                        "file:///books/1.fb2",
+                        "file:///books/2.fb2",
+                        "file:///books/3.fb2"
+                )
+        );
         List<String> actual = new ArrayList<>(uris);
         Collections.sort(expected);
         Collections.sort(actual);
@@ -93,15 +103,30 @@ class BookRepositoryTest {
     @Test
     void findAllAsStreamReturnsEmptyStreamWithoutBooks() {
         try (var stream = repository.findAllAsStream()) {
-            assertTrue(stream.toList().isEmpty());
+            assertTrue(
+                    stream.toList()
+                            .isEmpty()
+            );
         }
     }
 
     private static BookEntity book(String uri) {
         return new BookEntity(
-                null, "Title", "Author", null, null, null,
-                "FB2", uri, "checksum", null, 100L,
-                null, null, null, null
+                null,
+                "Title",
+                "Author",
+                null,
+                null,
+                null,
+                "FB2",
+                uri,
+                "checksum",
+                null,
+                100L,
+                null,
+                null,
+                null,
+                null
         );
     }
 }

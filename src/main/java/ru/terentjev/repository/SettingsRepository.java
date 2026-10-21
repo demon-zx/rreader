@@ -11,9 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface SettingsRepository
-        extends ListCrudRepository<SettingsEntity, UUID> {
-
+public interface SettingsRepository extends ListCrudRepository<SettingsEntity, UUID> {
     List<SettingsEntity> findByDeviceUuidAndScopeIn(UUID deviceUuid, List<String> scopes);
 
     /**
@@ -27,5 +25,4 @@ public interface SettingsRepository
             @Param("deviceUuid") UUID deviceUuid,
             @Param("scope") String scope
     );
-
 }

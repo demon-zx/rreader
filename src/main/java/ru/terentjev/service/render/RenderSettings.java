@@ -3,7 +3,6 @@ package ru.terentjev.service.render;
 import java.util.Map;
 
 public record RenderSettings(int viewportWidth, int viewportHeight, Map<String, String> settings) {
-
     public RenderSettings {
         settings = settings == null ? Map.of() : Map.copyOf(settings);
     }

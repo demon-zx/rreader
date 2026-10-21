@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ImportAutoConfiguration(LiquibaseAutoConfiguration.class)
 @Import(SettingsRepositoryTest.TestConfig.class)
 class SettingsRepositoryTest {
-
     static final String DB_URL = "jdbc:h2:mem:settingstest;" + TestH2.OPTIONS;
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -43,7 +42,6 @@ class SettingsRepositoryTest {
     }
 
     private final UUID deviceUuid = UUID.randomUUID();
-
     @Autowired
     private SettingsRepository repository;
 
@@ -57,10 +55,10 @@ class SettingsRepositoryTest {
         repository.save(setting("GLOBAL", "font", "Arial"));
         repository.save(setting("GLOBAL", "size", "28"));
         repository.save(setting("FB2", "font", "Georgia"));
-
         List<SettingsEntity> settings = repository.findByDeviceUuidAndScopeIn(
-                deviceUuid, List.of("FB2", "GLOBAL"));
-
+                deviceUuid,
+                List.of("FB2", "GLOBAL")
+        );
         assertEquals(3, settings.size());
     }
 
@@ -68,10 +66,10 @@ class SettingsRepositoryTest {
     void findsOnlyRequestedScopes() {
         repository.save(setting("GLOBAL", "font", "Arial"));
         repository.save(setting("PDF", "font", "Times New Roman"));
-
         List<SettingsEntity> settings = repository.findByDeviceUuidAndScopeIn(
-                deviceUuid, List.of("FB2", "GLOBAL"));
-
+                deviceUuid,
+                List.of("FB2", "GLOBAL")
+        );
         assertEquals(1, settings.size());
         SettingsEntity first = settings.get(0);
         assertEquals("GLOBAL", first.scope());
@@ -82,11 +80,16 @@ class SettingsRepositoryTest {
     void deleteByScopeRemovesOnlyMatchingScope() {
         repository.save(setting("GLOBAL", "font", "Arial"));
         repository.save(setting("FB2", "font", "Georgia"));
-
         repository.deleteByDeviceUuidAndScope(deviceUuid, "GLOBAL");
-
-        assertTrue(repository.findByDeviceUuidAndScopeIn(deviceUuid, List.of("GLOBAL")).isEmpty());
-        assertEquals(1, repository.findByDeviceUuidAndScopeIn(deviceUuid, List.of("FB2")).size());
+        assertTrue(
+                repository.findByDeviceUuidAndScopeIn(deviceUuid, List.of("GLOBAL"))
+                        .isEmpty()
+        );
+        assertEquals(
+                1,
+                repository.findByDeviceUuidAndScopeIn(deviceUuid, List.of("FB2"))
+                        .size()
+        );
     }
 
     private SettingsEntity setting(String scope, String key, String value) {

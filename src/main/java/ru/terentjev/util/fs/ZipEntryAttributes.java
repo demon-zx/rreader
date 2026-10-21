@@ -4,7 +4,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 
 public class ZipEntryAttributes implements BasicFileAttributes {
-
     private final FileTime lastModifiedTime;
     private final FileTime lastAccessTime;
     private final FileTime creationTime;

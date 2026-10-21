@@ -3,10 +3,8 @@ package ru.terentjev.service.render;
 import java.util.Map;
 
 public class OpenInfo extends Info {
-
     private final int pages;
     private final Map<Integer, Integer> positionByPage;
-
 
     public OpenInfo(
             String author,
@@ -24,9 +22,8 @@ public class OpenInfo extends Info {
     public int getPages() {
         return pages;
     }
-    
+
     public Map<Integer, Integer> getPositionByPage() {
         return positionByPage;
     }
-    
 }

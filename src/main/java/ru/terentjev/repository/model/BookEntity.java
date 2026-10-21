@@ -11,48 +11,22 @@ import java.util.UUID;
 
 @Table("book")
 public record BookEntity(
-        @Id
-        @Column("id")
-        UUID id,
-        @NonNull
-        @Column("title")
-        String title,
-        @Column("author")
-        String author,
-        @Column("language")
-        String language,
-        @Column("sequence_name")
-        String sequenceName,
-        @Column("sequence_number")
-        Integer sequenceNumber,
-        @NonNull
-        @Column("type")
-        String type,
-        @NonNull
-        @Column("uri")
-        String uri,
-        @NonNull
-        @Column("checksum")
-        String checksum,
-        @Column("isbn")
-        Long isbn,
-        @Column("size")
-        long size,
-        @CreatedDate
-        @Column("created_at")
-        Instant createdAt,
-        @CreatedBy
-        @Column("created_by")
-        String createdBy,
-        @LastModifiedDate
-        @Column("updated_at")
-        Instant updatedAt,
-        @LastModifiedBy
-        @Column("updated_by")
-        String updatedBy
+        @Id @Column("id") UUID id,
+        @NonNull @Column("title") String title,
+        @Column("author") String author,
+        @Column("language") String language,
+        @Column("sequence_name") String sequenceName,
+        @Column("sequence_number") Integer sequenceNumber,
+        @NonNull @Column("type") String type,
+        @NonNull @Column("uri") String uri,
+        @NonNull @Column("checksum") String checksum,
+        @Column("isbn") Long isbn,
+        @Column("size") long size,
+        @CreatedDate @Column("created_at") Instant createdAt,
+        @CreatedBy @Column("created_by") String createdBy,
+        @LastModifiedDate @Column("updated_at") Instant updatedAt,
+        @LastModifiedBy @Column("updated_by") String updatedBy
 ) implements Persistable<UUID> {
-
-
     @Override
     public UUID getId() {
         return id;
