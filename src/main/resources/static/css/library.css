@@ -12,6 +12,10 @@
     overflow: hidden;
 }
 
+.book-cover-wrap {
+    position: relative;
+}
+
 .book-cover {
     width: 100px;
     min-width: 100px;
@@ -22,6 +26,13 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: #e9ecef;
     display: block;
+}
+
+.read-percent {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    border: 1px solid #fff;
 }
 
 @media (max-width: 576px) {

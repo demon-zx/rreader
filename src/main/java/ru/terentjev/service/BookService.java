@@ -15,9 +15,13 @@ import ru.terentjev.service.model.Page;
 
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -62,6 +66,21 @@ public class BookService {
     public Optional<Book> findByUri(URI uri) {
         return repository.findByUri(uri.toString())
                 .map(BookMapper.mapper::from);
+    }
+
+    /**
+     * Книги по списку идентификаторов, сохраняя порядок {@code ids}.
+     * Отсутствующие идентификаторы пропускаются.
+     */
+    public List<Book> findByIds(Collection<UUID> ids) {
+        Map<UUID, BookEntity> found = repository.findAllById(ids)
+                .stream()
+                .collect(Collectors.toMap(BookEntity::id, e -> e));
+        return ids.stream()
+                .map(found::get)
+                .filter(Objects::nonNull)
+                .map(BookMapper.mapper::from)
+                .toList();
     }
 
     /**

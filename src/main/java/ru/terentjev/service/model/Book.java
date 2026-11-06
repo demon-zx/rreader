@@ -5,7 +5,7 @@ import org.jspecify.annotations.NonNull;
 import java.net.URI;
 import java.util.UUID;
 
-public final class Book {
+public class Book {
     private final UUID id;
     @NonNull
     private final String title;

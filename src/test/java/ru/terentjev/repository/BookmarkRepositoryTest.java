@@ -9,8 +9,12 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import ru.terentjev.repository.model.BookEntity;
+import ru.terentjev.repository.model.BookmarkEntity;
 import ru.terentjev.service.BookService;
 import ru.terentjev.service.BookmarkService;
 import ru.terentjev.service.model.Book;
@@ -18,6 +22,8 @@ import ru.terentjev.service.model.Bookmark;
 
 import java.net.URI;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,6 +58,8 @@ class BookmarkRepositoryTest {
     private BookmarkService bookmarkService;
     @Autowired
     private BookService bookService;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void deleteByBookIdRemovesBookmarks() {
@@ -70,6 +78,53 @@ class BookmarkRepositoryTest {
                         .iterator()
                         .next()
                         .bookId()
+        );
+    }
+
+    @Test
+    void findCurrentOrdersByUpdatedAtDescRespectsUserAndLimit() {
+        UUID bookA = bookRepository.save(book()).getId();
+        UUID bookB = bookRepository.save(book()).getId();
+        UUID bookC = bookRepository.save(book()).getId();
+        UUID bmA = bookmarkRepository.save(
+                new BookmarkEntity(null, "alice", BookmarkService.CURRENT, bookA, 1L, null, null)
+        )
+                .getId();
+        UUID bmB = bookmarkRepository.save(
+                new BookmarkEntity(null, "alice", BookmarkService.CURRENT, bookB, 2L, null, null)
+        )
+                .getId();
+        UUID bmC = bookmarkRepository.save(
+                new BookmarkEntity(null, "alice", BookmarkService.CURRENT, bookC, 3L, null, null)
+        )
+                .getId();
+        bookmarkRepository.save(
+                new BookmarkEntity(null, "bob", BookmarkService.CURRENT, bookA, 1L, null, null)
+        );
+        Instant base = Instant.parse("2026-01-01T00:00:00Z");
+        jdbcTemplate.update("update bookmark set updated_at = ? where id = ?", base, bmA);
+        jdbcTemplate.update(
+                "update bookmark set updated_at = ? where id = ?",
+                base.plus(1, ChronoUnit.MINUTES),
+                bmB
+        );
+        jdbcTemplate.update(
+                "update bookmark set updated_at = ? where id = ?",
+                base.plus(2, ChronoUnit.MINUTES),
+                bmC
+        );
+        List<BookmarkEntity> current = bookmarkRepository.findCurrent(
+                "alice",
+                BookmarkService.CURRENT,
+                PageRequest.of(0, 2, Sort.by("updatedAt").descending())
+        );
+        assertEquals(List.of(bmC, bmB), current.stream().map(BookmarkEntity::id).toList());
+        assertEquals(
+                List.of(bookC, bookB, bookA),
+                bookmarkService.findRecent("alice", 4)
+                        .stream()
+                        .map(Bookmark::getBookId)
+                        .toList()
         );
     }
 

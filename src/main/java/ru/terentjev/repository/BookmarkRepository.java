@@ -16,7 +16,8 @@ import java.util.UUID;
 public interface BookmarkRepository
         extends
         ListCrudRepository<BookmarkEntity, UUID>,
-        ListPagingAndSortingRepository<BookmarkEntity, UUID> {
+        ListPagingAndSortingRepository<BookmarkEntity, UUID>,
+        BookmarkRepositoryCurrent {
     Optional<BookmarkEntity> findByUsernameAndTitleAndBookId(String username, String title, UUID bookId);
 
     /**

@@ -1,6 +1,8 @@
 package ru.terentjev.service;
 
 import org.slf4j.Logger;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.terentjev.exception.InvalidArgumentException;
@@ -11,6 +13,7 @@ import ru.terentjev.service.model.Bookmark;
 
 import java.text.MessageFormat;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +53,21 @@ public class BookmarkService {
         return repository.findByUsernameAndTitleAndBookId(username, CURRENT, bookId)
                 .map(BookmarkEntity::position)
                 .orElse(1L);
+    }
+
+    /**
+     * «Текущие» закладки, отсортированные по дате изменения закладки по
+     * убыванию (не более {@code limit} записей).
+     */
+    public List<Bookmark> findRecent(String username, int limit) {
+        return repository.findCurrent(
+                username,
+                CURRENT,
+                PageRequest.of(0, limit, Sort.by("updatedAt").descending())
+        )
+                .stream()
+                .map(BookmarkMapper.mapper::from)
+                .toList();
     }
 
     @Transactional
