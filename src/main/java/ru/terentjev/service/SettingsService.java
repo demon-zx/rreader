@@ -36,7 +36,9 @@ public class SettingsService {
             SettingKeys.PADDING_TOP,
             SettingKeys.PADDING_RIGHT,
             SettingKeys.PADDING_BOTTOM,
-            SettingKeys.INDENT
+            SettingKeys.INDENT,
+            SettingKeys.JUSTIFY,
+            SettingKeys.HYPHENATION
     );
     private static final Map<String, String> DEFAULTS = Map.ofEntries(
             Map.entry(SettingKeys.FONT, "Arial"),
@@ -47,7 +49,9 @@ public class SettingsService {
             Map.entry(SettingKeys.PADDING_TOP, "50"),
             Map.entry(SettingKeys.PADDING_RIGHT, "50"),
             Map.entry(SettingKeys.PADDING_BOTTOM, "50"),
-            Map.entry(SettingKeys.INDENT, "50")
+            Map.entry(SettingKeys.INDENT, "50"),
+            Map.entry(SettingKeys.JUSTIFY, "true"),
+            Map.entry(SettingKeys.HYPHENATION, "true")
     );
     private final SettingsRepository repository;
     private final Clock clock;

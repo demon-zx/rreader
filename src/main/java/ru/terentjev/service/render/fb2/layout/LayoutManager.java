@@ -26,7 +26,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class LayoutManager extends AbstractGraphicsHolder {
@@ -53,6 +56,7 @@ public class LayoutManager extends AbstractGraphicsHolder {
         private final int contentBottom;
         private final int contentWidth;
         private final Graphics2D graphics;
+        private final Map<Font, FontMetrics> fontMetrics = new HashMap<>();
 
         public Layout(FB2RenderSettings settings, Graphics2D graphics) {
             this.settings = settings;
@@ -61,6 +65,10 @@ public class LayoutManager extends AbstractGraphicsHolder {
             contentTop = settings.paddingTop();
             contentBottom = settings.pageHeight() - settings.paddingBottom();
             contentWidth = settings.pageWidth() - settings.paddingLeft() - settings.paddingRight();
+        }
+
+        private FontMetrics fontMetrics(Font font) {
+            return graphics.getFontMetrics(font);
         }
 
         public List<Page> layout(FB2 document) {
@@ -154,32 +162,147 @@ public class LayoutManager extends AbstractGraphicsHolder {
                 boolean centered,
                 int paragraphIndent
         ) {
-            int position = block.position();
             List<Token> tokens = tokens(block, fontPiece);
-            FontMetrics base = graphics.getFontMetrics(fontBase);
+            FontMetrics base = fontMetrics(fontBase);
             int ascent = base.getAscent();
             int height = lineHeight(fontBase);
             int space = base.charWidth(' ');
+            for (Line line : lines(block.position(), tokens, space, paragraphIndent)) {
+                boolean justify = settings.justify() && !centered && !line.last();
+                newLine(
+                        line.position(),
+                        line.tokens(),
+                        line.width(),
+                        line.indent(),
+                        ascent,
+                        height,
+                        space,
+                        centered,
+                        justify
+                );
+            }
+        }
+
+        /**
+         * Разбивает токены на строки, при необходимости перенося слова по слогам.
+         *
+         * @param tokens          слова абзаца
+         * @param space           ширина пробела
+         * @param paragraphIndent отступ первой строки
+         * @return строки абзаца
+         */
+        private List<Line> lines(int startPosition, List<Token> tokens, int space, int paragraphIndent) {
+            List<Line> result = new ArrayList<>();
             List<Token> line = new ArrayList<>();
-            int lineWidth = 0;
+            int width = 0;
             int indent = paragraphIndent;
-            for (Token token : tokens) {
-                int tokenWidth = graphics.getFontMetrics(token.font())
-                        .stringWidth(token.text());
-                if (indent + lineWidth + space + tokenWidth > contentWidth) {
-                    newLine(position, List.copyOf(line), lineWidth, indent, ascent, height, space, centered);
-                    line.clear();
-                    lineWidth = 0;
-                    indent = 0;
+            int index = 0;
+            tokens = new ArrayList<>(tokens);
+            while (index < tokens.size()) {
+                Token token = tokens.get(index);
+                Font font = token.font();
+                FontMetrics metrics = fontMetrics(font);
+                String text = token.text();
+                int tokenWidth = metrics.stringWidth(text);
+                int before = line.isEmpty() ? 0 : space;
+                int available = contentWidth - indent - width - before;
+                if (tokenWidth <= available) {
+                    // слово помещается в строку
+                    line.add(token);
+                    width += before + tokenWidth;
+                    index++;
+                } else {
+                    Hyphenation.Break br = null;
+                    if (settings.hyphenation()) {
+                        br = Hyphenation.breakWord(text, available, metrics, line.isEmpty());
+                    }
+                    if (br != null) {
+                        // разрываем слово по слогам, остаток переносим на следующую строку
+                        Token headToken = new Token(br.head(), font, token.position());
+                        Token tailToken = new Token(br.tail(), font, token.position() + br.offset());
+                        line.add(headToken);
+                        width += before + fontMetrics(font).stringWidth(br.head());
+                        result.add(new Line(List.copyOf(line), width, indent, tailToken.position(), false));
+                        line = new ArrayList<>();
+                        width = 0;
+                        indent = 0;
+                        tokens.set(index, tailToken);
+                    } else if (line.isEmpty()) {
+                        // слово не помещается даже в пустую строку - выводим как есть
+                        line.add(token);
+                        width = tokenWidth;
+                        index++;
+                    } else {
+                        // строка заполнена - слово перейдет на следующую строку
+                        result.add(new Line(List.copyOf(line), width, indent, token.position(), false));
+                        line = new ArrayList<>();
+                        width = 0;
+                        indent = 0;
+                    }
                 }
-                position += token.text()
-                        .length() + 1;
-                lineWidth += lineWidth == 0 ? tokenWidth : space + tokenWidth;
-                line.add(token);
             }
             if (!line.isEmpty()) {
-                newLine(position, line, lineWidth, indent, ascent, height, space, centered);
+                int endPosition = startPosition;
+                if (!tokens.isEmpty()) {
+                    // позиция сразу за последним словом абзаца
+                    Token last = tokens.get(tokens.size() - 1);
+                    endPosition = last.position() + last.text()
+                            .length() + 1;
+                }
+                result.add(new Line(List.copyOf(line), width, indent, endPosition, true));
             }
+            return result;
+        }
+
+        /**
+         * Распределяет свободное место между словами строки.
+         *
+         * @param tokens    слова строки
+         * @param lineWidth ширина строки без распределения
+         * @param indent    отступ строки
+         * @param space     обычная ширина пробела
+         * @return ширины пробелов между словами строки
+         */
+        private int[] spaces(List<Token> tokens, int lineWidth, int indent, int space) {
+            int count = tokens.size() - 1;
+            int[] result = new int[Math.max(count, 0)];
+            Arrays.fill(result, space);
+            if (count <= 0) {
+                return result;
+            }
+            int extra = contentWidth - indent - lineWidth;
+            if (extra <= 0) {
+                return result;
+            }
+            int first = 0;
+            var firstToken = tokens.get(0);
+            if (notContainsLetter(firstToken.text())) {
+                // после первого слова без букв пробел остается обычной ширины
+                first = 1;
+            }
+            int stretchable = count - first;
+            if (stretchable <= 0) {
+                return result;
+            }
+            int add = extra / stretchable;
+            int rest = extra % stretchable;
+            for (int i = first; i < count; i++) {
+                result[i] += add;
+                if (rest > 0) {
+                    result[i]++;
+                    rest--;
+                }
+            }
+            return result;
+        }
+
+        private static boolean notContainsLetter(String text) {
+            for (char c : text.toCharArray()) {
+                if (Character.isLetter(c)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private void newLine(
@@ -190,11 +313,13 @@ public class LayoutManager extends AbstractGraphicsHolder {
                 int ascent,
                 int height,
                 int space,
-                boolean centered
+                boolean centered,
+                boolean justify
         ) {
             if (y + height > contentBottom) {
                 newPage(newPosition);
             }
+            int[] gaps = justify ? spaces(tokens, lineWidth, indent, space) : null;
             int startX;
             if (centered) {
                 startX = settings.paddingLeft() + Math.max(0, (contentWidth - lineWidth) / 2);
@@ -207,11 +332,10 @@ public class LayoutManager extends AbstractGraphicsHolder {
             for (int i = 0; i < tokens.size(); i++) {
                 Token token = tokens.get(i);
                 if (i > 0) {
-                    x += space;
+                    x += gaps == null ? space : gaps[i - 1];
                 }
                 words.add(new Word(x, token.text(), token.font()));
-                x += graphics.getFontMetrics(token.font())
-                        .stringWidth(token.text());
+                x += fontMetrics(token.font()).stringWidth(token.text());
             }
             objects.add(new Page.LineObject(baseline, words));
             y += height;
@@ -219,6 +343,7 @@ public class LayoutManager extends AbstractGraphicsHolder {
 
         private List<Token> tokens(AbstractPiecesBlock block, Function<Piece, Font> font) {
             List<Token> tokens = new ArrayList<>();
+            int position = block.position();
             for (Piece piece : block.pieces()) {
                 String[] words = piece.text()
                         .trim()
@@ -226,8 +351,9 @@ public class LayoutManager extends AbstractGraphicsHolder {
                 Font f = font.apply(piece);
                 for (String word : words) {
                     if (StringUtils.isNotBlank(word)) {
-                        tokens.add(new Token(word, f));
+                        tokens.add(new Token(word, f, position));
                     }
+                    position += word.length() + 1;
                 }
             }
             return tokens;
@@ -241,8 +367,7 @@ public class LayoutManager extends AbstractGraphicsHolder {
         }
 
         private int lineHeight(Font font) {
-            FontMetrics fontMetrics = graphics.getFontMetrics(font);
-            return Math.round(fontMetrics.getHeight() * settings.lineHeight());
+            return Math.round(fontMetrics(font).getHeight() * settings.lineHeight());
         }
 
         private void newPage(int newPosition) {
@@ -253,7 +378,10 @@ public class LayoutManager extends AbstractGraphicsHolder {
             position = newPosition;
         }
 
-        private record Token(String text, Font font) {
+        private record Token(String text, Font font, int position) {
+        }
+
+        private record Line(List<Token> tokens, int width, int indent, int position, boolean last) {
         }
     }
 
@@ -278,7 +406,9 @@ public class LayoutManager extends AbstractGraphicsHolder {
                 28,
                 1.2f,
                 Color.BLACK,
-                Color.WHITE
+                Color.WHITE,
+                true,
+                true
         );
         LayoutManager layout = new LayoutManager(settings);
         var pages = layout.layout(document);

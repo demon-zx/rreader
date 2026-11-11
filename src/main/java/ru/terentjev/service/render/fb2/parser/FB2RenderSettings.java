@@ -14,6 +14,8 @@ public record FB2RenderSettings(
         int fontSize,
         float lineHeight,
         Color color,
-        Color background
+        Color background,
+        boolean justify,
+        boolean hyphenation
 ) {
 }

@@ -26,4 +26,17 @@ public record RenderSettings(int viewportWidth, int viewportHeight, Map<String, 
             return defaultValue;
         }
     }
+
+    public boolean booleanValue(String key, boolean defaultValue) {
+        String value = settings.get(key);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        return switch (value.trim()
+                .toLowerCase()) {
+            case "true", "1", "yes", "on" -> true;
+            case "false", "0", "no", "off" -> false;
+            default -> defaultValue;
+        };
+    }
 }

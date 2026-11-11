@@ -45,7 +45,22 @@ class DrawerTest {
     }
 
     private static FB2RenderSettings settings(Color color, Color background) {
-        return new FB2RenderSettings(WIDTH, HEIGHT, 10, 10, 10, 10, 0, "Arial", 16, 1.2f, color, background);
+        return new FB2RenderSettings(
+                WIDTH,
+                HEIGHT,
+                10,
+                10,
+                10,
+                10,
+                0,
+                "Arial",
+                16,
+                1.2f,
+                color,
+                background,
+                true,
+                true
+        );
     }
 
     private static Page page(String text) {

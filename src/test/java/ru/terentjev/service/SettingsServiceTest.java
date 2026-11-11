@@ -74,7 +74,9 @@ class SettingsServiceTest {
                         "paddingTop",
                         "paddingRight",
                         "paddingBottom",
-                        "indent"
+                        "indent",
+                        "justify",
+                        "hyphenation"
                 ),
                 keys(result)
         );
@@ -87,6 +89,8 @@ class SettingsServiceTest {
         assertEquals("50", valueOf(result, "paddingRight"));
         assertEquals("50", valueOf(result, "paddingBottom"));
         assertEquals("50", valueOf(result, "indent"));
+        assertEquals("true", valueOf(result, "justify"));
+        assertEquals("true", valueOf(result, "hyphenation"));
     }
 
     @Test
@@ -114,7 +118,9 @@ class SettingsServiceTest {
                         "paddingTop",
                         "paddingRight",
                         "paddingBottom",
-                        "indent"
+                        "indent",
+                        "justify",
+                        "hyphenation"
                 ),
                 service.definitions(SettingsScope.GLOBAL)
         );

@@ -39,7 +39,9 @@ public class FB2Render implements Render {
             SettingKeys.PADDING_TOP,
             SettingKeys.PADDING_RIGHT,
             SettingKeys.PADDING_BOTTOM,
-            SettingKeys.INDENT
+            SettingKeys.INDENT,
+            SettingKeys.JUSTIFY,
+            SettingKeys.HYPHENATION
     );
 
     @Override
@@ -69,7 +71,9 @@ public class FB2Render implements Render {
                 fontSize * M,
                 1.2f,
                 color,
-                background
+                background,
+                source.booleanValue(SettingKeys.JUSTIFY, true),
+                source.booleanValue(SettingKeys.HYPHENATION, true)
         );
     }
 

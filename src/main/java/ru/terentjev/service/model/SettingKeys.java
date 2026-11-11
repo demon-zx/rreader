@@ -10,6 +10,8 @@ public final class SettingKeys {
     public static final String PADDING_RIGHT = "paddingRight";
     public static final String PADDING_BOTTOM = "paddingBottom";
     public static final String INDENT = "indent";
+    public static final String JUSTIFY = "justify";
+    public static final String HYPHENATION = "hyphenation";
 
     private SettingKeys() {
     }

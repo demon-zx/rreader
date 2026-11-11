@@ -60,7 +60,11 @@ function applyValues(values) {
         if (values[key] === undefined) {
             continue;
         }
-        control.value = control.type === "color" ? normalizeColor(values[key]) : values[key];
+        if (control.type === "checkbox") {
+            control.checked = values[key] === "true";
+        } else {
+            control.value = control.type === "color" ? normalizeColor(values[key]) : values[key];
+        }
     }
     updatePreview();
 }
@@ -93,12 +97,16 @@ function saveSettings() {
     updatePreview();
     const values = enabledKeys
         .filter(key => controls[key])
-        .map(key => ({key: key, value: controls[key].value}));
+        .map(key => ({key: key, value: valueOf(controls[key])}));
     ajax(`/api/v1/settings?deviceUuid=${deviceUuid}&scope=${eScope().value}`, {
         method: "PUT",
         body: values,
         json: false
     }).catch(error => showError(error.message));
+}
+
+function valueOf(control) {
+    return control.type === "checkbox" ? String(control.checked) : control.value;
 }
 
 function initColorPresets() {

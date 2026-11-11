@@ -18,10 +18,14 @@ import ru.terentjev.service.render.fb2.parser.FB2RenderSettings;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -77,7 +81,9 @@ class LayoutManagerTest {
                 FONT_SIZE,
                 1.2f,
                 Color.BLACK,
-                Color.WHITE
+                Color.WHITE,
+                true,
+                true
         );
         FB2 fb2 = doc(
                 Map.of(),
@@ -255,13 +261,126 @@ class LayoutManagerTest {
         List<String> expected = List.of("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten");
         FB2 fb2 = doc(Map.of(), new ParagraphBlock(0, List.of(piece(String.join(" ", expected)))));
         // Narrow width forces wrapping; tall height keeps every line on the first page.
-        Page page = layout(fb2, settings(120, 10000)).get(0);
+        Page page = layout(fb2, settings(120, 10000, true, false)).get(0);
         long lines = page.objects()
                 .stream()
                 .filter(o -> o instanceof LineObject)
                 .count();
         assertTrue(lines > 1, "expected the paragraph to wrap onto multiple lines");
         assertEquals(expected, values(page));
+    }
+    // ---------------------------------------------------------------------
+    // justification
+    // ---------------------------------------------------------------------
+
+    @Test
+    void justifiedLineIsStretchedToRightMargin() throws IOException {
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(0, List.of(piece("одна два три четыре пять шесть семь восемь"))));
+        Page page = layout(fb2, settings(300, 10000)).get(0);
+        List<LineObject> lines = lines(page);
+        assertTrue(lines.size() > 1, "expected the paragraph to wrap onto multiple lines");
+        assertEquals(300, endX(lines.get(0)), 1);
+    }
+
+    @Test
+    void lastLineOfParagraphIsNotJustified() throws IOException {
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(0, List.of(piece("одна два три четыре пять шесть семь восемь"))));
+        Page page = layout(fb2, settings(300, 10000)).get(0);
+        List<LineObject> lines = lines(page);
+        LineObject last = lines.get(lines.size() - 1);
+        assertTrue(endX(last) < 300, "expected the last line to keep the left alignment");
+    }
+
+    @Test
+    void lineIsNotStretchedWhenJustificationDisabled() throws IOException {
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(0, List.of(piece("одна два три четыре пять шесть семь восемь"))));
+        Page page = layout(fb2, settings(300, 10000, false, false)).get(0);
+        List<LineObject> lines = lines(page);
+        assertTrue(lines.size() > 1, "expected the paragraph to wrap onto multiple lines");
+        assertTrue(endX(lines.get(0)) < 300, "expected the line to keep the left alignment");
+    }
+
+    @Test
+    void spaceAfterFirstWordWithoutLettersKeepsNormalWidth() throws IOException {
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(0, List.of(piece("10 20 30 40 50 60 70 80"))));
+        Page page = layout(fb2, settings(300, 10000)).get(0);
+        LineObject line = lines(page).get(0);
+        List<Word> words = line.words();
+        assertTrue(words.size() > 1, "expected the paragraph to wrap onto multiple lines");
+        int space = metrics(
+                words.get(0)
+                        .font()
+        ).charWidth(' ');
+        assertEquals(space, gap(words, 0));
+    }
+
+    @Test
+    void spaceAfterFirstWordWithLettersIsStretched() throws IOException {
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(0, List.of(piece("одна два три четыре пять шесть семь восемь"))));
+        Page page = layout(fb2, settings(300, 10000)).get(0);
+        LineObject line = lines(page).get(0);
+        List<Word> words = line.words();
+        assertTrue(
+                gap(words, 0) > metrics(
+                        words.get(0)
+                                .font()
+                ).charWidth(' '),
+                "expected the space to be stretched"
+        );
+    }
+    // ---------------------------------------------------------------------
+    // hyphenation
+    // ---------------------------------------------------------------------
+
+    @Test
+    void longWordIsBrokenBySyllables() throws IOException {
+        String text = "здравствуйте";
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(0, List.of(piece(text))));
+        Page page = layout(fb2, settings(80, 10000)).get(0);
+        List<String> values = values(page);
+        assertTrue(values.size() > 1, "expected the word to be broken");
+        assertTrue(
+                values.get(0)
+                        .endsWith("-"),
+                "expected the first part to end with a hyphen"
+        );
+        assertEquals(
+                text,
+                values.stream()
+                        .map(v -> v.replace("-", ""))
+                        .collect(Collectors.joining())
+        );
+    }
+
+    @Test
+    void wordIsNotBrokenWhenHyphenationDisabled() throws IOException {
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(0, List.of(piece("здравствуйте"))));
+        Page page = layout(fb2, settings(80, 10000, true, false)).get(0);
+        assertEquals(List.of("здравствуйте"), values(page));
+    }
+
+    @Test
+    void capitalizedWordInMiddleOfLineIsNotBrokenBySyllables() throws IOException {
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(0, List.of(piece("и здравствуйте Здравствуйте"))));
+        Page page = layout(fb2, settings(120, 10000)).get(0);
+        List<String> values = values(page);
+        assertFalse(
+                values.stream()
+                        .anyMatch(v -> v.startsWith("Здрав-") || v.startsWith("Здра-")),
+                "expected the capitalized word to be kept whole"
+        );
+    }
+
+    @Test
+    void brokenWordKeepsPositionOfRemainingPart() throws IOException {
+        FB2 fb2 = doc(Map.of(), new ParagraphBlock(100, List.of(piece("здравствуйте"))));
+        List<Page> pages = layout(fb2, settings(80, 10000));
+        assertEquals(1, pages.size());
+        assertEquals(
+                100,
+                pages.get(0)
+                        .position()
+        );
     }
     // ---------------------------------------------------------------------
     // helpers
@@ -271,7 +390,41 @@ class LayoutManagerTest {
         return new LayoutManager(settings).layout(document);
     }
 
+    private static List<LineObject> lines(Page page) {
+        return page.objects()
+                .stream()
+                .filter(o -> o instanceof LineObject)
+                .map(o -> (LineObject) o)
+                .toList();
+    }
+
+    private static int endX(LineObject line) {
+        List<Word> words = line.words();
+        Word last = words.get(words.size() - 1);
+        return last.x() + metrics(last.font()).stringWidth(last.value());
+    }
+
+    private static int gap(List<Word> words, int index) {
+        Word word = words.get(index);
+        Word next = words.get(index + 1);
+        return next.x() - word.x() - metrics(word.font()).stringWidth(word.value());
+    }
+
+    private static FontMetrics metrics(Font font) {
+        BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = image.createGraphics();
+        try {
+            return graphics.getFontMetrics(font);
+        } finally {
+            graphics.dispose();
+        }
+    }
+
     private static FB2RenderSettings settings(int width, int height) {
+        return settings(width, height, true, true);
+    }
+
+    private static FB2RenderSettings settings(int width, int height, boolean justify, boolean hyphenation) {
         return new FB2RenderSettings(
                 width,
                 height,
@@ -284,7 +437,9 @@ class LayoutManagerTest {
                 FONT_SIZE,
                 1.2f,
                 Color.BLACK,
-                Color.WHITE
+                Color.WHITE,
+                justify,
+                hyphenation
         );
     }
 
