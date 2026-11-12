@@ -3,11 +3,17 @@ import { ajax, debounce, HttpError, getDeviceUuid } from "./common.js";
 const deviceUuid = getDeviceUuid();
 
 const VIEWPORT_WIDTH_KEY = 'rreader_viewport_width';
+const MAGNIFIER_KEY = 'rreader_magnifier';
+const MAGNIFIER_ZOOM = 2;
 
+let eBook;
 let eMenu;
 let eMenuTrigger;
 let eMenuWidth100;
 let eMenuWidth50;
+let eMenuMagnifier;
+let eMagnifier;
+let eMagnifierView;
 let menuTimeout;
 let baseBookUrl;
 let baseBookmarkUrl;
@@ -22,6 +28,9 @@ let pages = 0;
 let positionByPage;
 let onFocusNotInit = true;
 let viewportWidthPercent = 100;
+let magnifier = false;
+let magnifierPoint = null;
+let magnifierPointerId = null;
 
 export function showError(error) {
     loader(false);
@@ -50,8 +59,13 @@ function loader(on) {
  * 
  * @param {Number} page page
  */
+function renderWidthPercent() {
+    // лупа показывает тот же рендер, что и режим ширины 100%
+    return magnifier ? 100 : viewportWidthPercent;
+}
+
 function showPage(page) {
-    const width = Math.round(window.innerWidth * viewportWidthPercent / 100);
+    const width = Math.round(window.innerWidth * renderWidthPercent() / 100);
     const height = window.innerHeight;
     const url = `${baseBookUrl}/render/${page}?deviceUuid=${deviceUuid}&width=${width}&height=${height}`;
     loader(true);
@@ -63,6 +77,7 @@ function showPage(page) {
             if (ePage) ePage.innerHTML = `${currentPage}/${pages}`;
             savePosition(page)
             loader(false);
+            requestAnimationFrame(syncMagnifier);
         }
         image.src = url;
     })
@@ -122,7 +137,7 @@ function savePosition(page) {
 }
 
 function loadInfo() {
-    const width = Math.round(window.innerWidth * viewportWidthPercent / 100);
+    const width = Math.round(window.innerWidth * renderWidthPercent() / 100);
     const height = window.innerHeight;
     const url = `${baseBookUrl}?deviceUuid=${deviceUuid}&width=${width}&height=${height}`;
     ajax(url).then(data => {
@@ -191,14 +206,41 @@ function toggleMenu() {
     }
 }
 
-function setViewportWidth(percent) {
-    viewportWidthPercent = percent;
-    localStorage.setItem(VIEWPORT_WIDTH_KEY, String(percent));
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function saveMode() {
+    localStorage.setItem(VIEWPORT_WIDTH_KEY, String(viewportWidthPercent));
+    localStorage.setItem(MAGNIFIER_KEY, magnifier ? 'true' : 'false');
+}
+
+function updateMode() {
+    eBook.classList.toggle('magnifier-mode', magnifier);
+    eMagnifier.classList.remove('magnifier-visible');
     updateMenuVisibility();
+}
+
+function setViewportWidth(percent) {
+    magnifier = false;
+    magnifierPoint = null;
+    magnifierPointerId = null;
+    viewportWidthPercent = percent;
+    saveMode();
+    updateMode();
     loadInfo();
 }
 
-function loadViewportWidth() {
+function setMagnifier(on) {
+    magnifier = on;
+    magnifierPoint = null;
+    magnifierPointerId = null;
+    saveMode();
+    updateMode();
+    loadInfo();
+}
+
+function loadDisplayMode() {
     const saved = localStorage.getItem(VIEWPORT_WIDTH_KEY);
     if (saved !== null) {
         const parsed = parseInt(saved, 10);
@@ -206,15 +248,127 @@ function loadViewportWidth() {
             viewportWidthPercent = parsed;
         }
     }
+    magnifier = localStorage.getItem(MAGNIFIER_KEY) === 'true';
 }
 
 function updateMenuVisibility() {
+    if (eMenuMagnifier) {
+        eMenuMagnifier.textContent = magnifier ? 'Выключить лупу' : 'Чтение с лупой';
+    }
     if (eMenuWidth100) {
         eMenuWidth100.style.display = viewportWidthPercent === 100 ? 'none' : '';
     }
     if (eMenuWidth50) {
         eMenuWidth50.style.display = viewportWidthPercent === 50 ? 'none' : '';
     }
+}
+
+/**
+ * Обновляет положение увеличенного фрагмента в нижней панели.
+ */
+function updateMagnifier() {
+    if (!magnifier || !magnifierPoint) {
+        eMagnifier.classList.remove('magnifier-visible');
+        return;
+    }
+    const image = eView.getBoundingClientRect();
+    if (image.width === 0 || image.height === 0) {
+        return;
+    }
+    const panelWidth = eBook.clientWidth;
+    const panelHeight = eBook.clientHeight / 3;
+    const width = image.width * MAGNIFIER_ZOOM;
+    const height = image.height * MAGNIFIER_ZOOM;
+    // точка нажатия на странице должна оказаться в центре нижней панели,
+    // но у краёв страницы не показываем пустоту за её пределами
+    const left = clamp(panelWidth / 2 - magnifierPoint.x * width, Math.min(panelWidth - width, 0), 0);
+    const top = clamp(panelHeight / 2 - magnifierPoint.y * height, Math.min(panelHeight - height, 0), 0);
+    eMagnifierView.style.width = `${width}px`;
+    eMagnifierView.style.height = `${height}px`;
+    eMagnifierView.style.left = `${left}px`;
+    eMagnifierView.style.top = `${top}px`;
+    eMagnifier.classList.add('magnifier-visible');
+}
+
+/**
+ * Синхронизирует увеличенный фрагмент с текущей страницей.
+ */
+function syncMagnifier() {
+    if (!magnifier || !magnifierPoint) {
+        return;
+    }
+    if (eMagnifierView.src !== eView.src) {
+        eMagnifierView.src = eView.src;
+    }
+    updateMagnifier();
+}
+
+/**
+ * Проверяет, что нажатие пришлось на область страницы в режиме лупы.
+ *
+ * @param {PointerEvent} event событие указателя
+ * @returns {Boolean} true, если нужно показать/сместить лупу
+ */
+function isMagnifierPoint(event) {
+    if (!magnifier) {
+        return false;
+    }
+    if (event.target.closest('#menu, #menu-trigger')) {
+        return false;
+    }
+    const rect = eBook.getBoundingClientRect();
+    return event.clientY < rect.top + rect.height * 2 / 3;
+}
+
+/**
+ * Показывает увеличенный фрагмент вокруг точки нажатия.
+ *
+ * @param {PointerEvent} event событие указателя
+ */
+function showMagnifierAt(event) {
+    const image = eView.getBoundingClientRect();
+    if (image.width === 0 || image.height === 0) {
+        return;
+    }
+    magnifierPoint = {
+        x: clamp((event.clientX - image.left) / image.width, 0, 1),
+        y: clamp((event.clientY - image.top) / image.height, 0, 1)
+    };
+    eMagnifierView.src = eView.src;
+    updateMagnifier();
+}
+
+function onMagnifierDown(event) {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+        return;
+    }
+    if (!isMagnifierPoint(event)) {
+        return;
+    }
+    magnifierPointerId = event.pointerId;
+    showMagnifierAt(event);
+    document.addEventListener('pointermove', onMagnifierMove);
+    document.addEventListener('pointerup', onMagnifierUp);
+    document.addEventListener('pointercancel', onMagnifierUp);
+    event.preventDefault();
+}
+
+function onMagnifierMove(event) {
+    if (event.pointerId !== magnifierPointerId) {
+        return;
+    }
+    showMagnifierAt(event);
+    event.preventDefault();
+}
+
+function onMagnifierUp(event) {
+    if (event.pointerId !== magnifierPointerId) {
+        return;
+    }
+    magnifierPointerId = null;
+    document.removeEventListener('pointermove', onMagnifierMove);
+    document.removeEventListener('pointerup', onMagnifierUp);
+    document.removeEventListener('pointercancel', onMagnifierUp);
 }
 
 function next() {
@@ -232,6 +386,7 @@ function prev() {
 }
 
 function init() {
+    eBook = document.getElementById('book');
     eView = document.getElementById('view');
     eAuthor = document.getElementById('author');
     ePage = document.getElementById('page');
@@ -241,7 +396,10 @@ function init() {
     eMenuTrigger = document.getElementById('menu-trigger');
     eMenuWidth100 = document.getElementById('menu-width-100');
     eMenuWidth50 = document.getElementById('menu-width-50');
-    const id = document.getElementById('book').getAttribute('data-id');
+    eMenuMagnifier = document.getElementById('menu-magnifier');
+    eMagnifier = document.getElementById('magnifier');
+    eMagnifierView = document.getElementById('magnifier-view');
+    const id = eBook.getAttribute('data-id');
     baseBookUrl = `/api/v1/book/${id}`
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
     document.getElementById('next').onclick = () => next();
@@ -249,13 +407,15 @@ function init() {
     eMenuTrigger.onclick = () => toggleMenu();
     const eMenuSettings = document.getElementById('menu-settings');
     if (eMenuSettings) eMenuSettings.onclick = () => {
-        const scope = document.getElementById('book').getAttribute('data-scope') || 'GLOBAL';
+        const scope = eBook.getAttribute('data-scope') || 'GLOBAL';
         window.location.href = `/settings?scope=${scope}`;
     };
     if (eMenuWidth100) eMenuWidth100.onclick = () => setViewportWidth(100);
     if (eMenuWidth50) eMenuWidth50.onclick = () => setViewportWidth(50);
-    loadViewportWidth();
-    updateMenuVisibility();
+    if (eMenuMagnifier) eMenuMagnifier.onclick = () => setMagnifier(!magnifier);
+    eBook.addEventListener('pointerdown', onMagnifierDown);
+    loadDisplayMode();
+    updateMode();
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
             e.preventDefault();
@@ -266,6 +426,7 @@ function init() {
         }
     });
     window.addEventListener('resize', debounce(() => loadInfo(), 300));
+    window.addEventListener('resize', debounce(() => updateMagnifier(), 100));
     loadInfo();
 }
 

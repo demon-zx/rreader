@@ -20,7 +20,10 @@
 
     <div id="book" class="book" th:attr="data-id=${id},data-scope=${type}">
         <img id="view" alt="Изображение с сервера" src="" style="opacity: 1;" />
-        
+        <div id="magnifier" class="magnifier">
+            <img id="magnifier-view" alt="" />
+        </div>
+
         <div id="loader" class="loader loader-off">Загрузка...</div>
         <div id="author" class="info author">Автор</div>
         <div id="page" class="info page">0/0</div>
@@ -33,6 +36,7 @@
             <div id="menu-settings" class="menu-item">Настройки</div>
             <div id="menu-width-100" class="menu-item" data-width="100">Ширина 100%</div>
             <div id="menu-width-50" class="menu-item" data-width="50">Ширина 50%</div>
+            <div id="menu-magnifier" class="menu-item">Чтение с лупой</div>
         </div>
     </div>
 

@@ -169,3 +169,56 @@ body {
 .loader-on {
     display: block;
 }
+
+/* Режим чтения с лупой */
+.book.magnifier-mode {
+    align-items: flex-start;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+.book.magnifier-mode > #view {
+    /* страница рендерится как в режиме 100%, но занимает верхние две трети */
+    max-height: 66.6667%;
+}
+
+.book.magnifier-mode .menu-trigger {
+    /* оставляем узкую полосу для открытия меню над областью лупы */
+    height: 5%;
+}
+
+.magnifier {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 33.3333%;
+    overflow: hidden;
+    display: none;
+    pointer-events: none;
+    background: #e0e0e0;
+}
+
+.book.magnifier-mode .magnifier {
+    display: block;
+}
+
+.magnifier img {
+    position: absolute;
+    max-width: none;
+    max-height: none;
+    width: auto;
+    height: auto;
+    display: none;
+    object-fit: fill;
+    -webkit-user-drag: none;
+}
+
+.magnifier.magnifier-visible {
+    border-top: 2px solid rgba(0, 0, 0, 0.25);
+}
+
+.magnifier.magnifier-visible img {
+    display: block;
+}
