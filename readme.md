@@ -70,6 +70,12 @@
 - [ ] epub
 - [ ] html
 
+## Иконки
+
+Favicon и иконка для мобильных устройств (`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`)
+собраны из иконки `book` набора [Tabler Icons](https://tabler.io/icons), лицензия MIT
+(Copyright (c) 2020-2026 Paweł Kuna and Tabler Icons contributors).
+
 ## Форматирование исходного кода
 
 ```

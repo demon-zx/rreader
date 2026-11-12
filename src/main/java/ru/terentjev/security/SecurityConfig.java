@@ -29,7 +29,16 @@ public class SecurityConfig {
             HttpSecurity http,
             AuthenticationSuccessHandler successHandler
     ) throws Exception {
-        Set<String> any = new HashSet<>(Set.of("/login", "/css/**", "/js/**", "/webjars/**"));
+        Set<String> any = new HashSet<>(
+                Set.of(
+                        "/login",
+                        "/css/**",
+                        "/js/**",
+                        "/webjars/**",
+                        "/favicon.*",
+                        "/apple-touch-icon.png"
+                )
+        );
         http
                 .csrf(
                         b -> b.csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
