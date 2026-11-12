@@ -2,6 +2,7 @@ package ru.terentjev.service.render.fb2.layout;
 
 import org.junit.jupiter.api.Test;
 
+import ru.terentjev.service.render.BundledFont;
 import ru.terentjev.service.render.fb2.layout.Hyphenation.Break;
 
 import java.awt.Font;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class HyphenationTest {
-    private static final Font FONT = new Font("Arial", Font.PLAIN, 20);
+    private static final Font FONT = new Font(BundledFont.SANS, Font.PLAIN, 20);
 
     @Test
     void wordIsBrokenBySyllables() {

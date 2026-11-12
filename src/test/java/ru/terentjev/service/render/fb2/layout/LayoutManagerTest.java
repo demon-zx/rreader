@@ -2,6 +2,7 @@ package ru.terentjev.service.render.fb2.layout;
 
 import org.junit.jupiter.api.Test;
 
+import ru.terentjev.service.render.BundledFont;
 import ru.terentjev.service.render.fb2.layout.Page.ImageObject;
 import ru.terentjev.service.render.fb2.layout.Page.LineObject;
 import ru.terentjev.service.render.fb2.layout.Page.PageObject;
@@ -77,7 +78,7 @@ class LayoutManagerTest {
                 20,
                 0,
                 40,
-                "Arial",
+                BundledFont.SANS,
                 FONT_SIZE,
                 1.2f,
                 Color.BLACK,
@@ -433,7 +434,7 @@ class LayoutManagerTest {
                 0,
                 0,
                 0,
-                "Arial",
+                BundledFont.SANS,
                 FONT_SIZE,
                 1.2f,
                 Color.BLACK,

@@ -2,6 +2,7 @@ package ru.terentjev.service.render.fb2.layout;
 
 import org.junit.jupiter.api.Test;
 
+import ru.terentjev.service.render.BundledFont;
 import ru.terentjev.service.render.fb2.layout.Page.LineObject;
 import ru.terentjev.service.render.fb2.layout.Page.PageObject;
 import ru.terentjev.service.render.fb2.layout.Page.Word;
@@ -53,7 +54,7 @@ class DrawerTest {
                 10,
                 10,
                 0,
-                "Arial",
+                BundledFont.SANS,
                 16,
                 1.2f,
                 color,
@@ -64,7 +65,7 @@ class DrawerTest {
     }
 
     private static Page page(String text) {
-        Font font = new Font("Arial", Font.PLAIN, 16);
+        Font font = new Font(BundledFont.SANS, Font.PLAIN, 16);
         List<PageObject> objects = List.of(
                 new LineObject(HEIGHT - 10, List.of(new Word(10, text, font)))
         );
