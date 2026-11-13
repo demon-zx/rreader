@@ -188,6 +188,19 @@ body {
     height: 5%;
 }
 
+.magnifier-frame {
+    position: absolute;
+    display: none;
+    pointer-events: none;
+    border: 2px solid rgba(0, 0, 0, 0.65);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.book.magnifier-mode .magnifier-frame.magnifier-frame-visible {
+    display: block;
+}
+
 .magnifier {
     position: absolute;
     left: 0;

@@ -5,6 +5,8 @@ const deviceUuid = getDeviceUuid();
 const VIEWPORT_WIDTH_KEY = 'rreader_viewport_width';
 const MAGNIFIER_KEY = 'rreader_magnifier';
 const MAGNIFIER_ZOOM = 2;
+const MAGNIFIER_DRAG_THRESHOLD = 4;
+const MAGNIFIER_CLICK_SUPPRESS_TIMEOUT = 300;
 
 let eBook;
 let eMenu;
@@ -14,6 +16,7 @@ let eMenuWidth50;
 let eMenuMagnifier;
 let eMagnifier;
 let eMagnifierView;
+let eMagnifierFrame;
 let menuTimeout;
 let baseBookUrl;
 let baseBookmarkUrl;
@@ -30,7 +33,9 @@ let onFocusNotInit = true;
 let viewportWidthPercent = 100;
 let magnifier = false;
 let magnifierPoint = null;
-let magnifierPointerId = null;
+let magnifierDrag = null;
+let suppressMagnifierClick = false;
+let suppressMagnifierClickTimeout;
 
 export function showError(error) {
     loader(false);
@@ -218,13 +223,15 @@ function saveMode() {
 function updateMode() {
     eBook.classList.toggle('magnifier-mode', magnifier);
     eMagnifier.classList.remove('magnifier-visible');
+    eMagnifierFrame.classList.remove('magnifier-frame-visible');
     updateMenuVisibility();
 }
 
 function setViewportWidth(percent) {
     magnifier = false;
     magnifierPoint = null;
-    magnifierPointerId = null;
+    magnifierDrag = null;
+    suppressMagnifierClick = false;
     viewportWidthPercent = percent;
     saveMode();
     updateMode();
@@ -234,7 +241,8 @@ function setViewportWidth(percent) {
 function setMagnifier(on) {
     magnifier = on;
     magnifierPoint = null;
-    magnifierPointerId = null;
+    magnifierDrag = null;
+    suppressMagnifierClick = false;
     saveMode();
     updateMode();
     loadInfo();
@@ -269,12 +277,14 @@ function updateMenuVisibility() {
 function updateMagnifier() {
     if (!magnifier || !magnifierPoint) {
         eMagnifier.classList.remove('magnifier-visible');
+        eMagnifierFrame.classList.remove('magnifier-frame-visible');
         return;
     }
     const image = eView.getBoundingClientRect();
     if (image.width === 0 || image.height === 0) {
         return;
     }
+    const book = eBook.getBoundingClientRect();
     const panelWidth = eBook.clientWidth;
     const panelHeight = eBook.clientHeight / 3;
     const width = image.width * MAGNIFIER_ZOOM;
@@ -288,6 +298,24 @@ function updateMagnifier() {
     eMagnifierView.style.left = `${left}px`;
     eMagnifierView.style.top = `${top}px`;
     eMagnifier.classList.add('magnifier-visible');
+
+    // рамка на странице показывает, какая её часть видна в нижней панели:
+    // переводим границы панели обратно в координаты страницы (делим на увеличение)
+    const frameStartX = Math.max(-left, 0);
+    const frameStartY = Math.max(-top, 0);
+    const frameEndX = Math.min(-left + panelWidth, width);
+    const frameEndY = Math.min(-top + panelHeight, height);
+    const frameWidth = frameEndX - frameStartX;
+    const frameHeight = frameEndY - frameStartY;
+    if (frameWidth <= 0 || frameHeight <= 0) {
+        eMagnifierFrame.classList.remove('magnifier-frame-visible');
+        return;
+    }
+    eMagnifierFrame.style.left = `${image.left - book.left + frameStartX / MAGNIFIER_ZOOM}px`;
+    eMagnifierFrame.style.top = `${image.top - book.top + frameStartY / MAGNIFIER_ZOOM}px`;
+    eMagnifierFrame.style.width = `${frameWidth / MAGNIFIER_ZOOM}px`;
+    eMagnifierFrame.style.height = `${frameHeight / MAGNIFIER_ZOOM}px`;
+    eMagnifierFrame.classList.add('magnifier-frame-visible');
 }
 
 /**
@@ -304,20 +332,24 @@ function syncMagnifier() {
 }
 
 /**
- * Проверяет, что нажатие пришлось на область страницы в режиме лупы.
+ * Определяет действие для нажатия в режиме лупы.
  *
  * @param {PointerEvent} event событие указателя
- * @returns {Boolean} true, если нужно показать/сместить лупу
+ * @returns {String|null} 'point' — задать точку, 'pan' — сместить фрагмент, null — без лупы
  */
-function isMagnifierPoint(event) {
+function magnifierGesture(event) {
     if (!magnifier) {
-        return false;
+        return null;
     }
     if (event.target.closest('#menu, #menu-trigger')) {
-        return false;
+        return null;
     }
     const rect = eBook.getBoundingClientRect();
-    return event.clientY < rect.top + rect.height * 2 / 3;
+    if (event.clientY < rect.top + rect.height * 2 / 3) {
+        return 'point';
+    }
+    // нижняя треть двигает уже показанный фрагмент
+    return magnifierPoint ? 'pan' : null;
 }
 
 /**
@@ -342,33 +374,81 @@ function onMagnifierDown(event) {
     if (event.pointerType === 'mouse' && event.button !== 0) {
         return;
     }
-    if (!isMagnifierPoint(event)) {
+    const gesture = magnifierGesture(event);
+    if (!gesture) {
         return;
     }
-    magnifierPointerId = event.pointerId;
-    showMagnifierAt(event);
+    magnifierDrag = {
+        id: event.pointerId,
+        mode: gesture,
+        startX: event.clientX,
+        startY: event.clientY,
+        startPoint: magnifierPoint ? { ...magnifierPoint } : null,
+        dragged: false
+    };
+    if (gesture === 'point') {
+        showMagnifierAt(event);
+        event.preventDefault();
+    }
     document.addEventListener('pointermove', onMagnifierMove);
     document.addEventListener('pointerup', onMagnifierUp);
     document.addEventListener('pointercancel', onMagnifierUp);
-    event.preventDefault();
 }
 
 function onMagnifierMove(event) {
-    if (event.pointerId !== magnifierPointerId) {
+    if (!magnifierDrag || event.pointerId !== magnifierDrag.id) {
         return;
     }
-    showMagnifierAt(event);
+    if (magnifierDrag.mode === 'point') {
+        showMagnifierAt(event);
+        event.preventDefault();
+        return;
+    }
+    const dx = event.clientX - magnifierDrag.startX;
+    const dy = event.clientY - magnifierDrag.startY;
+    if (!magnifierDrag.dragged && Math.hypot(dx, dy) < MAGNIFIER_DRAG_THRESHOLD) {
+        return;
+    }
+    magnifierDrag.dragged = true;
+    const image = eView.getBoundingClientRect();
+    if (image.width === 0 || image.height === 0) {
+        return;
+    }
+    // фрагмент в нижней панели двигается вслед за пальцем
+    magnifierPoint = {
+        x: clamp(magnifierDrag.startPoint.x - dx / (image.width * MAGNIFIER_ZOOM), 0, 1),
+        y: clamp(magnifierDrag.startPoint.y - dy / (image.height * MAGNIFIER_ZOOM), 0, 1)
+    };
+    updateMagnifier();
     event.preventDefault();
 }
 
 function onMagnifierUp(event) {
-    if (event.pointerId !== magnifierPointerId) {
+    if (!magnifierDrag || event.pointerId !== magnifierDrag.id) {
         return;
     }
-    magnifierPointerId = null;
+    if (magnifierDrag.mode === 'pan' && magnifierDrag.dragged) {
+        // после панорамирования не даём клику по нижней трети перелистнуть страницу
+        suppressMagnifierClick = true;
+        clearTimeout(suppressMagnifierClickTimeout);
+        suppressMagnifierClickTimeout = setTimeout(() => {
+            suppressMagnifierClick = false;
+        }, MAGNIFIER_CLICK_SUPPRESS_TIMEOUT);
+    }
+    magnifierDrag = null;
     document.removeEventListener('pointermove', onMagnifierMove);
     document.removeEventListener('pointerup', onMagnifierUp);
     document.removeEventListener('pointercancel', onMagnifierUp);
+}
+
+function onMagnifierClick(event) {
+    if (!suppressMagnifierClick) {
+        return;
+    }
+    suppressMagnifierClick = false;
+    clearTimeout(suppressMagnifierClickTimeout);
+    event.stopPropagation();
+    event.preventDefault();
 }
 
 function next() {
@@ -399,6 +479,7 @@ function init() {
     eMenuMagnifier = document.getElementById('menu-magnifier');
     eMagnifier = document.getElementById('magnifier');
     eMagnifierView = document.getElementById('magnifier-view');
+    eMagnifierFrame = document.getElementById('magnifier-frame');
     const id = eBook.getAttribute('data-id');
     baseBookUrl = `/api/v1/book/${id}`
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
@@ -414,6 +495,7 @@ function init() {
     if (eMenuWidth50) eMenuWidth50.onclick = () => setViewportWidth(50);
     if (eMenuMagnifier) eMenuMagnifier.onclick = () => setMagnifier(!magnifier);
     eBook.addEventListener('pointerdown', onMagnifierDown);
+    eBook.addEventListener('click', onMagnifierClick, true);
     loadDisplayMode();
     updateMode();
     document.addEventListener('keydown', (e) => {
