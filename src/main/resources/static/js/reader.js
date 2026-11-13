@@ -46,9 +46,9 @@ let suppressMagnifierClickTimeout;
 let pendingScroll = 'top';
 let scrollRatio = null;
 let lastScrollRatio = 0;
-let fitWidthGesture = null;
-let suppressFitWidthClick = false;
-let suppressFitWidthClickTimeout;
+let swipeGesture = null;
+let suppressSwipeClick = false;
+let suppressSwipeClickTimeout;
 
 export function showError(error) {
     loader(false);
@@ -462,6 +462,11 @@ function onMagnifierDown(event) {
         startX: event.clientX,
         startY: event.clientY,
         startPoint: magnifierPoint ? { ...magnifierPoint } : null,
+        // если панорамирование началось у края страницы,
+        // повторная протяжка за этот край листает дальше
+        edge: gesture === 'pan' && magnifierPoint
+            ? (magnifierPoint.y <= 0.02 ? 'top' : magnifierPoint.y >= 0.98 ? 'bottom' : null)
+            : null,
         dragged: false
     };
     if (gesture === 'point') {
@@ -506,6 +511,16 @@ function onMagnifierUp(event) {
         return;
     }
     if (magnifierDrag.mode === 'pan' && magnifierDrag.dragged) {
+        const dy = event.clientY - magnifierDrag.startY;
+        const dx = event.clientX - magnifierDrag.startX;
+        const vertical = Math.abs(dy) >= Math.abs(dx);
+        // в лупе страница не скроллится: у края панорамирования
+        // повторная вертикальная протяжка листает страницу
+        if (vertical && dy <= -PAGE_TURN_DRAG_THRESHOLD && magnifierDrag.edge === 'bottom') {
+            next();
+        } else if (vertical && dy >= PAGE_TURN_DRAG_THRESHOLD && magnifierDrag.edge === 'top') {
+            prev();
+        }
         // после панорамирования не даём клику по нижней трети перелистнуть страницу
         suppressMagnifierClick = true;
         clearTimeout(suppressMagnifierClickTimeout);
@@ -547,113 +562,156 @@ function onFitWidthScroll() {
     lastScrollRatio = max > 0 ? eScroll.scrollTop / max : 0;
 }
 
-function startFitWidthGesture(y) {
-    fitWidthGesture = {
+/**
+ * Начинает вертикальный жест: запоминает точку старта и позицию скролла.
+ * Жест работает во всех режимах: в "вписать по ширине" листает у края страницы,
+ * в остальных режимах — сразу.
+ */
+function startSwipeGesture(x, y) {
+    swipeGesture = {
+        startX: x,
         startY: y,
-        startScrollTop: eScroll.scrollTop,
+        startScrollTop: fitWidth ? eScroll.scrollTop : 0,
         moved: false
     };
 }
 
-function trackFitWidthGesture(y) {
-    if (fitWidthGesture && Math.abs(y - fitWidthGesture.startY) > 8) {
-        fitWidthGesture.moved = true;
+function trackSwipeGesture(y) {
+    if (swipeGesture && Math.abs(y - swipeGesture.startY) > 8) {
+        swipeGesture.moved = true;
     }
 }
 
 /**
- * Завершает жест и, если страница уже была у края, листает дальше.
+ * Завершает жест и листает страницу, если жест достаточно длинный.
  *
+ * @param {Number} x координата указателя по горизонтали
  * @param {Number} y координата указателя по вертикали
  */
-function finishFitWidthGesture(y) {
-    if (!fitWidthGesture) {
+function finishSwipeGesture(x, y) {
+    if (!swipeGesture) {
         return;
     }
-    const gesture = fitWidthGesture;
-    fitWidthGesture = null;
+    const gesture = swipeGesture;
+    swipeGesture = null;
     const dy = y - gesture.startY;
-    const max = fitWidthMaxScroll();
-    const atBottom = gesture.startScrollTop >= max - 1;
-    const atTop = gesture.startScrollTop <= 0;
-    // листаем только если жест начался у края страницы,
-    // то есть это повторная протяжка, а не докрутка до конца
-    if (dy <= -PAGE_TURN_DRAG_THRESHOLD && atBottom) {
-        next();
-    } else if (dy >= PAGE_TURN_DRAG_THRESHOLD && atTop) {
-        prev();
+    const dx = x - gesture.startX;
+    // листаем только вертикальными жестами
+    const vertical = Math.abs(dy) >= Math.abs(dx);
+
+    if (fitWidth) {
+        const max = fitWidthMaxScroll();
+        const atBottom = gesture.startScrollTop >= max - 1;
+        const atTop = gesture.startScrollTop <= 0;
+        // листаем только если жест начался у края страницы,
+        // то есть это повторная протяжка, а не докрутка до конца
+        if (vertical && dy <= -PAGE_TURN_DRAG_THRESHOLD && atBottom) {
+            next();
+        } else if (vertical && dy >= PAGE_TURN_DRAG_THRESHOLD && atTop) {
+            prev();
+        }
+    } else if (!magnifier) {
+        // в остальных режимах страница не скроллится — листаем сразу,
+        // вверх — следующая, вниз — предыдущая
+        if (vertical && dy <= -PAGE_TURN_DRAG_THRESHOLD) {
+            next();
+        } else if (vertical && dy >= PAGE_TURN_DRAG_THRESHOLD) {
+            prev();
+        }
     }
     if (gesture.moved) {
-        suppressFitWidthClick = true;
-        clearTimeout(suppressFitWidthClickTimeout);
-        suppressFitWidthClickTimeout = setTimeout(() => {
-            suppressFitWidthClick = false;
+        suppressSwipeClick = true;
+        clearTimeout(suppressSwipeClickTimeout);
+        suppressSwipeClickTimeout = setTimeout(() => {
+            suppressSwipeClick = false;
         }, CLICK_SUPPRESS_TIMEOUT);
     }
 }
 
-function onFitWidthTouchStart(event) {
-    if (!fitWidth || event.touches.length !== 1) {
-        return;
-    }
-    startFitWidthGesture(event.touches[0].clientY);
+function swipeStartsOnControl(event) {
+    return !!(event.target.closest && event.target.closest('#menu, #magnifier'));
 }
 
-function onFitWidthTouchMove(event) {
-    if (!fitWidth || !fitWidthGesture || event.touches.length !== 1) {
+function onSwipeTouchStart(event) {
+    if (event.touches.length !== 1 || swipeStartsOnControl(event)) {
+        return;
+    }
+    const touch = event.touches[0];
+    startSwipeGesture(touch.clientX, touch.clientY);
+}
+
+function onSwipeTouchMove(event) {
+    if (!swipeGesture || event.touches.length !== 1) {
         return;
     }
     const y = event.touches[0].clientY;
-    trackFitWidthGesture(y);
-    const dy = y - fitWidthGesture.startY;
+    trackSwipeGesture(y);
+    const dy = y - swipeGesture.startY;
+    if (!fitWidth) {
+        // страница не скроллится: гасим системные жесты браузера (pull-to-refresh и т.п.),
+        // иначе свайп вниз может обновить страницу вместо листания назад
+        if (event.cancelable && Math.abs(dy) > 8) {
+            event.preventDefault();
+        }
+        return;
+    }
     const max = fitWidthMaxScroll();
-    const atBottom = fitWidthGesture.startScrollTop >= max - 1;
-    const atTop = fitWidthGesture.startScrollTop <= 0;
+    const atBottom = swipeGesture.startScrollTop >= max - 1;
+    const atTop = swipeGesture.startScrollTop <= 0;
     // у края не даём странице оттягиваться: это уже жест листания
     if (event.cancelable && ((dy < 0 && atBottom) || (dy > 0 && atTop))) {
         event.preventDefault();
     }
 }
 
-function onFitWidthTouchEnd(event) {
-    if (!fitWidth || !fitWidthGesture) {
+function onSwipeTouchEnd(event) {
+    if (!swipeGesture) {
         return;
     }
-    finishFitWidthGesture(event.changedTouches[0].clientY);
+    const touch = event.changedTouches[0];
+    finishSwipeGesture(touch.clientX, touch.clientY);
 }
 
-function onFitWidthTouchCancel() {
-    fitWidthGesture = null;
+function onSwipeTouchCancel() {
+    swipeGesture = null;
 }
 
-function onFitWidthPointerDown(event) {
-    if (!fitWidth || event.pointerType !== 'mouse' || event.button !== 0) {
+function onSwipePointerDown(event) {
+    if (event.pointerType !== 'mouse' || event.button !== 0 || swipeStartsOnControl(event)) {
         return;
     }
-    startFitWidthGesture(event.clientY);
+    startSwipeGesture(event.clientX, event.clientY);
 }
 
-function onFitWidthPointerMove(event) {
-    if (!fitWidth || !fitWidthGesture || event.pointerType !== 'mouse') {
+function onSwipePointerMove(event) {
+    if (!swipeGesture || event.pointerType !== 'mouse') {
         return;
     }
-    trackFitWidthGesture(event.clientY);
+    trackSwipeGesture(event.clientY);
 }
 
-function onFitWidthPointerUp(event) {
-    if (!fitWidth || !fitWidthGesture || event.pointerType !== 'mouse') {
+function onSwipePointerUp(event) {
+    if (!swipeGesture || event.pointerType !== 'mouse') {
         return;
     }
-    finishFitWidthGesture(event.clientY);
+    finishSwipeGesture(event.clientX, event.clientY);
+}
+
+/**
+ * Гасит клик, который браузер шлёт после протяжки, чтобы не листать дважды.
+ */
+function onSwipeClick(event) {
+    if (!suppressSwipeClick) {
+        return;
+    }
+    suppressSwipeClick = false;
+    clearTimeout(suppressSwipeClickTimeout);
+    event.stopPropagation();
+    event.preventDefault();
 }
 
 function onFitWidthClick(event) {
     if (!fitWidth) {
-        return;
-    }
-    if (suppressFitWidthClick) {
-        suppressFitWidthClick = false;
-        clearTimeout(suppressFitWidthClickTimeout);
         return;
     }
     if (fitWidthMaxScroll() > 1) {
@@ -723,16 +781,17 @@ function init() {
     if (eMenuMagnifier) eMenuMagnifier.onclick = () => setMagnifier(!magnifier);
     eBook.addEventListener('pointerdown', onMagnifierDown);
     eBook.addEventListener('click', onMagnifierClick, true);
-    eScroll.addEventListener('touchstart', onFitWidthTouchStart, { passive: true });
-    eScroll.addEventListener('touchmove', onFitWidthTouchMove, { passive: false });
-    eScroll.addEventListener('touchend', onFitWidthTouchEnd);
-    eScroll.addEventListener('touchcancel', onFitWidthTouchCancel);
-    eScroll.addEventListener('pointerdown', onFitWidthPointerDown);
+    eBook.addEventListener('touchstart', onSwipeTouchStart, { passive: true });
+    eBook.addEventListener('touchmove', onSwipeTouchMove, { passive: false });
+    eBook.addEventListener('touchend', onSwipeTouchEnd);
+    eBook.addEventListener('touchcancel', onSwipeTouchCancel);
+    eBook.addEventListener('pointerdown', onSwipePointerDown);
+    eBook.addEventListener('click', onSwipeClick, true);
     eScroll.addEventListener('click', onFitWidthClick);
     eScroll.addEventListener('scroll', onFitWidthScroll);
-    document.addEventListener('pointermove', onFitWidthPointerMove);
-    document.addEventListener('pointerup', onFitWidthPointerUp);
-    document.addEventListener('pointercancel', onFitWidthPointerUp);
+    document.addEventListener('pointermove', onSwipePointerMove);
+    document.addEventListener('pointerup', onSwipePointerUp);
+    document.addEventListener('pointercancel', onSwipePointerUp);
     loadDisplayMode();
     updateMode();
     document.addEventListener('keydown', (e) => {
