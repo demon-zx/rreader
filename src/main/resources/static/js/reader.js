@@ -4,15 +4,20 @@ const deviceUuid = getDeviceUuid();
 
 const VIEWPORT_WIDTH_KEY = 'rreader_viewport_width';
 const MAGNIFIER_KEY = 'rreader_magnifier';
+const FIT_WIDTH_KEY = 'rreader_fit_width';
 const MAGNIFIER_ZOOM = 2;
 const MAGNIFIER_DRAG_THRESHOLD = 4;
 const MAGNIFIER_CLICK_SUPPRESS_TIMEOUT = 300;
+const PAGE_TURN_DRAG_THRESHOLD = 40;
+const CLICK_SUPPRESS_TIMEOUT = 300;
 
 let eBook;
+let eScroll;
 let eMenu;
 let eMenuTrigger;
 let eMenuWidth100;
 let eMenuWidth50;
+let eMenuFitWidth;
 let eMenuMagnifier;
 let eMagnifier;
 let eMagnifierView;
@@ -32,10 +37,18 @@ let positionByPage;
 let onFocusNotInit = true;
 let viewportWidthPercent = 100;
 let magnifier = false;
+let fitWidth = false;
+let bookType = null;
 let magnifierPoint = null;
 let magnifierDrag = null;
 let suppressMagnifierClick = false;
 let suppressMagnifierClickTimeout;
+let pendingScroll = 'top';
+let scrollRatio = null;
+let lastScrollRatio = 0;
+let fitWidthGesture = null;
+let suppressFitWidthClick = false;
+let suppressFitWidthClickTimeout;
 
 export function showError(error) {
     loader(false);
@@ -65,8 +78,8 @@ function loader(on) {
  * @param {Number} page page
  */
 function renderWidthPercent() {
-    // лупа показывает тот же рендер, что и режим ширины 100%
-    return magnifier ? 100 : viewportWidthPercent;
+    // лупа и режим "вписать по ширине" показывают тот же рендер, что и режим ширины 100%
+    return magnifier || fitWidth ? 100 : viewportWidthPercent;
 }
 
 function showPage(page) {
@@ -82,6 +95,7 @@ function showPage(page) {
             if (ePage) ePage.innerHTML = `${currentPage}/${pages}`;
             savePosition(page)
             loader(false);
+            applyPendingScroll();
             requestAnimationFrame(syncMagnifier);
         }
         image.src = url;
@@ -218,17 +232,57 @@ function clamp(value, min, max) {
 function saveMode() {
     localStorage.setItem(VIEWPORT_WIDTH_KEY, String(viewportWidthPercent));
     localStorage.setItem(MAGNIFIER_KEY, magnifier ? 'true' : 'false');
+    localStorage.setItem(FIT_WIDTH_KEY, fitWidth ? 'true' : 'false');
+}
+
+function isFitWidthAvailable() {
+    return bookType === 'PDF';
 }
 
 function updateMode() {
+    const fitWidthOn = fitWidth && isFitWidthAvailable();
     eBook.classList.toggle('magnifier-mode', magnifier);
+    eBook.classList.toggle('fit-width', fitWidthOn);
     eMagnifier.classList.remove('magnifier-visible');
     eMagnifierFrame.classList.remove('magnifier-frame-visible');
     updateMenuVisibility();
+    pendingScroll = 'top';
+    // после смены режима возвращаемся к началу страницы
+    requestAnimationFrame(() => {
+        if (eScroll) eScroll.scrollTop = 0;
+    });
+}
+
+/**
+ * Прокручивает страницу в начало или в конец после загрузки изображения.
+ */
+function applyPendingScroll() {
+    if (!fitWidth || !eScroll) {
+        pendingScroll = 'top';
+        scrollRatio = null;
+        return;
+    }
+    const target = pendingScroll;
+    pendingScroll = 'top';
+    const apply = () => {
+        if (scrollRatio !== null) {
+            // после изменения размера окна сохраняем относительную позицию
+            eScroll.scrollTop = Math.round(scrollRatio * fitWidthMaxScroll());
+            scrollRatio = null;
+        } else {
+            eScroll.scrollTop = target === 'bottom' ? eScroll.scrollHeight : 0;
+        }
+    };
+    if (eView.decode) {
+        eView.decode().then(() => requestAnimationFrame(apply), () => requestAnimationFrame(apply));
+    } else {
+        requestAnimationFrame(apply);
+    }
 }
 
 function setViewportWidth(percent) {
     magnifier = false;
+    fitWidth = false;
     magnifierPoint = null;
     magnifierDrag = null;
     suppressMagnifierClick = false;
@@ -240,9 +294,25 @@ function setViewportWidth(percent) {
 
 function setMagnifier(on) {
     magnifier = on;
+    if (on) {
+        fitWidth = false;
+    }
     magnifierPoint = null;
     magnifierDrag = null;
     suppressMagnifierClick = false;
+    saveMode();
+    updateMode();
+    loadInfo();
+}
+
+function setFitWidth(on) {
+    fitWidth = on && isFitWidthAvailable();
+    if (fitWidth) {
+        magnifier = false;
+        magnifierPoint = null;
+        magnifierDrag = null;
+        suppressMagnifierClick = false;
+    }
     saveMode();
     updateMode();
     loadInfo();
@@ -257,11 +327,19 @@ function loadDisplayMode() {
         }
     }
     magnifier = localStorage.getItem(MAGNIFIER_KEY) === 'true';
+    fitWidth = localStorage.getItem(FIT_WIDTH_KEY) === 'true' && isFitWidthAvailable();
+    if (fitWidth) {
+        magnifier = false;
+    }
 }
 
 function updateMenuVisibility() {
     if (eMenuMagnifier) {
         eMenuMagnifier.textContent = magnifier ? 'Выключить лупу' : 'Чтение с лупой';
+    }
+    if (eMenuFitWidth) {
+        eMenuFitWidth.style.display = isFitWidthAvailable() ? '' : 'none';
+        eMenuFitWidth.textContent = fitWidth ? 'Вписать страницу' : 'Вписать по ширине';
     }
     if (eMenuWidth100) {
         eMenuWidth100.style.display = viewportWidthPercent === 100 ? 'none' : '';
@@ -451,8 +529,151 @@ function onMagnifierClick(event) {
     event.preventDefault();
 }
 
+/**
+ * Величина вертикального скролла страницы в режиме "вписать по ширине".
+ */
+function fitWidthMaxScroll() {
+    return Math.max(0, eScroll.scrollHeight - eScroll.clientHeight);
+}
+
+/**
+ * Запоминает относительную позицию скролла, чтобы сохранить её при смене размера окна.
+ */
+function onFitWidthScroll() {
+    if (!fitWidth) {
+        return;
+    }
+    const max = fitWidthMaxScroll();
+    lastScrollRatio = max > 0 ? eScroll.scrollTop / max : 0;
+}
+
+function startFitWidthGesture(y) {
+    fitWidthGesture = {
+        startY: y,
+        startScrollTop: eScroll.scrollTop,
+        moved: false
+    };
+}
+
+function trackFitWidthGesture(y) {
+    if (fitWidthGesture && Math.abs(y - fitWidthGesture.startY) > 8) {
+        fitWidthGesture.moved = true;
+    }
+}
+
+/**
+ * Завершает жест и, если страница уже была у края, листает дальше.
+ *
+ * @param {Number} y координата указателя по вертикали
+ */
+function finishFitWidthGesture(y) {
+    if (!fitWidthGesture) {
+        return;
+    }
+    const gesture = fitWidthGesture;
+    fitWidthGesture = null;
+    const dy = y - gesture.startY;
+    const max = fitWidthMaxScroll();
+    const atBottom = gesture.startScrollTop >= max - 1;
+    const atTop = gesture.startScrollTop <= 0;
+    // листаем только если жест начался у края страницы,
+    // то есть это повторная протяжка, а не докрутка до конца
+    if (dy <= -PAGE_TURN_DRAG_THRESHOLD && atBottom) {
+        next();
+    } else if (dy >= PAGE_TURN_DRAG_THRESHOLD && atTop) {
+        prev();
+    }
+    if (gesture.moved) {
+        suppressFitWidthClick = true;
+        clearTimeout(suppressFitWidthClickTimeout);
+        suppressFitWidthClickTimeout = setTimeout(() => {
+            suppressFitWidthClick = false;
+        }, CLICK_SUPPRESS_TIMEOUT);
+    }
+}
+
+function onFitWidthTouchStart(event) {
+    if (!fitWidth || event.touches.length !== 1) {
+        return;
+    }
+    startFitWidthGesture(event.touches[0].clientY);
+}
+
+function onFitWidthTouchMove(event) {
+    if (!fitWidth || !fitWidthGesture || event.touches.length !== 1) {
+        return;
+    }
+    const y = event.touches[0].clientY;
+    trackFitWidthGesture(y);
+    const dy = y - fitWidthGesture.startY;
+    const max = fitWidthMaxScroll();
+    const atBottom = fitWidthGesture.startScrollTop >= max - 1;
+    const atTop = fitWidthGesture.startScrollTop <= 0;
+    // у края не даём странице оттягиваться: это уже жест листания
+    if (event.cancelable && ((dy < 0 && atBottom) || (dy > 0 && atTop))) {
+        event.preventDefault();
+    }
+}
+
+function onFitWidthTouchEnd(event) {
+    if (!fitWidth || !fitWidthGesture) {
+        return;
+    }
+    finishFitWidthGesture(event.changedTouches[0].clientY);
+}
+
+function onFitWidthTouchCancel() {
+    fitWidthGesture = null;
+}
+
+function onFitWidthPointerDown(event) {
+    if (!fitWidth || event.pointerType !== 'mouse' || event.button !== 0) {
+        return;
+    }
+    startFitWidthGesture(event.clientY);
+}
+
+function onFitWidthPointerMove(event) {
+    if (!fitWidth || !fitWidthGesture || event.pointerType !== 'mouse') {
+        return;
+    }
+    trackFitWidthGesture(event.clientY);
+}
+
+function onFitWidthPointerUp(event) {
+    if (!fitWidth || !fitWidthGesture || event.pointerType !== 'mouse') {
+        return;
+    }
+    finishFitWidthGesture(event.clientY);
+}
+
+function onFitWidthClick(event) {
+    if (!fitWidth) {
+        return;
+    }
+    if (suppressFitWidthClick) {
+        suppressFitWidthClick = false;
+        clearTimeout(suppressFitWidthClickTimeout);
+        return;
+    }
+    if (fitWidthMaxScroll() > 1) {
+        // страницу можно скроллить — тап не листает, чтобы не пропустить текст
+        return;
+    }
+    const rect = eBook.getBoundingClientRect();
+    if (event.clientY < rect.top + rect.height * 0.7) {
+        return;
+    }
+    if (event.clientX > rect.left + rect.width / 2) {
+        next();
+    } else {
+        prev();
+    }
+}
+
 function next() {
     if (currentPage < pages) {
+        pendingScroll = 'top';
         flash();
         showPage(currentPage + 1);
     }
@@ -460,6 +681,7 @@ function next() {
 
 function prev() {
     if (currentPage > 1) {
+        pendingScroll = 'bottom';
         flash();
         showPage(currentPage - 1);
     }
@@ -467,6 +689,7 @@ function prev() {
 
 function init() {
     eBook = document.getElementById('book');
+    eScroll = document.getElementById('scroll');
     eView = document.getElementById('view');
     eAuthor = document.getElementById('author');
     ePage = document.getElementById('page');
@@ -476,10 +699,13 @@ function init() {
     eMenuTrigger = document.getElementById('menu-trigger');
     eMenuWidth100 = document.getElementById('menu-width-100');
     eMenuWidth50 = document.getElementById('menu-width-50');
+    eMenuFitWidth = document.getElementById('menu-fit-width');
     eMenuMagnifier = document.getElementById('menu-magnifier');
     eMagnifier = document.getElementById('magnifier');
     eMagnifierView = document.getElementById('magnifier-view');
     eMagnifierFrame = document.getElementById('magnifier-frame');
+    bookType = eBook.getAttribute('data-scope');
+    eView.draggable = false;
     const id = eBook.getAttribute('data-id');
     baseBookUrl = `/api/v1/book/${id}`
     baseBookmarkUrl = `/api/v1/bookmark?bookId=${id}`;
@@ -493,9 +719,20 @@ function init() {
     };
     if (eMenuWidth100) eMenuWidth100.onclick = () => setViewportWidth(100);
     if (eMenuWidth50) eMenuWidth50.onclick = () => setViewportWidth(50);
+    if (eMenuFitWidth) eMenuFitWidth.onclick = () => setFitWidth(!fitWidth);
     if (eMenuMagnifier) eMenuMagnifier.onclick = () => setMagnifier(!magnifier);
     eBook.addEventListener('pointerdown', onMagnifierDown);
     eBook.addEventListener('click', onMagnifierClick, true);
+    eScroll.addEventListener('touchstart', onFitWidthTouchStart, { passive: true });
+    eScroll.addEventListener('touchmove', onFitWidthTouchMove, { passive: false });
+    eScroll.addEventListener('touchend', onFitWidthTouchEnd);
+    eScroll.addEventListener('touchcancel', onFitWidthTouchCancel);
+    eScroll.addEventListener('pointerdown', onFitWidthPointerDown);
+    eScroll.addEventListener('click', onFitWidthClick);
+    eScroll.addEventListener('scroll', onFitWidthScroll);
+    document.addEventListener('pointermove', onFitWidthPointerMove);
+    document.addEventListener('pointerup', onFitWidthPointerUp);
+    document.addEventListener('pointercancel', onFitWidthPointerUp);
     loadDisplayMode();
     updateMode();
     document.addEventListener('keydown', (e) => {
@@ -507,7 +744,13 @@ function init() {
             prev();
         }
     });
-    window.addEventListener('resize', debounce(() => loadInfo(), 300));
+    window.addEventListener('resize', debounce(() => {
+        if (fitWidth) {
+            // при изменении размера окна восстанавливаем ту же относительную позицию
+            scrollRatio = lastScrollRatio;
+        }
+        loadInfo();
+    }, 300));
     window.addEventListener('resize', debounce(() => updateMagnifier(), 100));
     loadInfo();
 }

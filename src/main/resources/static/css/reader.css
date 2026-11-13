@@ -41,6 +41,11 @@ body {
     display: block;
 }
 
+/* обёртка страницы: в обычных режимах не создаёт бокс, нужна только для скролла */
+.scroll {
+    display: contents;
+}
+
 .flash-on {
     opacity: 0.25 !important;
 }
@@ -170,6 +175,49 @@ body {
     display: block;
 }
 
+/* Режим "вписать по ширине" (для PDF): страница на всю ширину, скролл по вертикали */
+.book.fit-width {
+    align-items: stretch;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.book.fit-width .scroll {
+    display: block;
+    position: absolute;
+    inset: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+.book.fit-width #view {
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    height: auto;
+    object-fit: fill;
+    -webkit-user-drag: none;
+}
+
+.book.fit-width .btn-next,
+.book.fit-width .btn-prev {
+    /* в этом режиме листаем протяжкой за край, а не тапом по зонам */
+    display: none;
+}
+
+.book.fit-width .menu-trigger {
+    /* оставляем узкую полосу для открытия меню, чтобы не мешать скроллу */
+    height: 5%;
+}
+
+.book.fit-width .info,
+.book.fit-width .loader {
+    pointer-events: none;
+}
+
 /* Режим чтения с лупой */
 .book.magnifier-mode {
     align-items: flex-start;
@@ -178,7 +226,7 @@ body {
     touch-action: none;
 }
 
-.book.magnifier-mode > #view {
+.book.magnifier-mode #view {
     /* страница рендерится как в режиме 100%, но занимает верхние две трети */
     max-height: 66.6667%;
 }

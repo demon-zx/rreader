@@ -19,8 +19,10 @@
     <script defer type="module" th:src="@{/js/reader.js}"></script>
 
     <div id="book" class="book" th:attr="data-id=${id},data-scope=${type}">
-        <img id="view" alt="Изображение с сервера" src="" style="opacity: 1;" />
-        <div id="magnifier-frame" class="magnifier-frame"></div>
+        <div id="scroll" class="scroll">
+            <img id="view" alt="Изображение с сервера" src="" style="opacity: 1;" />
+            <div id="magnifier-frame" class="magnifier-frame"></div>
+        </div>
         <div id="magnifier" class="magnifier">
             <img id="magnifier-view" alt="" />
         </div>
@@ -37,6 +39,7 @@
             <div id="menu-settings" class="menu-item">Настройки</div>
             <div id="menu-width-100" class="menu-item" data-width="100">Ширина 100%</div>
             <div id="menu-width-50" class="menu-item" data-width="50">Ширина 50%</div>
+            <div id="menu-fit-width" class="menu-item">Вписать по ширине</div>
             <div id="menu-magnifier" class="menu-item">Чтение с лупой</div>
         </div>
     </div>
