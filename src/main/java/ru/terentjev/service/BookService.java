@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 @Service
 public class BookService {
     public static final String TYPE_NAME = Book.class.getSimpleName();
+    public static final int DEFAULT_PAGE = 0;
+    public static final int MAX_PAGE_SIZE = 100;
     private final BookRepository repository;
 
     public BookService(
@@ -131,7 +133,21 @@ public class BookService {
         return repository.count();
     }
 
-    public Page<Book> findAll(String q, int page, int pageSize) {
+    public Page<Book> findAll(String q, int page, int pageSize) throws InvalidArgumentException {
+        if (page < DEFAULT_PAGE) {
+            throw new InvalidArgumentException(
+                    MessageFormat.format("Номер страницы не может быть отрицательным: {0}", page)
+            );
+        }
+        if (pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
+            throw new InvalidArgumentException(
+                    MessageFormat.format(
+                            "Размер страницы должен быть от 1 до {0}: {1}",
+                            MAX_PAGE_SIZE,
+                            pageSize
+                    )
+            );
+        }
         Pageable p = PageRequest.of(
                 page,
                 pageSize,

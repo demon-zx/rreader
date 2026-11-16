@@ -9,7 +9,11 @@ public abstract class AbstractPageMapper<T, E> {
         List<T> converted = source.stream()
                 .map(this::from)
                 .toList();
-        return new Page<>(converted, source.getNumberOfElements(), source.getTotalPages());
+        return new Page<>(
+                converted,
+                (int) source.getTotalElements(),
+                source.getTotalPages()
+        );
     }
 
     public abstract T from(E source);

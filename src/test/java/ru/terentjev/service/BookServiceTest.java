@@ -10,10 +10,12 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
+import ru.terentjev.exception.InvalidArgumentException;
 import ru.terentjev.repository.BookRepository;
 import ru.terentjev.repository.TestH2;
 import ru.terentjev.repository.model.BookEntity;
 import ru.terentjev.service.model.Book;
+import ru.terentjev.service.model.Page;
 
 import java.net.URI;
 import java.time.Clock;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -52,9 +55,12 @@ class BookServiceTest {
 
     @Test
     void findByIdsPreservesOrderAndSkipsMissing() {
-        UUID bookA = repository.save(book()).getId();
-        UUID bookB = repository.save(book()).getId();
-        UUID bookC = repository.save(book()).getId();
+        UUID bookA = repository.save(book())
+                .getId();
+        UUID bookB = repository.save(book())
+                .getId();
+        UUID bookC = repository.save(book())
+                .getId();
         UUID missing = UUID.randomUUID();
         List<Book> books = bookService.findByIds(List.of(bookB, missing, bookA));
         assertEquals(
@@ -63,7 +69,11 @@ class BookServiceTest {
                         .map(Book::getId)
                         .toList()
         );
-        assertEquals("Author", books.get(0).getAuthor());
+        assertEquals(
+                "Author",
+                books.get(0)
+                        .getAuthor()
+        );
     }
 
     @Test
@@ -75,11 +85,75 @@ class BookServiceTest {
         );
     }
 
+    @Test
+    void findAllReturnsRequestedPageWithTotals() throws InvalidArgumentException {
+        repository.save(book("Alpha", "Author 1"));
+        repository.save(book("Beta", "Author 2"));
+        repository.save(book("Gamma", "Author 3"));
+        Page<Book> first = bookService.findAll(null, 0, 2);
+        assertEquals(3, first.getAll());
+        assertEquals(2, first.getAllPages());
+        assertEquals(
+                List.of("Alpha", "Beta"),
+                titles(first)
+        );
+        Page<Book> second = bookService.findAll(null, 1, 2);
+        assertEquals(3, second.getAll());
+        assertEquals(2, second.getAllPages());
+        assertEquals(
+                List.of("Gamma"),
+                titles(second)
+        );
+    }
+
+    @Test
+    void findAllSearchesByAuthor() throws InvalidArgumentException {
+        repository.save(book("Foundation", "Isaac Asimov"));
+        repository.save(book("Andromeda", "Ivan Efremov"));
+        Page<Book> result = bookService.findAll("asimov", 0, 10);
+        assertEquals(1, result.getAll());
+        assertEquals(
+                List.of("Foundation"),
+                titles(result)
+        );
+    }
+
+    @Test
+    void findAllRejectsNegativePage() {
+        assertThrows(
+                InvalidArgumentException.class,
+                () -> bookService.findAll(null, -1, 10)
+        );
+    }
+
+    @Test
+    void findAllRejectsPageSizeOutOfRange() {
+        assertThrows(
+                InvalidArgumentException.class,
+                () -> bookService.findAll(null, 0, 0)
+        );
+        assertThrows(
+                InvalidArgumentException.class,
+                () -> bookService.findAll(null, 0, BookService.MAX_PAGE_SIZE + 1)
+        );
+    }
+
+    private static List<String> titles(Page<Book> page) {
+        return page.getItems()
+                .stream()
+                .map(Book::getTitle)
+                .toList();
+    }
+
     private static BookEntity book() {
+        return book("Title", "Author");
+    }
+
+    private static BookEntity book(String title, String author) {
         return new BookEntity(
                 null,
-                "Title",
-                "Author",
+                title,
+                author,
                 null,
                 null,
                 null,

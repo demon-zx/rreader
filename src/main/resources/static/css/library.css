@@ -35,6 +35,11 @@
     border: 1px solid #fff;
 }
 
+.pager .pagination {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 @media (max-width: 576px) {
     .book-cover {
         width: 80px;

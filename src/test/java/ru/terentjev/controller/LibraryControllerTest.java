@@ -13,10 +13,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import ru.terentjev.exception.InvalidArgumentException;
 import ru.terentjev.service.BookRecentService;
 import ru.terentjev.service.BookService;
 import ru.terentjev.service.model.Book;
 import ru.terentjev.service.model.BookRecent;
+import ru.terentjev.service.model.Page;
 
 import java.net.URI;
 import java.util.Collections;
@@ -49,6 +51,73 @@ class LibraryControllerTest {
     private BookService bookService;
     @MockitoBean
     private BookRecentService bookRecentService;
+
+    @Test
+    void libraryReturnsRequestedPage() throws Exception {
+        UUID bookId = UUID.randomUUID();
+        when(bookService.findAll("asimov", 2, 20)).thenReturn(
+                new Page<>(
+                        List.of(book(bookId)),
+                        42,
+                        3
+                )
+        );
+        mockMvc.perform(
+                get("/api/v1/library")
+                        .with(authenticatedUser("alice"))
+                        .param("q", "asimov")
+                        .param("page", "2")
+                        .param("pageSize", "20")
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.all").value(42))
+                .andExpect(jsonPath("$.allPages").value(3))
+                .andExpect(jsonPath("$.items[0].id").value(bookId.toString()));
+        verify(bookService).findAll("asimov", 2, 20);
+    }
+
+    @Test
+    void libraryUsesDefaultPaging() throws Exception {
+        when(bookService.findAll(null, 0, 10)).thenReturn(
+                new Page<>(
+                        List.of(),
+                        0,
+                        0
+                )
+        );
+        mockMvc.perform(
+                get("/api/v1/library")
+                        .with(authenticatedUser("alice"))
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.all").value(0))
+                .andExpect(jsonPath("$.allPages").value(0))
+                .andExpect(jsonPath("$.items.length()").value(0));
+        verify(bookService).findAll(null, 0, 10);
+    }
+
+    @Test
+    void libraryReturns400WhenPagingInvalid() throws Exception {
+        when(bookService.findAll(null, -1, 10)).thenThrow(
+                new InvalidArgumentException("page")
+        );
+        mockMvc.perform(
+                get("/api/v1/library")
+                        .with(authenticatedUser("alice"))
+                        .param("page", "-1")
+        )
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void libraryReturns500WhenServiceFails() throws Exception {
+        when(bookService.findAll(null, 0, 10)).thenThrow(new IllegalStateException("boom"));
+        mockMvc.perform(
+                get("/api/v1/library")
+                        .with(authenticatedUser("alice"))
+        )
+                .andExpect(status().isInternalServerError());
+    }
 
     @Test
     void recentReturnsBooksWithReadingProgress() throws Exception {

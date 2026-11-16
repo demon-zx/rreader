@@ -36,10 +36,13 @@ public class LibraryController extends AbstractController {
     @GetMapping
     public ApiPage<ApiBook> findBooks(
             @RequestParam(required = false) String q,
-            @RequestParam int page,
-            @RequestParam int pageSize
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize
     ) {
-        return ApiBookMapper.mapper.from(bookService.findAll(q, page, pageSize));
+        return run(
+                () -> bookService.findAll(q, page, pageSize),
+                ApiBookMapper.mapper::from
+        );
     }
 
     @GetMapping("recent")
