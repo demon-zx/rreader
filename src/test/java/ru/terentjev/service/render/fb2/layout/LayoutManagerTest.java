@@ -453,6 +453,7 @@ class LayoutManagerTest {
                 null,
                 null,
                 List.of(),
+                List.of(),
                 List.of(blocks),
                 Map.of(),
                 binaries

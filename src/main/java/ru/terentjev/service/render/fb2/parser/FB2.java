@@ -15,11 +15,22 @@ public record FB2(
         @Nullable String cover,
         @Nullable String lang,
         List<Sequence> sequences,
+        List<Section> content,
         List<Block> body,
         Map<String, List<Block>> notes,
         Map<String, String> binaries
 ) {
     public record Sequence(String name, @Nullable Integer number) {
+    }
+
+    /**
+     * Раздел книги для содержания.
+     *
+     * @param title    заголовок раздела без разметки
+     * @param position позиция заголовка в тексте книги
+     * @param children вложенные разделы
+     */
+    public record Section(String title, int position, List<Section> children) {
     }
 
     public static sealed class Block permits AbstractPiecesBlock, EmptyLineBlock, ImageBlock {

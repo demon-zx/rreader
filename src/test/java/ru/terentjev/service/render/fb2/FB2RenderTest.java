@@ -5,6 +5,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import ru.terentjev.service.model.SettingKeys;
 import ru.terentjev.service.render.BundledFont;
+import ru.terentjev.service.render.Content;
 import ru.terentjev.service.render.GoldenImage;
 import ru.terentjev.service.render.Info;
 import ru.terentjev.service.render.OpenInfo;
@@ -135,6 +136,55 @@ class FB2RenderTest {
                         .values()
                         .stream()
                         .allMatch(position -> position >= 0)
+        );
+    }
+
+    @Test
+    void openReturnsHierarchicalContent() throws IOException {
+        String body = """
+                <body>
+                  <section>
+                    <title><p>Part One</p></title>
+                    <section><title><p>Chapter First</p></title><p>Text</p></section>
+                  </section>
+                  <section><title><p>Part Two</p></title><p>Text</p></section>
+                </body>
+                """;
+        OpenInfo info = render.open(
+                settings(300, 200),
+                book(METADATA, body),
+                bookDirectory,
+                bookDirectory.resolve("device")
+        );
+        assertEquals(
+                2,
+                info.getContent()
+                        .size()
+        );
+        Content partOne = info.getContent()
+                .get(0);
+        assertEquals("Part One", partOne.title());
+        assertEquals(
+                1,
+                partOne.children()
+                        .size()
+        );
+        assertEquals(
+                "Chapter First",
+                partOne.children()
+                        .get(0)
+                        .title()
+        );
+        assertEquals(
+                "Part Two",
+                info.getContent()
+                        .get(1)
+                        .title()
+        );
+        assertTrue(
+                info.getContent()
+                        .stream()
+                        .allMatch(content -> content.position() >= 0)
         );
     }
 

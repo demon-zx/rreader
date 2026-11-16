@@ -58,22 +58,50 @@ class BookRecentServiceTest {
         when(bookService.findByIds(argThat(ids -> ids.equals(Set.of(bookA, bookB)))))
                 .thenReturn(List.of(book(bookA), book(bookB)));
         when(renderService.open(eq(bookA), eq(device), eq(800), eq(600))).thenReturn(
-                new OpenInfo("Author A", "Title A", 10, null, null, Map.of(1, 0, 5, 1000, 10, 2000))
+                new OpenInfo("Author A", "Title A", 10, null, null, Map.of(1, 0, 5, 1000, 10, 2000), List.of())
         );
         when(renderService.open(eq(bookB), eq(device), eq(800), eq(600))).thenReturn(
-                new OpenInfo("Author B", "Title B", 10, null, null, Map.of())
+                new OpenInfo("Author B", "Title B", 10, null, null, Map.of(), List.of())
         );
         List<BookRecent> recent = service.findRecent("alice", 4, device, 800, 600);
         assertEquals(2, recent.size());
-        assertEquals(bookA, recent.get(0).getId());
-        assertEquals(1500L, recent.get(0).getPosition());
-        assertEquals(10, recent.get(0).getPages());
+        assertEquals(
+                bookA,
+                recent.get(0)
+                        .getId()
+        );
+        assertEquals(
+                1500L,
+                recent.get(0)
+                        .getPosition()
+        );
+        assertEquals(
+                10,
+                recent.get(0)
+                        .getPages()
+        );
         // позиция 1500 → страница 5 (позиция 1000 <= 1500, 2000 > 1500)
-        assertEquals(50, recent.get(0).getPercent());
-        assertEquals(bookB, recent.get(1).getId());
-        assertEquals(3L, recent.get(1).getPosition());
+        assertEquals(
+                50,
+                recent.get(0)
+                        .getPercent()
+        );
+        assertEquals(
+                bookB,
+                recent.get(1)
+                        .getId()
+        );
+        assertEquals(
+                3L,
+                recent.get(1)
+                        .getPosition()
+        );
         // PDF: без соответствия «страница → позиция» номер страницы равен позиции
-        assertEquals(30, recent.get(1).getPercent());
+        assertEquals(
+                30,
+                recent.get(1)
+                        .getPercent()
+        );
         verify(bookmarkService).findRecent("alice", 4);
         verify(bookService).findByIds(Set.of(bookA, bookB));
     }
@@ -86,10 +114,14 @@ class BookRecentServiceTest {
         );
         when(bookService.findByIds(Set.of(bookA))).thenReturn(List.of(book(bookA)));
         when(renderService.open(eq(bookA), eq(device), eq(800), eq(600))).thenReturn(
-                new OpenInfo("Author A", "Title A", 10, null, null, Map.of(1, 0, 10, 2000))
+                new OpenInfo("Author A", "Title A", 10, null, null, Map.of(1, 0, 10, 2000), List.of())
         );
         List<BookRecent> recent = service.findRecent("alice", 4, device, 800, 600);
-        assertEquals(100, recent.get(0).getPercent());
+        assertEquals(
+                100,
+                recent.get(0)
+                        .getPercent()
+        );
     }
 
     @Test
@@ -100,11 +132,15 @@ class BookRecentServiceTest {
         );
         when(bookService.findByIds(Set.of(bookA))).thenReturn(List.of(book(bookA)));
         when(renderService.open(eq(bookA), eq(device), eq(800), eq(600))).thenReturn(
-                new OpenInfo("Author A", "Title A", 10, null, null, Map.of(1, 0, 5, 1000, 10, 2000))
+                new OpenInfo("Author A", "Title A", 10, null, null, Map.of(1, 0, 5, 1000, 10, 2000), List.of())
         );
         List<BookRecent> recent = service.findRecent("alice", 4, device, 800, 600);
         // позиция 0 не дальше первой страницы
-        assertEquals(10, recent.get(0).getPercent());
+        assertEquals(
+                10,
+                recent.get(0)
+                        .getPercent()
+        );
     }
 
     @Test
@@ -115,10 +151,14 @@ class BookRecentServiceTest {
         );
         when(bookService.findByIds(Set.of(bookA))).thenReturn(List.of(book(bookA)));
         when(renderService.open(eq(bookA), eq(device), eq(800), eq(600))).thenReturn(
-                new OpenInfo("Author A", "Title A", 0, null, null, Map.of())
+                new OpenInfo("Author A", "Title A", 0, null, null, Map.of(), List.of())
         );
         List<BookRecent> recent = service.findRecent("alice", 4, device, 800, 600);
-        assertEquals(0, recent.get(0).getPercent());
+        assertEquals(
+                0,
+                recent.get(0)
+                        .getPercent()
+        );
     }
 
     @Test
@@ -133,11 +173,15 @@ class BookRecentServiceTest {
         );
         when(bookService.findByIds(Set.of(bookA, bookB))).thenReturn(List.of(book(bookA)));
         when(renderService.open(eq(bookA), eq(device), eq(800), eq(600))).thenReturn(
-                new OpenInfo("Author A", "Title A", 10, null, null, Map.of())
+                new OpenInfo("Author A", "Title A", 10, null, null, Map.of(), List.of())
         );
         List<BookRecent> recent = service.findRecent("alice", 4, device, 800, 600);
         assertEquals(1, recent.size());
-        assertEquals(bookA, recent.get(0).getId());
+        assertEquals(
+                bookA,
+                recent.get(0)
+                        .getId()
+        );
         verify(renderService, never()).open(eq(bookB), any(), anyInt(), anyInt());
     }
 

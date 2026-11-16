@@ -22,6 +22,10 @@ let eMenuMagnifier;
 let eMagnifier;
 let eMagnifierView;
 let eMagnifierFrame;
+let eContent;
+let eContentList;
+let eContentEmpty;
+let eContentClose;
 let menuTimeout;
 let baseBookUrl;
 let baseBookmarkUrl;
@@ -49,6 +53,9 @@ let lastScrollRatio = 0;
 let swipeGesture = null;
 let suppressSwipeClick = false;
 let suppressSwipeClickTimeout;
+let bookContent = [];
+let contentNodes = new Map();
+const expandedContentPaths = new Set();
 
 export function showError(error) {
     loader(false);
@@ -97,6 +104,7 @@ function showPage(page) {
             loader(false);
             applyPendingScroll();
             requestAnimationFrame(syncMagnifier);
+            updateContentHighlight();
         }
         image.src = url;
     })
@@ -164,6 +172,8 @@ function loadInfo() {
             if (eTitle) eTitle.innerHTML = data.title;
             if (eAuthor) eAuthor.innerHTML = data.author;
             positionByPage = data.positionByPage;
+            bookContent = data.content || [];
+            renderContent();
             if (onFocusNotInit) {
                 onFocusNotInit = false
                 window.addEventListener('focus', () => loadPosition());
@@ -223,6 +233,174 @@ function toggleMenu() {
     } else {
         showMenu();
     }
+}
+
+function showContent() {
+    hideMenu();
+    eContent.classList.add('content-visible');
+    const current = updateContentHighlight();
+    if (current) {
+        // при открытии показываем текущий раздел на экране
+        requestAnimationFrame(() => current.scrollIntoView({ block: 'center' }));
+    }
+}
+
+function hideContent() {
+    eContent.classList.remove('content-visible');
+}
+
+/**
+ * Перестраивает содержание, сохраняя раскрытые пользователем разделы.
+ */
+function renderContent() {
+    contentNodes.clear();
+    eContentList.innerHTML = '';
+    if (!bookContent.length) {
+        eContentEmpty.style.display = 'block';
+        return;
+    }
+    eContentEmpty.style.display = 'none';
+    eContentList.appendChild(contentList(bookContent, 0, ''));
+    updateContentHighlight();
+}
+
+function contentList(items, level, parentPath) {
+    const list = document.createElement('ul');
+    list.className = level === 0 ? 'content-list' : 'content-list content-children';
+    items.forEach((item, index) => {
+        const path = parentPath ? `${parentPath}.${index}` : String(index);
+        list.appendChild(contentNode(item, level, path));
+    });
+    return list;
+}
+
+function contentNode(item, level, path) {
+    const children = item.children || [];
+    const page = positionToPage(item.position);
+    const li = document.createElement('li');
+    li.className = 'content-node';
+    if (expandedContentPaths.has(path)) {
+        li.classList.add('content-expanded');
+    }
+
+    const row = document.createElement('div');
+    row.className = 'content-row';
+    row.dataset.path = path;
+    row.dataset.page = String(page);
+    // отступ задаёт уровень вложенности
+    row.style.paddingLeft = `${0.5 + level * 1.25}rem`;
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'content-toggle';
+    if (children.length) {
+        toggle.textContent = li.classList.contains('content-expanded') ? '▾' : '▸';
+        toggle.setAttribute('aria-expanded', String(li.classList.contains('content-expanded')));
+    } else {
+        toggle.classList.add('content-toggle-empty');
+        toggle.tabIndex = -1;
+    }
+
+    const name = document.createElement('span');
+    name.className = 'content-name';
+    name.textContent = item.title || 'Без названия';
+
+    const pageButton = document.createElement('button');
+    pageButton.type = 'button';
+    pageButton.className = 'content-page';
+    pageButton.textContent = page;
+    pageButton.title = 'Перейти на страницу ' + page;
+
+    row.append(toggle, name, pageButton);
+    li.appendChild(row);
+
+    contentNodes.set(path, { li, row, toggle, page });
+
+    if (children.length) {
+        toggle.addEventListener('click', event => {
+            event.stopPropagation();
+            toggleContent(path);
+        });
+        // клик по разделу раскрывает следующий уровень,
+        // переход выполняется по номеру страницы
+        row.addEventListener('click', () => toggleContent(path));
+        li.appendChild(contentList(children, level + 1, path));
+    } else {
+        row.addEventListener('click', () => goToContentPage(path));
+    }
+    pageButton.addEventListener('click', event => {
+        event.stopPropagation();
+        goToContentPage(path);
+    });
+
+    return li;
+}
+
+function toggleContent(path) {
+    const node = contentNodes.get(path);
+    if (!node || !node.li.querySelector(':scope > .content-children')) {
+        return;
+    }
+    const expanded = !node.li.classList.contains('content-expanded');
+    node.li.classList.toggle('content-expanded', expanded);
+    node.toggle.textContent = expanded ? '▾' : '▸';
+    node.toggle.setAttribute('aria-expanded', String(expanded));
+    if (expanded) {
+        expandedContentPaths.add(path);
+    } else {
+        expandedContentPaths.delete(path);
+    }
+    updateContentHighlight();
+}
+
+function goToContentPage(path) {
+    const node = contentNodes.get(path);
+    if (!node) {
+        return;
+    }
+    hideContent();
+    pendingScroll = 'top';
+    showPage(Math.min(Math.max(node.page, 1), pages || node.page));
+}
+
+/**
+ * Выделяет текущий раздел среди видимых строк содержания.
+ *
+ * @returns {HTMLElement|null} строка текущего раздела
+ */
+function updateContentHighlight() {
+    if (!eContentList) {
+        return null;
+    }
+    const rows = Array.from(eContentList.querySelectorAll('.content-row'));
+    for (const row of rows) {
+        row.classList.remove('content-current', 'content-parent');
+    }
+    let current = null;
+    for (const row of rows) {
+        if (row.getClientRects().length === 0) {
+            continue;
+        }
+        const page = Number(row.dataset.page);
+        if (!isNaN(page) && page <= currentPage) {
+            current = row;
+        }
+    }
+    if (!current) {
+        return null;
+    }
+    current.classList.add('content-current');
+    // выделяем и все родительские разделы текущего
+    let list = current.closest('.content-children');
+    while (list) {
+        const parentRow = list.parentElement.querySelector(':scope > .content-row');
+        if (parentRow) {
+            parentRow.classList.add('content-parent');
+        }
+        const outer = list.parentElement.parentElement;
+        list = outer && outer.classList.contains('content-children') ? outer : null;
+    }
+    return current;
 }
 
 function clamp(value, min, max) {
@@ -419,7 +597,7 @@ function magnifierGesture(event) {
     if (!magnifier) {
         return null;
     }
-    if (event.target.closest('#menu, #menu-trigger')) {
+    if (event.target.closest('#menu, #menu-trigger, #content')) {
         return null;
     }
     const rect = eBook.getBoundingClientRect();
@@ -629,7 +807,7 @@ function finishSwipeGesture(x, y) {
 }
 
 function swipeStartsOnControl(event) {
-    return !!(event.target.closest && event.target.closest('#menu, #magnifier'));
+    return !!(event.target.closest && event.target.closest('#menu, #magnifier, #content'));
 }
 
 function onSwipeTouchStart(event) {
@@ -762,6 +940,10 @@ function init() {
     eMagnifier = document.getElementById('magnifier');
     eMagnifierView = document.getElementById('magnifier-view');
     eMagnifierFrame = document.getElementById('magnifier-frame');
+    eContent = document.getElementById('content');
+    eContentList = document.getElementById('content-list');
+    eContentEmpty = document.getElementById('content-empty');
+    eContentClose = document.getElementById('content-close');
     bookType = eBook.getAttribute('data-scope');
     eView.draggable = false;
     const id = eBook.getAttribute('data-id');
@@ -770,6 +952,9 @@ function init() {
     document.getElementById('next').onclick = () => next();
     document.getElementById('prev').onclick = () => prev();
     eMenuTrigger.onclick = () => toggleMenu();
+    const eMenuContent = document.getElementById('menu-content');
+    if (eMenuContent) eMenuContent.onclick = () => showContent();
+    if (eContentClose) eContentClose.onclick = () => hideContent();
     const eMenuSettings = document.getElementById('menu-settings');
     if (eMenuSettings) eMenuSettings.onclick = () => {
         const scope = eBook.getAttribute('data-scope') || 'GLOBAL';
@@ -795,6 +980,13 @@ function init() {
     loadDisplayMode();
     updateMode();
     document.addEventListener('keydown', (e) => {
+        if (eContent.classList.contains('content-visible')) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                hideContent();
+            }
+            return;
+        }
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
             e.preventDefault();
             next();

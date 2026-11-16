@@ -7,9 +7,12 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import ru.terentjev.service.render.Content;
 import ru.terentjev.service.render.GoldenImage;
 import ru.terentjev.service.render.Info;
 import ru.terentjev.service.render.OpenInfo;
@@ -23,6 +26,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -68,6 +73,49 @@ class PDFRenderTest {
         assertEquals(3, info.getPages());
         assertTrue(
                 info.getPositionByPage()
+                        .isEmpty()
+        );
+        assertTrue(
+                info.getContent()
+                        .isEmpty()
+        );
+    }
+
+    @Test
+    void openBuildsHierarchicalContentFromOutline() throws IOException {
+        OpenInfo info = render.open(
+                new RenderSettings(1080, 1527),
+                pdfWithOutline(),
+                bookDirectory,
+                bookDirectory.resolve("device")
+        );
+        List<Content> content = info.getContent();
+        assertEquals(2, content.size());
+        Content first = content.get(0);
+        assertEquals("Chapter 1", first.title());
+        assertEquals(1, first.position());
+        assertEquals(
+                1,
+                first.children()
+                        .size()
+        );
+        assertEquals(
+                "Section 1.1",
+                first.children()
+                        .get(0)
+                        .title()
+        );
+        assertEquals(
+                2,
+                first.children()
+                        .get(0)
+                        .position()
+        );
+        Content second = content.get(1);
+        assertEquals("Chapter 2", second.title());
+        assertEquals(3, second.position());
+        assertTrue(
+                second.children()
                         .isEmpty()
         );
     }
@@ -133,10 +181,45 @@ class PDFRenderTest {
             information.setAuthor(AUTHOR);
             information.setTitle(TITLE);
             document.setDocumentInformation(information);
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            document.save(os);
-            return new ByteArrayInputStream(os.toByteArray());
+            return save(document);
         }
+    }
+
+    private static InputStream pdfWithOutline() throws IOException {
+        try (PDDocument document = new PDDocument()) {
+            List<PDPage> pages = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                PDPage page = new PDPage(PDRectangle.A6);
+                document.addPage(page);
+                pages.add(page);
+            }
+            PDDocumentOutline outline = new PDDocumentOutline();
+            PDOutlineItem first = outlineItem(" Chapter 1 ", pages.get(0));
+            PDOutlineItem child = outlineItem("Section 1.1", pages.get(1));
+            first.addLast(child);
+            outline.addLast(first);
+            outline.addLast(outlineItem("Chapter 2", pages.get(2)));
+            document.getDocumentCatalog()
+                    .setDocumentOutline(outline);
+            PDDocumentInformation information = new PDDocumentInformation();
+            information.setAuthor(AUTHOR);
+            information.setTitle(TITLE);
+            document.setDocumentInformation(information);
+            return save(document);
+        }
+    }
+
+    private static PDOutlineItem outlineItem(String title, PDPage page) {
+        PDOutlineItem item = new PDOutlineItem();
+        item.setTitle(title);
+        item.setDestination(page);
+        return item;
+    }
+
+    private static InputStream save(PDDocument document) throws IOException {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        document.save(os);
+        return new ByteArrayInputStream(os.toByteArray());
     }
 
     private static boolean samePixels(BufferedImage first, BufferedImage second) {

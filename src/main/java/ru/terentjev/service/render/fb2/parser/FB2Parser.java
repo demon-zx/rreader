@@ -22,8 +22,10 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -76,6 +78,12 @@ public class FB2Parser {
     private String binaryId;
     private String binaryType;
     private String linkHref;
+    private final Deque<SectionBuilder> sections = new ArrayDeque<>();
+    private final List<SectionBuilder> sectionTree = new ArrayList<>();
+    private StringBuilder sectionTitle;
+    private int sectionTitlePosition;
+    private boolean contentBody;
+    private boolean contentBodyStarted;
     // > book info
     private LocalDate date;
     private String cover;
@@ -126,7 +134,7 @@ public class FB2Parser {
         } catch (XMLStreamException e) {
             throw new IOException("Failed to parse FB2 stream", e);
         }
-        return new FB2(title, genres, authors, date, cover, language, sequences, body, notes, binaries);
+        return new FB2(title, genres, authors, date, cover, language, sequences, content(), body, notes, binaries);
     }
 
     private boolean in(String tag) {
@@ -149,7 +157,11 @@ public class FB2Parser {
     }
 
     private void text(XMLStreamReader reader) {
-        textAccumulator.append(reader.getText());
+        String value = reader.getText();
+        textAccumulator.append(value);
+        if (sectionTitle != null) {
+            sectionTitle.append(value);
+        }
     }
 
     private void start(XMLStreamReader reader) {
@@ -163,7 +175,13 @@ public class FB2Parser {
             case "body" -> body(reader);
             case SECTION -> sectionStart(reader);
             case "image" -> image(reader);
-            case "empty-line" -> blockHandler.accept(new EmptyLineBlock(position));
+            case "title" -> sectionTitleStart();
+            case "empty-line" -> {
+                if (sectionTitle != null) {
+                    sectionTitle.append(' ');
+                }
+                blockHandler.accept(new EmptyLineBlock(position));
+            }
             case "a" -> linkStart(reader);
             case STRONG -> {
                 style();
@@ -183,6 +201,8 @@ public class FB2Parser {
         String name = reader.getLocalName();
         switch (name) {
             case SECTION -> sectionEnd();
+            case "body" -> contentBody = false;
+            case "title" -> sectionTitleEnd();
             case GENRE -> genre(reader);
             case AUTHOR -> author();
             case FIRST_NAME -> nameFirst();
@@ -215,6 +235,10 @@ public class FB2Parser {
 
     private void body(XMLStreamReader reader) {
         String name = StringUtils.trimToNull(reader.getAttributeValue(null, "name"));
+        contentBody = name == null && !contentBodyStarted;
+        if (contentBody) {
+            contentBodyStarted = true;
+        }
         if (body.isEmpty() && name == null) {
             blockHandler = block -> body.add(block);
             imageHandler = href -> {
@@ -236,10 +260,70 @@ public class FB2Parser {
 
     private void sectionStart(XMLStreamReader reader) {
         sectionId = StringUtils.trimToNull(reader.getAttributeValue(null, "id"));
+        if (contentBody) {
+            SectionBuilder section = new SectionBuilder(position);
+            if (sections.isEmpty()) {
+                sectionTree.add(section);
+            } else {
+                sections.peek().children.add(section);
+            }
+            sections.push(section);
+        }
     }
 
     private void sectionEnd() {
+        if (!sections.isEmpty()) {
+            sections.pop();
+        }
         sectionId = null;
+    }
+
+    private void sectionTitleStart() {
+        if (contentBody && !sections.isEmpty()) {
+            sectionTitle = new StringBuilder();
+            sectionTitlePosition = position;
+        }
+    }
+
+    /**
+     * Сохраняет заголовок раздела без разметки. Вложенные теги и лишние пробелы удаляются.
+     */
+    private void sectionTitleEnd() {
+        if (sectionTitle == null) {
+            return;
+        }
+        String value = StringUtils.normalizeSpace(sectionTitle.toString());
+        sectionTitle = null;
+        if (StringUtils.isEmpty(value) || sections.isEmpty()) {
+            return;
+        }
+        SectionBuilder section = sections.peek();
+        // заголовок раздела встречается в книге один раз, повторный не перетирает первый
+        if (section.title == null) {
+            section.title = value;
+            section.position = sectionTitlePosition;
+        }
+    }
+
+    private List<FB2.Section> content() {
+        return content(sectionTree);
+    }
+
+    /**
+     * Преобразует дерево разбора в содержание. Разделы без заголовка не показываются,
+     * их вложенные разделы поднимаются на уровень выше.
+     */
+    private static List<FB2.Section> content(List<SectionBuilder> sections) {
+        List<FB2.Section> result = new ArrayList<>();
+        for (SectionBuilder section : sections) {
+            List<FB2.Section> children = content(section.children);
+            if (section.title == null) {
+                result.addAll(children);
+            } else {
+                result.add(new FB2.Section(section.title, section.position, children));
+            }
+        }
+        return result;
     }
 
     private void binaryStart(XMLStreamReader reader) {
@@ -309,6 +393,9 @@ public class FB2Parser {
 
     private void paragraph() {
         piece();
+        if (sectionTitle != null) {
+            sectionTitle.append(' ');
+        }
         if (!pieces.isEmpty()) {
             blockHandler.accept(paragraphBlock(List.copyOf(pieces)));
             pieces.clear();
@@ -399,6 +486,16 @@ public class FB2Parser {
                     log.warn("Cannot parse sequence number '{}'", number);
                 }
             }
+        }
+    }
+
+    private static class SectionBuilder {
+        private int position;
+        private String title;
+        private final List<SectionBuilder> children = new ArrayList<>();
+
+        private SectionBuilder(int position) {
+            this.position = position;
         }
     }
 }

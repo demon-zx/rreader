@@ -2,6 +2,7 @@ package ru.terentjev.service.render.fb2;
 
 import org.springframework.stereotype.Component;
 
+import ru.terentjev.service.render.Content;
 import ru.terentjev.service.render.Info;
 import ru.terentjev.service.render.OpenInfo;
 import ru.terentjev.service.render.Render;
@@ -137,8 +138,19 @@ public class FB2Render implements Render {
                         .orElse(null),
                 sequence.map(Sequence::number)
                         .orElse(null),
-                positionByPage
+                positionByPage,
+                content(document.content())
         );
+    }
+
+    private static List<Content> content(List<FB2.Section> sections) {
+        return sections.stream()
+                .map(FB2Render::content)
+                .toList();
+    }
+
+    private static Content content(FB2.Section section) {
+        return new Content(section.title(), section.position(), content(section.children()));
     }
 
     @Override

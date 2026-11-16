@@ -36,11 +36,23 @@
         <div id="menu-trigger" class="overlay menu-trigger">Меню</div>
         <div id="menu" class="menu menu-hidden">
             <div class="menu-item" onclick="window.location.href='/'">Библиотека</div>
+            <div id="menu-content" class="menu-item">Содержание</div>
             <div id="menu-settings" class="menu-item">Настройки</div>
             <div id="menu-width-100" class="menu-item" data-width="100">Ширина 100%</div>
             <div id="menu-width-50" class="menu-item" data-width="50">Ширина 50%</div>
             <div id="menu-fit-width" class="menu-item">Вписать по ширине</div>
             <div id="menu-magnifier" class="menu-item">Чтение с лупой</div>
+        </div>
+
+        <div id="content" class="content">
+            <div class="content-header">
+                <span class="content-heading">Содержание</span>
+                <button id="content-close" class="content-close" type="button" aria-label="Закрыть">×</button>
+            </div>
+            <div class="content-body">
+                <div id="content-list"></div>
+                <div id="content-empty" class="content-empty">Содержание недоступно</div>
+            </div>
         </div>
     </div>
 

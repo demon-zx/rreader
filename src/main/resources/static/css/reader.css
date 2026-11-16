@@ -125,6 +125,141 @@ body {
     background: rgba(0, 0, 0, 0.05);
 }
 
+/* Страница содержания книги */
+.content {
+    position: absolute;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    background: #f2f2f2;
+    overflow: hidden;
+}
+
+.content.content-visible {
+    display: flex;
+}
+
+.content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: none;
+    padding: 0.75rem 1rem;
+    background: rgba(224, 224, 224, 0.98);
+    border-bottom: 2px outset rgb(70, 70, 70);
+}
+
+.content-heading {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.content-close {
+    border: none;
+    background: transparent;
+    font-size: 1.75rem;
+    line-height: 1;
+    padding: 0 0.5rem;
+    cursor: pointer;
+    color: black;
+}
+
+.content-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem 0 1rem;
+}
+
+.content-list {
+    list-style: none;
+}
+
+.content-children {
+    display: none;
+    list-style: none;
+}
+
+.content-node.content-expanded > .content-children {
+    display: block;
+}
+
+.content-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    padding-right: 1rem;
+    padding-bottom: 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.content-row:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.content-toggle {
+    flex: none;
+    width: 1.5rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #555;
+    font-size: 1rem;
+    text-align: center;
+    cursor: pointer;
+}
+
+.content-toggle-empty {
+    visibility: hidden;
+    cursor: default;
+}
+
+.content-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.content-page {
+    flex: none;
+    padding: 0.25rem 0.5rem;
+    border: none;
+    background: transparent;
+    color: #555;
+    font-size: 1rem;
+    text-decoration: underline dotted;
+    cursor: pointer;
+}
+
+.content-page:hover {
+    color: black;
+}
+
+.content-current {
+    background: #dbe6f5;
+}
+
+.content-current .content-name {
+    font-weight: 600;
+    color: #0a58ca;
+}
+
+.content-parent .content-name {
+    font-weight: 600;
+}
+
+.content-empty {
+    display: none;
+    padding: 1rem 1.5rem;
+    color: #555;
+}
+
 .info {
     position: absolute;
     background-color: transparent;

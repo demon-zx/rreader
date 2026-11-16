@@ -9,6 +9,7 @@ import ru.terentjev.service.render.fb2.parser.FB2.EmptyLineBlock;
 import ru.terentjev.service.render.fb2.parser.FB2.ImageBlock;
 import ru.terentjev.service.render.fb2.parser.FB2.ParagraphBlock;
 import ru.terentjev.service.render.fb2.parser.FB2.Piece;
+import ru.terentjev.service.render.fb2.parser.FB2.Section;
 import ru.terentjev.service.render.fb2.parser.FB2.Sequence;
 import ru.terentjev.service.render.fb2.parser.FB2.SubTitleBlock;
 import ru.terentjev.service.render.fb2.parser.FB2.TitleBlock;
@@ -30,7 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FB2ParserTest {
-    private static final String NS = "xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\"" + " xmlns:l=\"http://www.w3.org/1999/xlink\"";
+    private static final String NS = "xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\"" +
+            " xmlns:l=\"http://www.w3.org/1999/xlink\"";
     @TempDir
     Path workDirectory;
     // ---------------------------------------------------------------------
@@ -333,6 +335,129 @@ class FB2ParserTest {
         );
     }
     // ---------------------------------------------------------------------
+    // content
+    // ---------------------------------------------------------------------
+
+    @Test
+    void buildsHierarchicalContentFromSectionTitles() throws IOException {
+        FB2 fb2 = parse("""
+                <description><title-info><book-title>T</book-title></title-info></description>
+                <body>
+                  <section>
+                    <title><p>Part <strong>One</strong></p><p>Extra</p></title>
+                    <p>Text</p>
+                    <section>
+                      <title><p>Chapter <emphasis>First</emphasis></p></title>
+                      <p>Inner</p>
+                      <section>
+                        <title><p>Deep</p></title>
+                        <p>Deep text</p>
+                      </section>
+                    </section>
+                  </section>
+                  <section>
+                    <title><p>Part Two</p></title>
+                  </section>
+                </body>
+                """);
+        List<FB2.Section> content = fb2.content();
+        assertEquals(2, content.size());
+        FB2.Section partOne = content.get(0);
+        assertEquals("Part One Extra", partOne.title());
+        assertEquals(
+                1,
+                partOne.children()
+                        .size()
+        );
+        FB2.Section chapter = partOne.children()
+                .get(0);
+        assertEquals("Chapter First", chapter.title());
+        assertEquals(
+                1,
+                chapter.children()
+                        .size()
+        );
+        FB2.Section deep = chapter.children()
+                .get(0);
+        assertEquals("Deep", deep.title());
+        assertTrue(
+                deep.children()
+                        .isEmpty()
+        );
+        assertEquals(
+                "Part Two",
+                content.get(1)
+                        .title()
+        );
+    }
+
+    @Test
+    void promotesContentOfUntitledSections() throws IOException {
+        FB2 fb2 = parse("""
+                <description><title-info><book-title>T</book-title></title-info></description>
+                <body>
+                  <section>
+                    <p>Wrapper</p>
+                    <section>
+                      <title><p>Chapter</p></title>
+                      <p>Text</p>
+                    </section>
+                  </section>
+                </body>
+                """);
+        List<FB2.Section> content = fb2.content();
+        assertEquals(1, content.size());
+        assertEquals(
+                "Chapter",
+                content.get(0)
+                        .title()
+        );
+    }
+
+    @Test
+    void ignoresNotesBodyInContent() throws IOException {
+        FB2 fb2 = parse("""
+                <description><title-info><book-title>T</book-title></title-info></description>
+                <body><section><title><p>Main</p></title><p>Text</p></section></body>
+                <body name="notes">
+                  <section id="n1"><title><p>Note</p></title><p>First note</p></section>
+                </body>
+                """);
+        assertEquals(
+                1,
+                fb2.content()
+                        .size()
+        );
+        assertEquals(
+                "Main",
+                fb2.content()
+                        .get(0)
+                        .title()
+        );
+    }
+
+    @Test
+    void ignoresTopLevelTitleInContent() throws IOException {
+        FB2 fb2 = parse("""
+                <description><title-info><book-title>T</book-title></title-info></description>
+                <body>
+                  <title><p>Book title</p></title>
+                  <section><title><p>Chapter</p></title><p>Text</p></section>
+                </body>
+                """);
+        assertEquals(
+                1,
+                fb2.content()
+                        .size()
+        );
+        assertEquals(
+                "Chapter",
+                fb2.content()
+                        .get(0)
+                        .title()
+        );
+    }
+    // ---------------------------------------------------------------------
     // notes body
     // ---------------------------------------------------------------------
 
@@ -419,7 +544,13 @@ class FB2ParserTest {
     }
 
     private static String wrap(String body, String encoding) {
-        return "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>\n" + "<FictionBook " + NS + ">" + body + "</FictionBook>";
+        return "<?xml version=\"1.0\" encoding=\"" + encoding +
+                "\"?>\n" +
+                "<FictionBook " +
+                NS +
+                ">" +
+                body +
+                "</FictionBook>";
     }
 
     private static Block onlyBlock(FB2 fb2) {
